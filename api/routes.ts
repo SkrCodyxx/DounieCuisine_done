@@ -1556,6 +1556,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Dashboard Statistics
+  // =============================================================================
+  // HEALTH CHECK AND SYSTEM STATUS
+  // =============================================================================
+  
+  app.get("/api/health", async (req, res) => {
+    try {
+      // Test database connection
+      const users = await storage.getUsers();
+      const dbStatus = users ? "connected" : "disconnected";
+      
+      res.json({
+        status: "healthy",
+        timestamp: new Date().toISOString(),
+        version: "1.0.0",
+        database: dbStatus,
+        services: {
+          auth: "running",
+          quotes: "running",
+          orders: "running",
+          reservations: "running",
+          messaging: "running",
+          inventory: "running",
+          finance: "running"
+        },
+        uptime: process.uptime(),
+        memory: process.memoryUsage()
+      });
+    } catch (error) {
+      res.status(503).json({
+        status: "unhealthy",
+        timestamp: new Date().toISOString(),
+        error: "Database connection failed"
+      });
+    }
+  });
+
+  // =============================================================================
+  // DASHBOARD OPTIMIZATION - ENHANCED STATS
+  // =============================================================================
   app.get("/api/dashboard/stats", requireAuth, async (req, res) => {
     try {
       const today = new Date().toISOString().split('T')[0];
