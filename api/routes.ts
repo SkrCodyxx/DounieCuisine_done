@@ -482,7 +482,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Devis non trouvé" });
       }
       
-      res.json({ message: "Devis envoyé", quote });
+      // Note: Envoi d'email désactivé - gestion manuelle recommandée
+      res.json({ 
+        message: "Devis marqué comme envoyé (notification manuelle requise)", 
+        quote,
+        note: "Veuillez contacter le client manuellement pour lui transmettre le devis"
+      });
     } catch (error) {
       res.status(500).json({ message: "Erreur serveur" });
     }
