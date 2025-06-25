@@ -1,6 +1,7 @@
 #!/bin/bash
 # Script de déploiement principal pour Dounie Cuisine sur VPS
 # Usage: ./deploy-vps.sh [domain]
+# Version corrigée - Fonctionne depuis n'importe où
 
 set -e
 
@@ -9,6 +10,10 @@ DOMAIN=${1:-"localhost"}
 PROJECT_NAME="dounie-cuisine"
 INSTALL_DIR="/var/www/html"
 BACKUP_DIR="/backup/dounie-cuisine"
+
+# Détection du répertoire source
+SOURCE_DIR=""
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Couleurs pour l'affichage
 RED='\033[0;31m'
@@ -21,6 +26,47 @@ log_info() { echo -e "${BLUE}[INFO]${NC} $1"; }
 log_success() { echo -e "${GREEN}[SUCCESS]${NC} $1"; }
 log_warning() { echo -e "${YELLOW}[WARNING]${NC} $1"; }
 log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
+
+# Détection intelligente du répertoire source
+detect_source_directory() {
+    log_info "🔍 Détection du répertoire source du projet..."
+    
+    # Vérifier si nous sommes dans le répertoire du projet
+    if [[ -f "package.json" && -d "api" && -d "public" && -d "administration" ]]; then
+        SOURCE_DIR="$(pwd)"
+        log_success "Projet détecté dans le répertoire courant: $SOURCE_DIR"
+        return 0
+    fi
+    
+    # Vérifier si nous sommes dans un sous-répertoire du projet
+    local current_dir="$(pwd)"
+    while [[ "$current_dir" != "/" ]]; do
+        if [[ -f "$current_dir/package.json" && -d "$current_dir/api" && -d "$current_dir/public" && -d "$current_dir/administration" ]]; then
+            SOURCE_DIR="$current_dir"
+            log_success "Projet détecté dans le répertoire parent: $SOURCE_DIR"
+            return 0
+        fi
+        current_dir="$(dirname "$current_dir")"
+    done
+    
+    # Vérifier dans le répertoire du script
+    if [[ -f "$SCRIPT_DIR/package.json" && -d "$SCRIPT_DIR/api" && -d "$SCRIPT_DIR/public" && -d "$SCRIPT_DIR/administration" ]]; then
+        SOURCE_DIR="$SCRIPT_DIR"
+        log_success "Projet détecté dans le répertoire du script: $SOURCE_DIR"
+        return 0
+    fi
+    
+    # Vérifier si le projet est déjà installé dans /var/www/html
+    if [[ -f "${INSTALL_DIR}/${PROJECT_NAME}/package.json" && -d "${INSTALL_DIR}/${PROJECT_NAME}/api" && -d "${INSTALL_DIR}/${PROJECT_NAME}/public" && -d "${INSTALL_DIR}/${PROJECT_NAME}/administration" ]]; then
+        SOURCE_DIR="${INSTALL_DIR}/${PROJECT_NAME}"
+        log_success "Projet déjà présent dans le répertoire d'installation: $SOURCE_DIR"
+        return 0
+    fi
+    
+    log_error "Impossible de localiser le projet Dounie Cuisine"
+    log_error "Assurez-vous d'exécuter ce script depuis le répertoire du projet ou d'avoir copié les fichiers au préalable"
+    exit 1
+}
 
 # Vérifications initiales
 check_environment() {
@@ -45,19 +91,29 @@ check_environment() {
 prepare_deployment() {
     log_info "Préparation du déploiement..."
     
+    # Détection du répertoire source
+    detect_source_directory
+    
     # Créer les répertoires nécessaires
     mkdir -p $INSTALL_DIR
     mkdir -p $BACKUP_DIR
     mkdir -p /var/log/dounie-cuisine
     
-    # Copier le projet dans le répertoire d'installation
-    if [ -d "${INSTALL_DIR}/${PROJECT_NAME}" ]; then
-        log_warning "Installation existante détectée. Création d'une sauvegarde..."
-        cp -r "${INSTALL_DIR}/${PROJECT_NAME}" "${BACKUP_DIR}/backup-$(date +%Y%m%d_%H%M%S)"
+    # Copier le projet dans le répertoire d'installation si nécessaire
+    if [[ "$SOURCE_DIR" != "${INSTALL_DIR}/${PROJECT_NAME}" ]]; then
+        if [ -d "${INSTALL_DIR}/${PROJECT_NAME}" ]; then
+            log_warning "Installation existante détectée. Création d'une sauvegarde..."
+            cp -r "${INSTALL_DIR}/${PROJECT_NAME}" "${BACKUP_DIR}/backup-$(date +%Y%m%d_%H%M%S)"
+        fi
+        
+        # Copier les nouveaux fichiers avec rsync pour éviter les problèmes
+        log_info "Copie des fichiers depuis $SOURCE_DIR vers ${INSTALL_DIR}/${PROJECT_NAME}..."
+        mkdir -p "${INSTALL_DIR}/${PROJECT_NAME}"
+        rsync -av --exclude='node_modules' --exclude='.git' --exclude='dist' --exclude='build' \
+              --exclude='logs' --exclude='.env' "$SOURCE_DIR/" "${INSTALL_DIR}/${PROJECT_NAME}/"
+    else
+        log_success "Les fichiers sont déjà dans le répertoire d'installation"
     fi
-    
-    # Copier les nouveaux fichiers
-    cp -r . "${INSTALL_DIR}/${PROJECT_NAME}"
     
     log_success "Fichiers déployés"
 }
@@ -70,7 +126,7 @@ install_services() {
     apt update && apt upgrade -y
     
     # Installation des paquets de base
-    apt install -y curl wget git vim htop unzip software-properties-common
+    apt install -y curl wget git vim htop unzip software-properties-common rsync
     
     # Node.js 20
     if ! command -v node &> /dev/null || [ "$(node --version | cut -d'v' -f2 | cut -d'.' -f1)" -lt "20" ]; then
@@ -218,10 +274,6 @@ server {
         
         # Sécurité supplémentaire pour l'admin
         add_header X-Admin-Access "restricted" always;
-        
-        # Authentification IP optionnelle
-        # allow 192.168.1.0/24;
-        # deny all;
     }
     
     # API Backend
@@ -240,12 +292,18 @@ server {
         proxy_connect_timeout 60s;
         proxy_send_timeout 60s;
         proxy_read_timeout 60s;
-        
-        # Buffer
-        proxy_buffering on;
-        proxy_buffer_size 128k;
-        proxy_buffers 4 256k;
-        proxy_busy_buffers_size 256k;
+    }
+    
+    # WebSocket pour temps réel
+    location /ws {
+        proxy_pass http://localhost:5000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
     }
     
     # Gestion des erreurs

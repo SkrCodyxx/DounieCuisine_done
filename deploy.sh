@@ -2,6 +2,7 @@
 
 # Script de déploiement automatique pour Dounie Cuisine
 # Ce script déploie l'API, l'application publique et l'interface d'administration
+# Version corrigée - Fonctionne depuis n'importe où
 
 set -e
 
@@ -11,6 +12,12 @@ echo "🚀 Début du déploiement de Dounie Cuisine..."
 API_PORT=${API_PORT:-5000}
 PUBLIC_PORT=${PUBLIC_PORT:-80}
 ADMIN_PORT=${ADMIN_PORT:-3001}
+PROJECT_NAME="dounie-cuisine"
+INSTALL_DIR="/var/www/html"
+
+# Détection du répertoire source
+SOURCE_DIR=""
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Couleurs pour l'affichage
 RED='\033[0;31m'
@@ -33,6 +40,76 @@ log_warning() {
 
 log_error() {
     echo -e "${RED}[ERROR]${NC} $1"
+}
+
+# Détection intelligente du répertoire source
+detect_source_directory() {
+    log_info "🔍 Détection du répertoire source du projet..."
+    
+    # Vérifier si nous sommes dans le répertoire du projet
+    if [[ -f "package.json" && -d "api" && -d "public" && -d "administration" ]]; then
+        SOURCE_DIR="$(pwd)"
+        log_success "Projet détecté dans le répertoire courant: $SOURCE_DIR"
+        return 0
+    fi
+    
+    # Vérifier si nous sommes dans un sous-répertoire du projet
+    local current_dir="$(pwd)"
+    while [[ "$current_dir" != "/" ]]; do
+        if [[ -f "$current_dir/package.json" && -d "$current_dir/api" && -d "$current_dir/public" && -d "$current_dir/administration" ]]; then
+            SOURCE_DIR="$current_dir"
+            log_success "Projet détecté dans le répertoire parent: $SOURCE_DIR"
+            return 0
+        fi
+        current_dir="$(dirname "$current_dir")"
+    done
+    
+    # Vérifier dans le répertoire du script
+    if [[ -f "$SCRIPT_DIR/package.json" && -d "$SCRIPT_DIR/api" && -d "$SCRIPT_DIR/public" && -d "$SCRIPT_DIR/administration" ]]; then
+        SOURCE_DIR="$SCRIPT_DIR"
+        log_success "Projet détecté dans le répertoire du script: $SOURCE_DIR"
+        return 0
+    fi
+    
+    # Vérifier si le projet est déjà installé dans /var/www/html
+    if [[ -f "${INSTALL_DIR}/${PROJECT_NAME}/package.json" && -d "${INSTALL_DIR}/${PROJECT_NAME}/api" && -d "${INSTALL_DIR}/${PROJECT_NAME}/public" && -d "${INSTALL_DIR}/${PROJECT_NAME}/administration" ]]; then
+        SOURCE_DIR="${INSTALL_DIR}/${PROJECT_NAME}"
+        log_success "Projet déjà présent dans le répertoire d'installation: $SOURCE_DIR"
+        return 0
+    fi
+    
+    log_error "Impossible de localiser le projet Dounie Cuisine"
+    log_error "Assurez-vous d'exécuter ce script depuis le répertoire du projet"
+    exit 1
+}
+
+# Préparation intelligente du répertoire de travail
+prepare_working_directory() {
+    log_info "📁 Préparation du répertoire de travail..."
+    
+    detect_source_directory
+    
+    # Si nous ne sommes pas déjà dans le bon répertoire, copier les fichiers
+    if [[ "$SOURCE_DIR" != "${INSTALL_DIR}/${PROJECT_NAME}" ]]; then
+        if [[ "$SOURCE_DIR" != "$(pwd)" ]]; then
+            log_info "Changement vers le répertoire source: $SOURCE_DIR"
+            cd "$SOURCE_DIR"
+        fi
+        
+        # Si on a les permissions root et qu'on veut déployer dans /var/www/html
+        if [[ $EUID -eq 0 && ! -z "$INSTALL_DIR" ]]; then
+            log_info "Copie vers le répertoire d'installation: ${INSTALL_DIR}/${PROJECT_NAME}"
+            mkdir -p "${INSTALL_DIR}/${PROJECT_NAME}"
+            rsync -av --exclude='node_modules' --exclude='.git' --exclude='dist' --exclude='build' \
+                  "$SOURCE_DIR/" "${INSTALL_DIR}/${PROJECT_NAME}/"
+            cd "${INSTALL_DIR}/${PROJECT_NAME}"
+        fi
+    else
+        log_info "Utilisation du répertoire actuel: $SOURCE_DIR"
+        cd "$SOURCE_DIR"
+    fi
+    
+    log_success "Répertoire de travail préparé: $(pwd)"
 }
 
 # Vérification des prérequis
@@ -89,14 +166,22 @@ setup_database() {
     cd api
     
     # Vérification des variables d'environnement
-    if [ -z "$DATABASE_URL" ]; then
-        log_error "DATABASE_URL n'est pas définie"
-        exit 1
+    if [ -z "$DATABASE_URL" ] && [ ! -f ".env" ]; then
+        log_warning "DATABASE_URL non définie et fichier .env manquant"
+        log_info "Création d'un fichier .env de base..."
+        cat > .env << EOF
+DATABASE_URL=postgresql://localhost:5432/dounie_cuisine
+NODE_ENV=development
+SESSION_SECRET=dounie-cuisine-dev-session-key
+API_PORT=5000
+PUBLIC_PORT=3000
+ADMIN_PORT=3001
+EOF
     fi
     
     # Migration de la base de données
     log_info "Exécution des migrations..."
-    npm run db:push
+    npm run db:push || log_warning "Migration échouée - vérifiez la configuration de la base de données"
     
     cd ..
     
@@ -179,20 +264,24 @@ server {
 }
 EOF
 
-    # Installation de nginx si nécessaire
-    if ! command -v nginx &> /dev/null; then
-        log_info "Installation de nginx..."
-        sudo apt update
-        sudo apt install -y nginx
+    # Installation de nginx si nécessaire et si on a les permissions root
+    if [[ $EUID -eq 0 ]]; then
+        if ! command -v nginx &> /dev/null; then
+            log_info "Installation de nginx..."
+            apt update
+            apt install -y nginx
+        fi
+        
+        # Configuration de nginx
+        cp /tmp/dounie-cuisine.conf /etc/nginx/sites-available/dounie-cuisine
+        ln -sf /etc/nginx/sites-available/dounie-cuisine /etc/nginx/sites-enabled/
+        nginx -t
+        systemctl reload nginx
+        
+        log_success "Serveur web configuré"
+    else
+        log_warning "Permissions insuffisantes pour configurer nginx. Configuration sautée."
     fi
-    
-    # Configuration de nginx
-    sudo cp /tmp/dounie-cuisine.conf /etc/nginx/sites-available/dounie-cuisine
-    sudo ln -sf /etc/nginx/sites-available/dounie-cuisine /etc/nginx/sites-enabled/
-    sudo nginx -t
-    sudo systemctl reload nginx
-    
-    log_success "Serveur web configuré"
 }
 
 # Déploiement avec PM2
@@ -221,7 +310,13 @@ deploy_with_pm2() {
     
     # Sauvegarde de la configuration PM2
     pm2 save
-    pm2 startup
+    
+    # Configuration du démarrage automatique (uniquement si root)
+    if [[ $EUID -eq 0 ]]; then
+        pm2 startup systemd -u root --hp /root
+    else
+        log_warning "Configuration du démarrage automatique PM2 sautée (permissions insuffisantes)"
+    fi
     
     log_success "Applications déployées avec PM2"
 }
@@ -229,6 +324,9 @@ deploy_with_pm2() {
 # Vérification de l'état des services
 check_services() {
     log_info "Vérification de l'état des services..."
+    
+    # Attendre que les services démarrent
+    sleep 5
     
     # Vérification de l'API
     if curl -f http://localhost:$API_PORT/api/health > /dev/null 2>&1; then
@@ -273,13 +371,14 @@ trap cleanup_on_error ERR
 main() {
     log_info "=== DÉPLOIEMENT DOUNIE CUISINE ==="
     
+    prepare_working_directory
     check_prerequisites
     install_dependencies
     setup_database
     build_applications
     
-    # Configuration nginx uniquement si on n'est pas sur Replit
-    if [ -z "$REPLIT_ENVIRONMENT" ]; then
+    # Configuration nginx uniquement si on a les permissions et qu'on n'est pas sur Replit
+    if [[ $EUID -eq 0 && -z "$REPLIT_ENVIRONMENT" ]]; then
         setup_nginx
     fi
     
