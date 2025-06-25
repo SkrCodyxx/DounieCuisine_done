@@ -3,6 +3,7 @@
 # =============================================================================
 # SCRIPT DE DÉPLOIEMENT INTELLIGENT DOUNIE CUISINE
 # Système avec checkpoints, auto-correction et relance automatique
+# Version corrigée - Fonctionne depuis n'importe où
 # =============================================================================
 
 set -e
@@ -15,6 +16,10 @@ BACKUP_DIR="/backup/dounie-cuisine"
 LOG_DIR="/var/log/dounie-cuisine"
 CHECKPOINT_FILE="/tmp/dounie-deploy-checkpoint"
 ERROR_LOG="/tmp/dounie-deploy-errors.log"
+
+# Détection du répertoire source
+SOURCE_DIR=""
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Couleurs
 RED='\033[0;31m'
@@ -33,15 +38,87 @@ log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 log_checkpoint() { echo -e "${PURPLE}[CHECKPOINT]${NC} $1"; }
 log_fix() { echo -e "${CYAN}[AUTO-FIX]${NC} $1"; }
 
+# Détection intelligente du répertoire source
+detect_source_directory() {
+    log_info "🔍 Détection du répertoire source du projet..."
+    
+    # Vérifier si nous sommes dans le répertoire du projet
+    if [[ -f "package.json" && -d "api" && -d "public" && -d "administration" ]]; then
+        SOURCE_DIR="$(pwd)"
+        log_success "Projet détecté dans le répertoire courant: $SOURCE_DIR"
+        return 0
+    fi
+    
+    # Vérifier si nous sommes dans un sous-répertoire du projet
+    local current_dir="$(pwd)"
+    while [[ "$current_dir" != "/" ]]; do
+        if [[ -f "$current_dir/package.json" && -d "$current_dir/api" && -d "$current_dir/public" && -d "$current_dir/administration" ]]; then
+            SOURCE_DIR="$current_dir"
+            log_success "Projet détecté dans le répertoire parent: $SOURCE_DIR"
+            return 0
+        fi
+        current_dir="$(dirname "$current_dir")"
+    done
+    
+    # Vérifier dans le répertoire du script
+    if [[ -f "$SCRIPT_DIR/package.json" && -d "$SCRIPT_DIR/api" && -d "$SCRIPT_DIR/public" && -d "$SCRIPT_DIR/administration" ]]; then
+        SOURCE_DIR="$SCRIPT_DIR"
+        log_success "Projet détecté dans le répertoire du script: $SOURCE_DIR"
+        return 0
+    fi
+    
+    # Vérifier si le projet est déjà installé dans /var/www/html
+    if [[ -f "$PROJECT_PATH/package.json" && -d "$PROJECT_PATH/api" && -d "$PROJECT_PATH/public" && -d "$PROJECT_PATH/administration" ]]; then
+        SOURCE_DIR="$PROJECT_PATH"
+        log_success "Projet déjà présent dans le répertoire d'installation: $SOURCE_DIR"
+        return 0
+    fi
+    
+    log_error "Impossible de localiser le projet Dounie Cuisine"
+    log_error "Assurez-vous d'exécuter ce script depuis le répertoire du projet ou d'avoir copié les fichiers au préalable"
+    exit 1
+}
+
+# Copie intelligente des fichiers
+smart_copy_files() {
+    log_info "📁 Gestion intelligente des fichiers du projet..."
+    
+    # Si le source est déjà le répertoire d'installation, pas de copie nécessaire
+    if [[ "$SOURCE_DIR" == "$PROJECT_PATH" ]]; then
+        log_success "Les fichiers sont déjà dans le répertoire d'installation"
+        return 0
+    fi
+    
+    # Sauvegarder l'ancienne installation si elle existe
+    if [[ -d "$PROJECT_PATH" && "$SOURCE_DIR" != "$PROJECT_PATH" ]]; then
+        log_warning "Installation existante détectée. Création d'une sauvegarde..."
+        local backup_name="backup-$(date +%Y%m%d_%H%M%S)"
+        cp -r "$PROJECT_PATH" "$BACKUP_DIR/$backup_name"
+        log_success "Sauvegarde créée: $BACKUP_DIR/$backup_name"
+    fi
+    
+    # Créer le répertoire de destination
+    mkdir -p "$PROJECT_PATH"
+    
+    # Copier les fichiers depuis le répertoire source
+    log_info "Copie des fichiers depuis $SOURCE_DIR vers $PROJECT_PATH..."
+    
+    # Exclure certains dossiers/fichiers lors de la copie
+    rsync -av --exclude='node_modules' --exclude='.git' --exclude='dist' --exclude='build' \
+          --exclude='logs' --exclude='.env' "$SOURCE_DIR/" "$PROJECT_PATH/"
+    
+    log_success "Fichiers copiés avec succès"
+}
+
 # Système de checkpoints
 CHECKPOINTS=(
     "check_environment"
+    "detect_source_and_copy"
     "prepare_system" 
     "install_nodejs"
     "install_postgresql"
     "install_nginx"
     "install_pm2"
-    "setup_project_structure"
     "configure_database"
     "setup_environment_variables"
     "install_dependencies"
@@ -211,6 +288,16 @@ check_environment() {
     mkdir -p "$INSTALL_DIR" "$BACKUP_DIR" "$LOG_DIR"
     
     log_success "Environnement validé"
+    save_checkpoint "detect_source_and_copy"
+}
+
+detect_source_and_copy() {
+    detect_source_directory
+    smart_copy_files
+    
+    # Se déplacer dans le répertoire du projet
+    cd "$PROJECT_PATH"
+    
     save_checkpoint "prepare_system"
 }
 
@@ -299,7 +386,7 @@ install_pm2() {
     
     if command -v pm2 &> /dev/null; then
         log_success "PM2 déjà installé"
-        save_checkpoint "setup_project_structure"
+        save_checkpoint "configure_database"
         return
     fi
     
@@ -307,27 +394,6 @@ install_pm2() {
     pm2 startup systemd -u root --hp /root
     
     log_success "PM2 installé"
-    save_checkpoint "setup_project_structure"
-}
-
-setup_project_structure() {
-    log_info "📁 Configuration de la structure du projet..."
-    
-    # Sauvegarder l'ancienne installation si elle existe
-    if [[ -d "$PROJECT_PATH" ]]; then
-        log_warning "Installation existante détectée. Sauvegarde..."
-        cp -r "$PROJECT_PATH" "$BACKUP_DIR/backup-$(date +%Y%m%d_%H%M%S)"
-    fi
-    
-    # Copier les fichiers du projet
-    if [[ ! -d "$PROJECT_PATH" ]]; then
-        mkdir -p "$PROJECT_PATH"
-        cp -r . "$PROJECT_PATH/"
-    fi
-    
-    cd "$PROJECT_PATH"
-    
-    log_success "Structure du projet configurée"
     save_checkpoint "configure_database"
 }
 
@@ -882,6 +948,8 @@ finalize_deployment() {
     "deployment_date": "$(date -Iseconds)",
     "version": "1.0.0",
     "status": "success",
+    "source_directory": "$SOURCE_DIR",
+    "target_directory": "$PROJECT_PATH",
     "components": {
         "api": "deployed",
         "public_app": "deployed", 
@@ -982,6 +1050,7 @@ main() {
     echo "🚀============================================================🚀"
     echo "   DÉPLOIEMENT INTELLIGENT DOUNIE CUISINE"
     echo "   Script avec checkpoints et auto-correction"
+    echo "   Compatible depuis n'importe quel répertoire"
     echo "=============================================================="
     echo ""
     
