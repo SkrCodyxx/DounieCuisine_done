@@ -1,0 +1,164 @@
+# Docker Compose pour Dounie Cuisine - Production
+version: '3.8'
+
+services:
+  # Base de données PostgreSQL
+  database:
+    image: postgres:15-alpine
+    container_name: dounie-database
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: dounie_cuisine
+      POSTGRES_USER: dounie_user
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-dounie_secure_password_2025}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=fr_FR.UTF-8 --lc-ctype=fr_FR.UTF-8"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+      - ./backups:/backups
+    ports:
+      - "5432:5432"
+    networks:
+      - dounie-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dounie_user -d dounie_cuisine"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Application Dounie Cuisine
+  app:
+    build: 
+      context: ..
+      dockerfile: docker-deployment/Dockerfile
+    container_name: dounie-app
+    restart: unless-stopped
+    depends_on:
+      database:
+        condition: service_healthy
+    environment:
+      # Base de données
+      DATABASE_URL: postgresql://dounie_user:${DB_PASSWORD:-dounie_secure_password_2025}@database:5432/dounie_cuisine
+      
+      # Application
+      NODE_ENV: production
+      SESSION_SECRET: ${SESSION_SECRET:-dounie-session-secret-change-in-production}
+      
+      # Ports
+      API_PORT: 5000
+      PUBLIC_PORT: 3000
+      ADMIN_PORT: 3001
+      
+      # Fonctionnalités
+      MESSAGING_ENABLED: true
+      MONITORING_ENABLED: true
+      REAL_TIME_NOTIFICATIONS: true
+      
+      # Sécurité
+      BCRYPT_ROUNDS: 12
+      
+    volumes:
+      - app_logs:/app/logs
+      - app_backups:/app/backups
+    networks:
+      - dounie-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: dounie-nginx
+    restart: unless-stopped
+    depends_on:
+      - app
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/dounie-cuisine.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+      - nginx_logs:/var/log/nginx
+    networks:
+      - dounie-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Redis pour le cache et les sessions (optionnel)
+  redis:
+    image: redis:7-alpine
+    container_name: dounie-redis
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+    networks:
+      - dounie-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Service de monitoring
+  monitoring:
+    image: prom/prometheus:latest
+    container_name: dounie-monitoring
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    networks:
+      - dounie-network
+
+  # Service de sauvegarde automatique
+  backup:
+    image: postgres:15-alpine
+    container_name: dounie-backup
+    restart: "no"
+    depends_on:
+      - database
+    environment:
+      PGPASSWORD: ${DB_PASSWORD:-dounie_secure_password_2025}
+    volumes:
+      - app_backups:/backups
+      - ./backup-script.sh:/backup-script.sh:ro
+    command: ["/backup-script.sh"]
+    networks:
+      - dounie-network
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  app_logs:
+    driver: local
+  app_backups:
+    driver: local
+  nginx_logs:
+    driver: local
+  prometheus_data:
+    driver: local
+
+networks:
+  dounie-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
