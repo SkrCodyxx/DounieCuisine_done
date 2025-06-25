@@ -1,0 +1,105 @@
+# Déploiement principal de l'application Dounie Cuisine
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dounie-app
+  namespace: dounie-cuisine
+  labels:
+    app: dounie-app
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: dounie-app
+  template:
+    metadata:
+      labels:
+        app: dounie-app
+    spec:
+      initContainers:
+      - name: wait-for-postgres
+        image: busybox:1.35
+        command: ['sh', '-c', 'until nc -z dounie-postgres 5432; do echo waiting for postgres; sleep 2; done;']
+      containers:
+      - name: dounie-app
+        image: dounie-cuisine:latest
+        ports:
+        - containerPort: 5000
+          name: api
+        - containerPort: 3000
+          name: public
+        - containerPort: 3001
+          name: admin
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: dounie-secrets
+              key: DATABASE_URL
+        - name: SESSION_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: dounie-secrets
+              key: SESSION_SECRET
+        envFrom:
+        - configMapRef:
+            name: dounie-config
+        volumeMounts:
+        - name: app-logs
+          mountPath: /app/logs
+        - name: app-backups
+          mountPath: /app/backups
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /api/health
+            port: 5000
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /api/health
+            port: 5000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1001
+          readOnlyRootFilesystem: false
+          allowPrivilegeEscalation: false
+      volumes:
+      - name: app-logs
+        persistentVolumeClaim:
+          claimName: logs-pvc
+      - name: app-backups
+        persistentVolumeClaim:
+          claimName: backups-pvc
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dounie-app-service
+  namespace: dounie-cuisine
+spec:
+  selector:
+    app: dounie-app
+  ports:
+  - name: api
+    port: 5000
+    targetPort: 5000
+  - name: public
+    port: 3000
+    targetPort: 3000
+  - name: admin
+    port: 3001
+    targetPort: 3001
+  type: ClusterIP
