@@ -19,6 +19,10 @@ admin_session = requests.Session()
 client_session = requests.Session()
 staff_session = requests.Session()
 
+# Store password reset code for testing
+password_reset_code = None
+password_reset_user_id = None
+
 # Test results tracking
 test_results = {
     "total_tests": 0,
