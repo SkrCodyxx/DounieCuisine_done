@@ -235,6 +235,173 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // =============================================================================
+  // PASSWORD RECOVERY SYSTEM (Manual - No Email)
+  // =============================================================================
+  
+  // Temporary storage for password reset codes (in production, use Redis or DB)
+  const passwordResetCodes = new Map<string, { userId: number, expires: Date, used: boolean }>();
+  
+  app.post("/api/admin/generate-password-reset", requireAdmin, async (req, res) => {
+    try {
+      const { email } = req.body;
+      
+      if (!email) {
+        return res.status(400).json({ message: "Email requis" });
+      }
+      
+      const user = await storage.getUserByEmail(email);
+      if (!user) {
+        return res.status(404).json({ message: "Utilisateur non trouvé" });
+      }
+      
+      // Générer un code de récupération sécurisé
+      const resetCode = nanoid(12).toUpperCase();
+      const expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 heures
+      
+      // Stocker le code temporairement
+      passwordResetCodes.set(resetCode, {
+        userId: user.id,
+        expires,
+        used: false
+      });
+      
+      res.json({
+        message: "Code de récupération généré",
+        resetCode,
+        expiresAt: expires,
+        instructions: `Transmettez ce code au client ${user.firstName} ${user.lastName} (${user.email}). Le code expire dans 24 heures.`,
+        resetUrl: `http://localhost/reset-password?code=${resetCode}`
+      });
+    } catch (error) {
+      console.error("Password reset generation error:", error);
+      res.status(500).json({ message: "Erreur serveur" });
+    }
+  });
+  
+  app.get("/api/admin/password-reset-codes", requireAdmin, async (req, res) => {
+    try {
+      const activeCodes: any[] = [];
+      const now = new Date();
+      
+      for (const [code, data] of passwordResetCodes.entries()) {
+        if (!data.used && data.expires > now) {
+          const user = await storage.getUser(data.userId);
+          activeCodes.push({
+            code,
+            user: user ? { id: user.id, email: user.email, firstName: user.firstName, lastName: user.lastName } : null,
+            expires: data.expires,
+            timeRemaining: Math.round((data.expires.getTime() - now.getTime()) / (1000 * 60 * 60)) + " heures"
+          });
+        }
+      }
+      
+      res.json(activeCodes);
+    } catch (error) {
+      res.status(500).json({ message: "Erreur serveur" });
+    }
+  });
+  
+  app.post("/api/auth/verify-reset-code", async (req, res) => {
+    try {
+      const { code } = req.body;
+      
+      if (!code) {
+        return res.status(400).json({ message: "Code requis" });
+      }
+      
+      const resetData = passwordResetCodes.get(code);
+      if (!resetData) {
+        return res.status(400).json({ message: "Code invalide" });
+      }
+      
+      if (resetData.used) {
+        return res.status(400).json({ message: "Code déjà utilisé" });
+      }
+      
+      if (resetData.expires < new Date()) {
+        passwordResetCodes.delete(code);
+        return res.status(400).json({ message: "Code expiré" });
+      }
+      
+      const user = await storage.getUser(resetData.userId);
+      if (!user) {
+        return res.status(400).json({ message: "Utilisateur non trouvé" });
+      }
+      
+      res.json({
+        valid: true,
+        user: {
+          id: user.id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName
+        }
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Erreur serveur" });
+    }
+  });
+  
+  app.post("/api/auth/reset-password", async (req, res) => {
+    try {
+      const { code, newPassword } = req.body;
+      
+      if (!code || !newPassword) {
+        return res.status(400).json({ message: "Code et nouveau mot de passe requis" });
+      }
+      
+      if (newPassword.length < 6) {
+        return res.status(400).json({ message: "Le mot de passe doit contenir au moins 6 caractères" });
+      }
+      
+      const resetData = passwordResetCodes.get(code);
+      if (!resetData) {
+        return res.status(400).json({ message: "Code invalide" });
+      }
+      
+      if (resetData.used) {
+        return res.status(400).json({ message: "Code déjà utilisé" });
+      }
+      
+      if (resetData.expires < new Date()) {
+        passwordResetCodes.delete(code);
+        return res.status(400).json({ message: "Code expiré" });
+      }
+      
+      // Hasher le nouveau mot de passe
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+      
+      // Mettre à jour le mot de passe
+      await storage.updateUser(resetData.userId, { password: hashedPassword });
+      
+      // Marquer le code comme utilisé
+      resetData.used = true;
+      
+      // Supprimer le code après 1 heure pour nettoyage
+      setTimeout(() => {
+        passwordResetCodes.delete(code);
+      }, 60 * 60 * 1000);
+      
+      res.json({ 
+        message: "Mot de passe réinitialisé avec succès" 
+      });
+    } catch (error) {
+      console.error("Password reset error:", error);
+      res.status(500).json({ message: "Erreur serveur" });
+    }
+  });
+  
+  // Nettoyage automatique des codes expirés (toutes les heures)
+  setInterval(() => {
+    const now = new Date();
+    for (const [code, data] of passwordResetCodes.entries()) {
+      if (data.expires < now) {
+        passwordResetCodes.delete(code);
+      }
+    }
+  }, 60 * 60 * 1000);
+
+  // =============================================================================
   // ROLE PERMISSIONS MANAGEMENT
   // =============================================================================
 
