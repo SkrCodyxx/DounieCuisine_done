@@ -17,25 +17,45 @@ var schema_exports = {};
 __export(schema_exports, {
   announcements: () => announcements,
   calendarEvents: () => calendarEvents,
+  clientMessages: () => clientMessages,
+  clients: () => clients,
+  companySettings: () => companySettings,
+  contentPages: () => contentPages,
+  customerMessages: () => customerMessages,
   employees: () => employees,
   festiveThemes: () => festiveThemes,
   financialTransactions: () => financialTransactions,
+  galleries: () => galleries,
+  galleryImages: () => galleryImages,
   insertAnnouncementSchema: () => insertAnnouncementSchema,
   insertCalendarEventSchema: () => insertCalendarEventSchema,
+  insertClientMessageSchema: () => insertClientMessageSchema,
+  insertClientSchema: () => insertClientSchema,
+  insertCompanySettingsSchema: () => insertCompanySettingsSchema,
+  insertContentPageSchema: () => insertContentPageSchema,
+  insertCustomerMessageSchema: () => insertCustomerMessageSchema,
   insertEmployeeSchema: () => insertEmployeeSchema,
   insertFestiveThemeSchema: () => insertFestiveThemeSchema,
   insertFinancialTransactionSchema: () => insertFinancialTransactionSchema,
+  insertGalleryImageSchema: () => insertGalleryImageSchema,
+  insertGallerySchema: () => insertGallerySchema,
+  insertInternalMessageSchema: () => insertInternalMessageSchema,
   insertInventorySchema: () => insertInventorySchema,
   insertLoyaltyRewardSchema: () => insertLoyaltyRewardSchema,
   insertMenuItemSchema: () => insertMenuItemSchema,
   insertOrderSchema: () => insertOrderSchema,
+  insertQuoteSchema: () => insertQuoteSchema,
   insertReservationSchema: () => insertReservationSchema,
+  insertRolePermissionSchema: () => insertRolePermissionSchema,
   insertUserSchema: () => insertUserSchema,
+  internalMessages: () => internalMessages,
   inventory: () => inventory,
   loyaltyRewards: () => loyaltyRewards,
   menuItems: () => menuItems,
   orders: () => orders,
+  quotes: () => quotes,
   reservations: () => reservations,
+  rolePermissions: () => rolePermissions,
   users: () => users
 });
 import { pgTable, text, serial, integer, boolean, timestamp, decimal, json, date } from "drizzle-orm/pg-core";
@@ -54,6 +74,82 @@ var users = pgTable("users", {
   loyaltyPoints: integer("loyalty_points").default(0),
   preferences: json("preferences").default("{}"),
   allergies: text("allergies").array().default([]),
+  address: text("address"),
+  company: text("company"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+var rolePermissions = pgTable("role_permissions", {
+  id: serial("id").primaryKey(),
+  roleName: text("role_name").notNull().unique(),
+  permissions: json("permissions").notNull(),
+  // Object avec toutes les permissions
+  description: text("description"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+var clients = pgTable("clients", {
+  id: serial("id").primaryKey(),
+  firstName: text("first_name").notNull(),
+  lastName: text("last_name").notNull(),
+  email: text("email").notNull(),
+  phoneNumber: text("phone_number"),
+  address: text("address"),
+  company: text("company"),
+  notes: text("notes"),
+  source: text("source").default("website"),
+  // website, phone, referral, etc.
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+var companySettings = pgTable("company_settings", {
+  id: serial("id").primaryKey(),
+  companyName: text("company_name").notNull(),
+  address: text("address"),
+  phoneNumber: text("phone_number"),
+  email: text("email"),
+  website: text("website"),
+  logoUrl: text("logo_url"),
+  siret: text("siret"),
+  tvaNumber: text("tva_number"),
+  salesPolicy: text("sales_policy"),
+  returnPolicy: text("return_policy"),
+  cancellationPolicy: text("cancellation_policy"),
+  termsOfService: text("terms_of_service"),
+  privacyPolicy: text("privacy_policy"),
+  bankInfo: json("bank_info"),
+  // Infos bancaires pour factures
+  defaultQuoteValidity: integer("default_quote_validity").default(30),
+  // jours
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+var quotes = pgTable("quotes", {
+  id: serial("id").primaryKey(),
+  quoteNumber: text("quote_number").notNull().unique(),
+  clientId: integer("client_id").references(() => clients.id),
+  userId: integer("user_id").references(() => users.id),
+  // Si client connecté
+  status: text("status").notNull().default("draft"),
+  // draft, sent, accepted, rejected, expired
+  validityDate: date("validity_date").notNull(),
+  eventDate: date("event_date"),
+  eventLocation: text("event_location"),
+  guestCount: integer("guest_count"),
+  budget: decimal("budget", { precision: 10, scale: 2 }),
+  items: json("items").notNull(),
+  // Détail des lignes du devis
+  subtotalHT: decimal("subtotal_ht", { precision: 10, scale: 2 }).notNull(),
+  discountAmount: decimal("discount_amount", { precision: 10, scale: 2 }).default("0"),
+  taxAmount: decimal("tax_amount", { precision: 10, scale: 2 }).notNull(),
+  totalTTC: decimal("total_ttc", { precision: 10, scale: 2 }).notNull(),
+  notes: text("notes"),
+  internalNotes: text("internal_notes"),
+  createdBy: integer("created_by").references(() => users.id),
+  sentAt: timestamp("sent_at"),
+  acceptedAt: timestamp("accepted_at"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow()
 });
@@ -77,9 +173,108 @@ var menuItems = pgTable("menu_items", {
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow()
 });
+var galleries = pgTable("galleries", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description"),
+  isActive: boolean("is_active").default(true),
+  sortOrder: integer("sort_order").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+var galleryImages = pgTable("gallery_images", {
+  id: serial("id").primaryKey(),
+  galleryId: integer("gallery_id").references(() => galleries.id),
+  title: text("title"),
+  description: text("description"),
+  imageUrl: text("image_url").notNull(),
+  thumbnailUrl: text("thumbnail_url"),
+  sortOrder: integer("sort_order").default(0),
+  isActive: boolean("is_active").default(true),
+  uploadedBy: integer("uploaded_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+var contentPages = pgTable("content_pages", {
+  id: serial("id").primaryKey(),
+  slug: text("slug").notNull().unique(),
+  title: text("title").notNull(),
+  content: text("content").notNull(),
+  metaDescription: text("meta_description"),
+  isActive: boolean("is_active").default(true),
+  showInNavigation: boolean("show_in_navigation").default(false),
+  sortOrder: integer("sort_order").default(0),
+  lastEditedBy: integer("last_edited_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+var customerMessages = pgTable("customer_messages", {
+  id: serial("id").primaryKey(),
+  firstName: text("first_name").notNull(),
+  lastName: text("last_name").notNull(),
+  email: text("email").notNull(),
+  phoneNumber: text("phone_number"),
+  subject: text("subject").notNull(),
+  message: text("message").notNull(),
+  isRead: boolean("is_read").default(false),
+  isReplied: boolean("is_replied").default(false),
+  priority: text("priority").default("normal"),
+  // low, normal, high, urgent
+  tags: text("tags").array().default([]),
+  internalNotes: text("internal_notes"),
+  assignedTo: integer("assigned_to").references(() => users.id),
+  repliedAt: timestamp("replied_at"),
+  repliedBy: integer("replied_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+var internalMessages = pgTable("internal_messages", {
+  id: serial("id").primaryKey(),
+  senderId: integer("sender_id").references(() => users.id).notNull(),
+  recipientId: integer("recipient_id").references(() => users.id).notNull(),
+  subject: text("subject").notNull(),
+  content: text("content").notNull(),
+  isRead: boolean("is_read").default(false),
+  isImportant: boolean("is_important").default(false),
+  attachments: text("attachments").array().default([]),
+  threadId: integer("thread_id"),
+  // Pour grouper les réponses
+  replyToId: integer("reply_to_id").references(() => internalMessages.id),
+  deletedBySender: boolean("deleted_by_sender").default(false),
+  deletedByRecipient: boolean("deleted_by_recipient").default(false),
+  readAt: timestamp("read_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+var clientMessages = pgTable("client_messages", {
+  id: serial("id").primaryKey(),
+  clientId: integer("client_id").references(() => clients.id),
+  userId: integer("user_id").references(() => users.id),
+  // Si client connecté
+  senderId: integer("sender_id").references(() => users.id).notNull(),
+  // Employé qui envoie
+  subject: text("subject").notNull(),
+  content: text("content").notNull(),
+  messageType: text("message_type").notNull(),
+  // alert, reminder, notification, promotion, response
+  priority: text("priority").default("normal"),
+  isRead: boolean("is_read").default(false),
+  relatedQuoteId: integer("related_quote_id").references(() => quotes.id),
+  relatedOrderId: integer("related_order_id").references(() => orders.id),
+  sentVia: text("sent_via").default("internal"),
+  // internal, email, sms
+  scheduledFor: timestamp("scheduled_for"),
+  sentAt: timestamp("sent_at"),
+  readAt: timestamp("read_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
 var orders = pgTable("orders", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").references(() => users.id),
+  clientId: integer("client_id").references(() => clients.id),
+  quoteId: integer("quote_id").references(() => quotes.id),
+  // Si commande depuis devis
   status: text("status").notNull().default("pending"),
   // pending, confirmed, preparing, ready, delivered, cancelled
   items: json("items").notNull(),
@@ -93,7 +288,7 @@ var orders = pgTable("orders", {
   paymentMethod: text("payment_method"),
   paymentStatus: text("payment_status").default("pending"),
   orderType: text("order_type").notNull(),
-  // dine-in, takeout, delivery
+  // dine-in, takeout, delivery, event
   specialRequests: text("special_requests"),
   estimatedReadyTime: timestamp("estimated_ready_time"),
   createdAt: timestamp("created_at").defaultNow(),
@@ -134,6 +329,8 @@ var employees = pgTable("employees", {
   emergencyContact: json("emergency_contact"),
   certifications: text("certifications").array().default([]),
   availability: json("availability").default("{}"),
+  permissions: json("permissions").default("{}"),
+  // Permissions spécifiques à l'employé
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow()
 });
@@ -190,6 +387,7 @@ var financialTransactions = pgTable("financial_transactions", {
   date: date("date").notNull(),
   relatedOrderId: integer("related_order_id").references(() => orders.id),
   relatedEmployeeId: integer("related_employee_id").references(() => employees.id),
+  relatedQuoteId: integer("related_quote_id").references(() => quotes.id),
   paymentMethod: text("payment_method"),
   receiptUrl: text("receipt_url"),
   taxDeductible: boolean("tax_deductible").default(false),
@@ -247,6 +445,8 @@ var announcements = pgTable("announcements", {
   // info, warning, success, promotion
   priority: text("priority").default("normal"),
   // low, normal, high, urgent
+  position: text("position").notNull(),
+  // banner, sidebar, modal, footer
   targetAudience: text("target_audience").notNull(),
   // all, customers, employees, vip
   isActive: boolean("is_active").default(true),
@@ -256,11 +456,63 @@ var announcements = pgTable("announcements", {
   actionUrl: text("action_url"),
   actionText: text("action_text"),
   viewCount: integer("view_count").default(0),
+  displayRules: json("display_rules"),
+  // Règles d'affichage avancées
   createdBy: integer("created_by").references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow()
 });
 var insertUserSchema = createInsertSchema(users).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true
+});
+var insertRolePermissionSchema = createInsertSchema(rolePermissions).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true
+});
+var insertClientSchema = createInsertSchema(clients).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true
+});
+var insertCompanySettingsSchema = createInsertSchema(companySettings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true
+});
+var insertQuoteSchema = createInsertSchema(quotes).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true
+});
+var insertGallerySchema = createInsertSchema(galleries).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true
+});
+var insertGalleryImageSchema = createInsertSchema(galleryImages).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true
+});
+var insertContentPageSchema = createInsertSchema(contentPages).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true
+});
+var insertCustomerMessageSchema = createInsertSchema(customerMessages).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true
+});
+var insertInternalMessageSchema = createInsertSchema(internalMessages).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true
+});
+var insertClientMessageSchema = createInsertSchema(clientMessages).omit({
   id: true,
   createdAt: true,
   updatedAt: true
@@ -332,7 +584,7 @@ await client.connect();
 var db = drizzle(client, { schema: schema_exports });
 
 // storage-db.ts
-import { eq, and, gte, lte } from "drizzle-orm";
+import { eq, and, gte, lte, like, or, desc, asc } from "drizzle-orm";
 import { nanoid } from "nanoid";
 var DatabaseStorage = class {
   // Users
@@ -366,6 +618,248 @@ var DatabaseStorage = class {
     const result = await db.update(users).set(updates).where(eq(users.id, id)).returning();
     return result[0] || void 0;
   }
+  // Role Permissions
+  async getRolePermissions() {
+    return await db.select().from(rolePermissions);
+  }
+  async getRolePermission(id) {
+    const result = await db.select().from(rolePermissions).where(eq(rolePermissions.id, id));
+    return result[0] || void 0;
+  }
+  async getRolePermissionByName(roleName) {
+    const result = await db.select().from(rolePermissions).where(eq(rolePermissions.roleName, roleName));
+    return result[0] || void 0;
+  }
+  async createRolePermission(insertRole) {
+    const result = await db.insert(rolePermissions).values(insertRole).returning();
+    return result[0];
+  }
+  async updateRolePermission(id, updates) {
+    const result = await db.update(rolePermissions).set(updates).where(eq(rolePermissions.id, id)).returning();
+    return result[0] || void 0;
+  }
+  // Clients
+  async getClients() {
+    return await db.select().from(clients).orderBy(desc(clients.createdAt));
+  }
+  async getClient(id) {
+    const result = await db.select().from(clients).where(eq(clients.id, id));
+    return result[0] || void 0;
+  }
+  async getClientByEmail(email) {
+    const result = await db.select().from(clients).where(eq(clients.email, email));
+    return result[0] || void 0;
+  }
+  async searchClients(searchTerm) {
+    return await db.select().from(clients).where(
+      or(
+        like(clients.firstName, `%${searchTerm}%`),
+        like(clients.lastName, `%${searchTerm}%`),
+        like(clients.email, `%${searchTerm}%`),
+        like(clients.company, `%${searchTerm}%`)
+      )
+    ).orderBy(desc(clients.createdAt));
+  }
+  async createClient(insertClient) {
+    const result = await db.insert(clients).values(insertClient).returning();
+    return result[0];
+  }
+  async updateClient(id, updates) {
+    const result = await db.update(clients).set(updates).where(eq(clients.id, id)).returning();
+    return result[0] || void 0;
+  }
+  async deleteClient(id) {
+    const result = await db.delete(clients).where(eq(clients.id, id));
+    return result.rowCount > 0;
+  }
+  // Company Settings
+  async getCompanySettings() {
+    const result = await db.select().from(companySettings).limit(1);
+    return result[0] || void 0;
+  }
+  async createCompanySettings(insertSettings) {
+    const result = await db.insert(companySettings).values(insertSettings).returning();
+    return result[0];
+  }
+  async updateCompanySettings(id, updates) {
+    const result = await db.update(companySettings).set(updates).where(eq(companySettings.id, id)).returning();
+    return result[0] || void 0;
+  }
+  // Quotes
+  async getQuotes() {
+    return await db.select().from(quotes).orderBy(desc(quotes.createdAt));
+  }
+  async getQuote(id) {
+    const result = await db.select().from(quotes).where(eq(quotes.id, id));
+    return result[0] || void 0;
+  }
+  async getQuoteByNumber(quoteNumber) {
+    const result = await db.select().from(quotes).where(eq(quotes.quoteNumber, quoteNumber));
+    return result[0] || void 0;
+  }
+  async getQuotesByClient(clientId) {
+    return await db.select().from(quotes).where(eq(quotes.clientId, clientId)).orderBy(desc(quotes.createdAt));
+  }
+  async createQuote(insertQuote) {
+    const result = await db.insert(quotes).values(insertQuote).returning();
+    return result[0];
+  }
+  async updateQuote(id, updates) {
+    const result = await db.update(quotes).set(updates).where(eq(quotes.id, id)).returning();
+    return result[0] || void 0;
+  }
+  async deleteQuote(id) {
+    const result = await db.delete(quotes).where(eq(quotes.id, id));
+    return result.rowCount > 0;
+  }
+  // Galleries
+  async getGalleries() {
+    return await db.select().from(galleries).where(eq(galleries.isActive, true)).orderBy(asc(galleries.sortOrder));
+  }
+  async getGallery(id) {
+    const result = await db.select().from(galleries).where(eq(galleries.id, id));
+    return result[0] || void 0;
+  }
+  async createGallery(insertGallery) {
+    const result = await db.insert(galleries).values(insertGallery).returning();
+    return result[0];
+  }
+  async updateGallery(id, updates) {
+    const result = await db.update(galleries).set(updates).where(eq(galleries.id, id)).returning();
+    return result[0] || void 0;
+  }
+  async deleteGallery(id) {
+    const result = await db.delete(galleries).where(eq(galleries.id, id));
+    return result.rowCount > 0;
+  }
+  // Gallery Images
+  async getGalleryImages(galleryId) {
+    const query = db.select().from(galleryImages).where(eq(galleryImages.isActive, true));
+    if (galleryId) {
+      return await query.where(eq(galleryImages.galleryId, galleryId)).orderBy(asc(galleryImages.sortOrder));
+    }
+    return await query.orderBy(asc(galleryImages.sortOrder));
+  }
+  async getGalleryImage(id) {
+    const result = await db.select().from(galleryImages).where(eq(galleryImages.id, id));
+    return result[0] || void 0;
+  }
+  async createGalleryImage(insertImage) {
+    const result = await db.insert(galleryImages).values(insertImage).returning();
+    return result[0];
+  }
+  async updateGalleryImage(id, updates) {
+    const result = await db.update(galleryImages).set(updates).where(eq(galleryImages.id, id)).returning();
+    return result[0] || void 0;
+  }
+  async deleteGalleryImage(id) {
+    const result = await db.delete(galleryImages).where(eq(galleryImages.id, id));
+    return result.rowCount > 0;
+  }
+  // Content Pages
+  async getContentPages() {
+    return await db.select().from(contentPages).where(eq(contentPages.isActive, true)).orderBy(asc(contentPages.sortOrder));
+  }
+  async getContentPage(id) {
+    const result = await db.select().from(contentPages).where(eq(contentPages.id, id));
+    return result[0] || void 0;
+  }
+  async getContentPageBySlug(slug) {
+    const result = await db.select().from(contentPages).where(eq(contentPages.slug, slug));
+    return result[0] || void 0;
+  }
+  async createContentPage(insertPage) {
+    const result = await db.insert(contentPages).values(insertPage).returning();
+    return result[0];
+  }
+  async updateContentPage(id, updates) {
+    const result = await db.update(contentPages).set(updates).where(eq(contentPages.id, id)).returning();
+    return result[0] || void 0;
+  }
+  async deleteContentPage(id) {
+    const result = await db.delete(contentPages).where(eq(contentPages.id, id));
+    return result.rowCount > 0;
+  }
+  // Customer Messages
+  async getCustomerMessages() {
+    return await db.select().from(customerMessages).orderBy(desc(customerMessages.createdAt));
+  }
+  async getCustomerMessage(id) {
+    const result = await db.select().from(customerMessages).where(eq(customerMessages.id, id));
+    return result[0] || void 0;
+  }
+  async getUnreadCustomerMessages() {
+    return await db.select().from(customerMessages).where(eq(customerMessages.isRead, false)).orderBy(desc(customerMessages.createdAt));
+  }
+  async createCustomerMessage(insertMessage) {
+    const result = await db.insert(customerMessages).values(insertMessage).returning();
+    return result[0];
+  }
+  async updateCustomerMessage(id, updates) {
+    const result = await db.update(customerMessages).set(updates).where(eq(customerMessages.id, id)).returning();
+    return result[0] || void 0;
+  }
+  async deleteCustomerMessage(id) {
+    const result = await db.delete(customerMessages).where(eq(customerMessages.id, id));
+    return result.rowCount > 0;
+  }
+  // Internal Messages
+  async getInternalMessages(userId) {
+    return await db.select().from(internalMessages).where(
+      and(
+        eq(internalMessages.recipientId, userId),
+        eq(internalMessages.deletedByRecipient, false)
+      )
+    ).orderBy(desc(internalMessages.createdAt));
+  }
+  async getSentInternalMessages(userId) {
+    return await db.select().from(internalMessages).where(
+      and(
+        eq(internalMessages.senderId, userId),
+        eq(internalMessages.deletedBySender, false)
+      )
+    ).orderBy(desc(internalMessages.createdAt));
+  }
+  async getInternalMessage(id) {
+    const result = await db.select().from(internalMessages).where(eq(internalMessages.id, id));
+    return result[0] || void 0;
+  }
+  async createInternalMessage(insertMessage) {
+    const result = await db.insert(internalMessages).values(insertMessage).returning();
+    return result[0];
+  }
+  async updateInternalMessage(id, updates) {
+    const result = await db.update(internalMessages).set(updates).where(eq(internalMessages.id, id)).returning();
+    return result[0] || void 0;
+  }
+  async deleteInternalMessage(id, userId, isRecipient) {
+    const updates = isRecipient ? { deletedByRecipient: true } : { deletedBySender: true };
+    const result = await db.update(internalMessages).set(updates).where(eq(internalMessages.id, id)).returning();
+    return result.length > 0;
+  }
+  // Client Messages
+  async getClientMessages() {
+    return await db.select().from(clientMessages).orderBy(desc(clientMessages.createdAt));
+  }
+  async getClientMessage(id) {
+    const result = await db.select().from(clientMessages).where(eq(clientMessages.id, id));
+    return result[0] || void 0;
+  }
+  async getClientMessagesByClient(clientId) {
+    return await db.select().from(clientMessages).where(eq(clientMessages.clientId, clientId)).orderBy(desc(clientMessages.createdAt));
+  }
+  async createClientMessage(insertMessage) {
+    const result = await db.insert(clientMessages).values(insertMessage).returning();
+    return result[0];
+  }
+  async updateClientMessage(id, updates) {
+    const result = await db.update(clientMessages).set(updates).where(eq(clientMessages.id, id)).returning();
+    return result[0] || void 0;
+  }
+  async deleteClientMessage(id) {
+    const result = await db.delete(clientMessages).where(eq(clientMessages.id, id));
+    return result.rowCount > 0;
+  }
   // Menu Items
   async getMenuItems() {
     return await db.select().from(menuItems);
@@ -396,6 +890,9 @@ var DatabaseStorage = class {
   }
   async getOrdersByUser(userId) {
     return await db.select().from(orders).where(eq(orders.userId, userId));
+  }
+  async getOrdersByClient(clientId) {
+    return await db.select().from(orders).where(eq(orders.clientId, clientId));
   }
   async createOrder(insertOrder) {
     const result = await db.insert(orders).values(insertOrder).returning();
@@ -573,6 +1070,14 @@ var DatabaseStorage = class {
   }
   async getActiveAnnouncements() {
     return await db.select().from(announcements).where(eq(announcements.isActive, true));
+  }
+  async getAnnouncementsByPosition(position) {
+    return await db.select().from(announcements).where(
+      and(
+        eq(announcements.isActive, true),
+        eq(announcements.position, position)
+      )
+    );
   }
   async getAnnouncement(id) {
     const result = await db.select().from(announcements).where(eq(announcements.id, id));
@@ -880,6 +1385,7 @@ async function updateThemeAutomatically(storage2) {
 
 // routes.ts
 import bcrypt from "bcrypt";
+import { nanoid as nanoid2 } from "nanoid";
 async function registerRoutes(app2) {
   const requireAuth = (req, res, next) => {
     if (!req.session?.userId) {
@@ -905,6 +1411,26 @@ async function registerRoutes(app2) {
       return res.status(403).json({ message: "Staff access required" });
     }
     next();
+  };
+  const requirePermission = (permission) => {
+    return async (req, res, next) => {
+      if (!req.session?.user) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+      try {
+        const employee = await storage.getEmployeeByUserId(req.session.user.id);
+        const rolePermissions2 = await storage.getRolePermissionByName(req.session.user.role);
+        const hasRolePermission = rolePermissions2?.permissions?.[permission] === true;
+        const hasEmployeePermission = employee?.permissions?.[permission] === true;
+        if (!hasRolePermission && !hasEmployeePermission) {
+          return res.status(403).json({ message: `Permission required: ${permission}` });
+        }
+        next();
+      } catch (error) {
+        console.error("Permission check error:", error);
+        res.status(500).json({ message: "Internal server error" });
+      }
+    };
   };
   app2.post("/api/auth/login", async (req, res) => {
     try {
@@ -956,7 +1482,7 @@ async function registerRoutes(app2) {
   });
   app2.post("/api/auth/register", async (req, res) => {
     try {
-      const { username, email, password, firstName, lastName, phoneNumber, role } = req.body;
+      const { username, email, password, firstName, lastName, phoneNumber, role, company, address } = req.body;
       if (!username || !email || !password || !firstName || !lastName) {
         return res.status(400).json({ message: "Required fields missing" });
       }
@@ -978,6 +1504,8 @@ async function registerRoutes(app2) {
         phoneNumber: phoneNumber || null,
         role: role || "client",
         loyaltyPoints: 0,
+        company: company || null,
+        address: address || null,
         preferences: {
           language: "fr",
           notifications: true,
@@ -985,6 +1513,17 @@ async function registerRoutes(app2) {
         },
         allergies: []
       });
+      if ((role || "client") === "client") {
+        await storage.createClient({
+          firstName,
+          lastName,
+          email,
+          phoneNumber: phoneNumber || null,
+          company: company || null,
+          address: address || null,
+          source: "registration"
+        });
+      }
       const { password: _, ...userResponse } = newUser;
       res.status(201).json({
         message: "User created successfully",
@@ -1015,6 +1554,732 @@ async function registerRoutes(app2) {
       res.status(401).json({ message: "Not authenticated" });
     }
   });
+  const passwordResetCodes = /* @__PURE__ */ new Map();
+  app2.post("/api/admin/generate-password-reset", requireAdmin, async (req, res) => {
+    try {
+      const { email } = req.body;
+      if (!email) {
+        return res.status(400).json({ message: "Email requis" });
+      }
+      const user = await storage.getUserByEmail(email);
+      if (!user) {
+        return res.status(404).json({ message: "Utilisateur non trouv\xE9" });
+      }
+      const resetCode = nanoid2(12).toUpperCase();
+      const expires = new Date(Date.now() + 24 * 60 * 60 * 1e3);
+      passwordResetCodes.set(resetCode, {
+        userId: user.id,
+        expires,
+        used: false
+      });
+      res.json({
+        message: "Code de r\xE9cup\xE9ration g\xE9n\xE9r\xE9",
+        resetCode,
+        expiresAt: expires,
+        instructions: `Transmettez ce code au client ${user.firstName} ${user.lastName} (${user.email}). Le code expire dans 24 heures.`,
+        resetUrl: `http://localhost/reset-password?code=${resetCode}`
+      });
+    } catch (error) {
+      console.error("Password reset generation error:", error);
+      res.status(500).json({ message: "Erreur serveur" });
+    }
+  });
+  app2.get("/api/admin/password-reset-codes", requireAdmin, async (req, res) => {
+    try {
+      const activeCodes = [];
+      const now = /* @__PURE__ */ new Date();
+      for (const [code, data] of passwordResetCodes.entries()) {
+        if (!data.used && data.expires > now) {
+          const user = await storage.getUser(data.userId);
+          activeCodes.push({
+            code,
+            user: user ? { id: user.id, email: user.email, firstName: user.firstName, lastName: user.lastName } : null,
+            expires: data.expires,
+            timeRemaining: Math.round((data.expires.getTime() - now.getTime()) / (1e3 * 60 * 60)) + " heures"
+          });
+        }
+      }
+      res.json(activeCodes);
+    } catch (error) {
+      res.status(500).json({ message: "Erreur serveur" });
+    }
+  });
+  app2.post("/api/auth/verify-reset-code", async (req, res) => {
+    try {
+      const { code } = req.body;
+      if (!code) {
+        return res.status(400).json({ message: "Code requis" });
+      }
+      const resetData = passwordResetCodes.get(code);
+      if (!resetData) {
+        return res.status(400).json({ message: "Code invalide" });
+      }
+      if (resetData.used) {
+        return res.status(400).json({ message: "Code d\xE9j\xE0 utilis\xE9" });
+      }
+      if (resetData.expires < /* @__PURE__ */ new Date()) {
+        passwordResetCodes.delete(code);
+        return res.status(400).json({ message: "Code expir\xE9" });
+      }
+      const user = await storage.getUser(resetData.userId);
+      if (!user) {
+        return res.status(400).json({ message: "Utilisateur non trouv\xE9" });
+      }
+      res.json({
+        valid: true,
+        user: {
+          id: user.id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName
+        }
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Erreur serveur" });
+    }
+  });
+  app2.post("/api/auth/reset-password", async (req, res) => {
+    try {
+      const { code, newPassword } = req.body;
+      if (!code || !newPassword) {
+        return res.status(400).json({ message: "Code et nouveau mot de passe requis" });
+      }
+      if (newPassword.length < 6) {
+        return res.status(400).json({ message: "Le mot de passe doit contenir au moins 6 caract\xE8res" });
+      }
+      const resetData = passwordResetCodes.get(code);
+      if (!resetData) {
+        return res.status(400).json({ message: "Code invalide" });
+      }
+      if (resetData.used) {
+        return res.status(400).json({ message: "Code d\xE9j\xE0 utilis\xE9" });
+      }
+      if (resetData.expires < /* @__PURE__ */ new Date()) {
+        passwordResetCodes.delete(code);
+        return res.status(400).json({ message: "Code expir\xE9" });
+      }
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+      await storage.updateUser(resetData.userId, { password: hashedPassword });
+      resetData.used = true;
+      setTimeout(() => {
+        passwordResetCodes.delete(code);
+      }, 60 * 60 * 1e3);
+      res.json({
+        message: "Mot de passe r\xE9initialis\xE9 avec succ\xE8s"
+      });
+    } catch (error) {
+      console.error("Password reset error:", error);
+      res.status(500).json({ message: "Erreur serveur" });
+    }
+  });
+  setInterval(() => {
+    const now = /* @__PURE__ */ new Date();
+    for (const [code, data] of passwordResetCodes.entries()) {
+      if (data.expires < now) {
+        passwordResetCodes.delete(code);
+      }
+    }
+  }, 60 * 60 * 1e3);
+  app2.get("/api/admin/role-permissions", requireAdmin, async (req, res) => {
+    try {
+      const roles = await storage.getRolePermissions();
+      res.json(roles);
+    } catch (error) {
+      res.status(500).json({ message: "Erreur serveur" });
+    }
+  });
+  app2.post("/api/admin/role-permissions", requireAdmin, async (req, res) => {
+    try {
+      const roleData = insertRolePermissionSchema.parse(req.body);
+      const role = await storage.createRolePermission(roleData);
+      res.status(201).json(role);
+    } catch (error) {
+      res.status(400).json({ message: "Donn\xE9es invalides" });
+    }
+  });
+  app2.put("/api/admin/role-permissions/:id", requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updates = insertRolePermissionSchema.partial().parse(req.body);
+      const role = await storage.updateRolePermission(id, updates);
+      if (!role) {
+        return res.status(404).json({ message: "R\xF4le non trouv\xE9" });
+      }
+      res.json(role);
+    } catch (error) {
+      res.status(400).json({ message: "Donn\xE9es invalides" });
+    }
+  });
+  app2.get("/api/clients", requireStaff, async (req, res) => {
+    try {
+      const { search } = req.query;
+      let clients2;
+      if (search) {
+        clients2 = await storage.searchClients(search);
+      } else {
+        clients2 = await storage.getClients();
+      }
+      res.json(clients2);
+    } catch (error) {
+      res.status(500).json({ message: "Erreur serveur" });
+    }
+  });
+  app2.get("/api/clients/:id", requireStaff, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const client2 = await storage.getClient(id);
+      if (!client2) {
+        return res.status(404).json({ message: "Client non trouv\xE9" });
+      }
+      res.json(client2);
+    } catch (error) {
+      res.status(500).json({ message: "Erreur serveur" });
+    }
+  });
+  app2.post("/api/clients", requireStaff, async (req, res) => {
+    try {
+      const clientData = insertClientSchema.parse(req.body);
+      const client2 = await storage.createClient(clientData);
+      res.status(201).json(client2);
+    } catch (error) {
+      res.status(400).json({ message: "Donn\xE9es invalides" });
+    }
+  });
+  app2.put("/api/clients/:id", requireStaff, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updates = insertClientSchema.partial().parse(req.body);
+      const client2 = await storage.updateClient(id, updates);
+      if (!client2) {
+        return res.status(404).json({ message: "Client non trouv\xE9" });
+      }
+      res.json(client2);
+    } catch (error) {
+      res.status(400).json({ message: "Donn\xE9es invalides" });
+    }
+  });
+  app2.delete("/api/clients/:id", requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const deleted = await storage.deleteClient(id);
+      if (!deleted) {
+        return res.status(404).json({ message: "Client non trouv\xE9" });
+      }
+      res.json({ message: "Client supprim\xE9" });
+    } catch (error) {
+      res.status(500).json({ message: "Erreur serveur" });
+    }
+  });
+  app2.get("/api/company-settings", async (req, res) => {
+    try {
+      const settings = await storage.getCompanySettings();
+      res.json(settings);
+    } catch (error) {
+      res.status(500).json({ message: "Erreur serveur" });
+    }
+  });
+  app2.put("/api/company-settings", requireAdmin, async (req, res) => {
+    try {
+      const settingsData = insertCompanySettingsSchema.parse(req.body);
+      const existingSettings = await storage.getCompanySettings();
+      let settings;
+      if (existingSettings) {
+        settings = await storage.updateCompanySettings(existingSettings.id, settingsData);
+      } else {
+        settings = await storage.createCompanySettings(settingsData);
+      }
+      res.json(settings);
+    } catch (error) {
+      res.status(400).json({ message: "Donn\xE9es invalides" });
+    }
+  });
+  app2.get("/api/quotes", requireStaff, async (req, res) => {
+    try {
+      const { clientId } = req.query;
+      let quotes2;
+      if (clientId) {
+        quotes2 = await storage.getQuotesByClient(parseInt(clientId));
+      } else {
+        quotes2 = await storage.getQuotes();
+      }
+      res.json(quotes2);
+    } catch (error) {
+      res.status(500).json({ message: "Erreur serveur" });
+    }
+  });
+  app2.get("/api/quotes/:id", requireStaff, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const quote = await storage.getQuote(id);
+      if (!quote) {
+        return res.status(404).json({ message: "Devis non trouv\xE9" });
+      }
+      res.json(quote);
+    } catch (error) {
+      res.status(500).json({ message: "Erreur serveur" });
+    }
+  });
+  app2.post("/api/quotes", requireStaff, async (req, res) => {
+    try {
+      const quoteData = insertQuoteSchema.parse(req.body);
+      const quoteNumber = `DV${(/* @__PURE__ */ new Date()).getFullYear()}${String(Date.now()).slice(-6)}`;
+      const subtotal = parseFloat(quoteData.subtotalHT);
+      const { gstAmount, qstAmount, total } = calculateCanadianTaxes(subtotal);
+      const quote = await storage.createQuote({
+        ...quoteData,
+        quoteNumber,
+        taxAmount: (gstAmount + qstAmount).toFixed(2),
+        totalTTC: total.toFixed(2),
+        createdBy: req.session.userId
+      });
+      res.status(201).json(quote);
+    } catch (error) {
+      res.status(400).json({ message: "Donn\xE9es invalides" });
+    }
+  });
+  app2.put("/api/quotes/:id", requireStaff, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updates = insertQuoteSchema.partial().parse(req.body);
+      if (updates.subtotalHT) {
+        const subtotal = parseFloat(updates.subtotalHT);
+        const { gstAmount, qstAmount, total } = calculateCanadianTaxes(subtotal);
+        updates.taxAmount = (gstAmount + qstAmount).toFixed(2);
+        updates.totalTTC = total.toFixed(2);
+      }
+      const quote = await storage.updateQuote(id, updates);
+      if (!quote) {
+        return res.status(404).json({ message: "Devis non trouv\xE9" });
+      }
+      res.json(quote);
+    } catch (error) {
+      res.status(400).json({ message: "Donn\xE9es invalides" });
+    }
+  });
+  app2.post("/api/quotes/:id/send", requireStaff, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const quote = await storage.updateQuote(id, {
+        status: "sent",
+        sentAt: /* @__PURE__ */ new Date()
+      });
+      if (!quote) {
+        return res.status(404).json({ message: "Devis non trouv\xE9" });
+      }
+      res.json({
+        message: "Devis marqu\xE9 comme envoy\xE9 (notification manuelle requise)",
+        quote,
+        note: "Veuillez contacter le client manuellement pour lui transmettre le devis"
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Erreur serveur" });
+    }
+  });
+  app2.delete("/api/quotes/:id", requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const deleted = await storage.deleteQuote(id);
+      if (!deleted) {
+        return res.status(404).json({ message: "Devis non trouv\xE9" });
+      }
+      res.json({ message: "Devis supprim\xE9" });
+    } catch (error) {
+      res.status(500).json({ message: "Erreur serveur" });
+    }
+  });
+  app2.get("/api/galleries", async (req, res) => {
+    try {
+      const galleries2 = await storage.getGalleries();
+      res.json(galleries2);
+    } catch (error) {
+      res.status(500).json({ message: "Erreur serveur" });
+    }
+  });
+  app2.post("/api/galleries", requirePermission("manage_galleries"), async (req, res) => {
+    try {
+      const galleryData = insertGallerySchema.parse(req.body);
+      const gallery = await storage.createGallery(galleryData);
+      res.status(201).json(gallery);
+    } catch (error) {
+      res.status(400).json({ message: "Donn\xE9es invalides" });
+    }
+  });
+  app2.put("/api/galleries/:id", requirePermission("manage_galleries"), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updates = insertGallerySchema.partial().parse(req.body);
+      const gallery = await storage.updateGallery(id, updates);
+      if (!gallery) {
+        return res.status(404).json({ message: "Galerie non trouv\xE9e" });
+      }
+      res.json(gallery);
+    } catch (error) {
+      res.status(400).json({ message: "Donn\xE9es invalides" });
+    }
+  });
+  app2.delete("/api/galleries/:id", requirePermission("manage_galleries"), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const deleted = await storage.deleteGallery(id);
+      if (!deleted) {
+        return res.status(404).json({ message: "Galerie non trouv\xE9e" });
+      }
+      res.json({ message: "Galerie supprim\xE9e" });
+    } catch (error) {
+      res.status(500).json({ message: "Erreur serveur" });
+    }
+  });
+  app2.get("/api/gallery-images", async (req, res) => {
+    try {
+      const { galleryId } = req.query;
+      const images = await storage.getGalleryImages(galleryId ? parseInt(galleryId) : void 0);
+      res.json(images);
+    } catch (error) {
+      res.status(500).json({ message: "Erreur serveur" });
+    }
+  });
+  app2.post("/api/gallery-images", requirePermission("manage_galleries"), async (req, res) => {
+    try {
+      const imageData = insertGalleryImageSchema.parse(req.body);
+      const image = await storage.createGalleryImage({
+        ...imageData,
+        uploadedBy: req.session.userId
+      });
+      res.status(201).json(image);
+    } catch (error) {
+      res.status(400).json({ message: "Donn\xE9es invalides" });
+    }
+  });
+  app2.put("/api/gallery-images/:id", requirePermission("manage_galleries"), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updates = insertGalleryImageSchema.partial().parse(req.body);
+      const image = await storage.updateGalleryImage(id, updates);
+      if (!image) {
+        return res.status(404).json({ message: "Image non trouv\xE9e" });
+      }
+      res.json(image);
+    } catch (error) {
+      res.status(400).json({ message: "Donn\xE9es invalides" });
+    }
+  });
+  app2.delete("/api/gallery-images/:id", requirePermission("manage_galleries"), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const deleted = await storage.deleteGalleryImage(id);
+      if (!deleted) {
+        return res.status(404).json({ message: "Image non trouv\xE9e" });
+      }
+      res.json({ message: "Image supprim\xE9e" });
+    } catch (error) {
+      res.status(500).json({ message: "Erreur serveur" });
+    }
+  });
+  app2.get("/api/content-pages", async (req, res) => {
+    try {
+      const pages = await storage.getContentPages();
+      res.json(pages);
+    } catch (error) {
+      res.status(500).json({ message: "Erreur serveur" });
+    }
+  });
+  app2.get("/api/content-pages/:slug", async (req, res) => {
+    try {
+      const slug = req.params.slug;
+      const page = await storage.getContentPageBySlug(slug);
+      if (!page) {
+        return res.status(404).json({ message: "Page non trouv\xE9e" });
+      }
+      res.json(page);
+    } catch (error) {
+      res.status(500).json({ message: "Erreur serveur" });
+    }
+  });
+  app2.post("/api/content-pages", requirePermission("manage_content"), async (req, res) => {
+    try {
+      const pageData = insertContentPageSchema.parse(req.body);
+      const page = await storage.createContentPage({
+        ...pageData,
+        lastEditedBy: req.session.userId
+      });
+      res.status(201).json(page);
+    } catch (error) {
+      res.status(400).json({ message: "Donn\xE9es invalides" });
+    }
+  });
+  app2.put("/api/content-pages/:id", requirePermission("manage_content"), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updates = insertContentPageSchema.partial().parse(req.body);
+      const page = await storage.updateContentPage(id, {
+        ...updates,
+        lastEditedBy: req.session.userId
+      });
+      if (!page) {
+        return res.status(404).json({ message: "Page non trouv\xE9e" });
+      }
+      res.json(page);
+    } catch (error) {
+      res.status(400).json({ message: "Donn\xE9es invalides" });
+    }
+  });
+  app2.delete("/api/content-pages/:id", requirePermission("manage_content"), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const deleted = await storage.deleteContentPage(id);
+      if (!deleted) {
+        return res.status(404).json({ message: "Page non trouv\xE9e" });
+      }
+      res.json({ message: "Page supprim\xE9e" });
+    } catch (error) {
+      res.status(500).json({ message: "Erreur serveur" });
+    }
+  });
+  app2.get("/api/customer-messages", requireStaff, async (req, res) => {
+    try {
+      const { unread } = req.query;
+      let messages;
+      if (unread === "true") {
+        messages = await storage.getUnreadCustomerMessages();
+      } else {
+        messages = await storage.getCustomerMessages();
+      }
+      res.json(messages);
+    } catch (error) {
+      res.status(500).json({ message: "Erreur serveur" });
+    }
+  });
+  app2.post("/api/customer-messages", async (req, res) => {
+    try {
+      const messageData = insertCustomerMessageSchema.parse(req.body);
+      const message = await storage.createCustomerMessage(messageData);
+      const existingClient = await storage.getClientByEmail(messageData.email);
+      if (!existingClient) {
+        await storage.createClient({
+          firstName: messageData.firstName,
+          lastName: messageData.lastName,
+          email: messageData.email,
+          phoneNumber: messageData.phoneNumber,
+          source: "contact_form"
+        });
+      }
+      res.status(201).json(message);
+    } catch (error) {
+      res.status(400).json({ message: "Donn\xE9es invalides" });
+    }
+  });
+  app2.put("/api/customer-messages/:id", requireStaff, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updates = insertCustomerMessageSchema.partial().parse(req.body);
+      const message = await storage.updateCustomerMessage(id, updates);
+      if (!message) {
+        return res.status(404).json({ message: "Message non trouv\xE9" });
+      }
+      res.json(message);
+    } catch (error) {
+      res.status(400).json({ message: "Donn\xE9es invalides" });
+    }
+  });
+  app2.get("/api/internal-messages", requireAuth, async (req, res) => {
+    try {
+      const { type = "received" } = req.query;
+      let messages;
+      if (type === "sent") {
+        messages = await storage.getSentInternalMessages(req.session.userId);
+      } else {
+        messages = await storage.getInternalMessages(req.session.userId);
+      }
+      res.json(messages);
+    } catch (error) {
+      res.status(500).json({ message: "Erreur serveur" });
+    }
+  });
+  app2.post("/api/internal-messages", requireAuth, async (req, res) => {
+    try {
+      const messageData = insertInternalMessageSchema.parse(req.body);
+      const message = await storage.createInternalMessage({
+        ...messageData,
+        senderId: req.session.userId,
+        threadId: messageData.threadId || Date.now()
+      });
+      res.status(201).json(message);
+    } catch (error) {
+      res.status(400).json({ message: "Donn\xE9es invalides" });
+    }
+  });
+  app2.put("/api/internal-messages/:id", requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updates = insertInternalMessageSchema.partial().parse(req.body);
+      const message = await storage.updateInternalMessage(id, updates);
+      if (!message) {
+        return res.status(404).json({ message: "Message non trouv\xE9" });
+      }
+      res.json(message);
+    } catch (error) {
+      res.status(400).json({ message: "Donn\xE9es invalides" });
+    }
+  });
+  app2.delete("/api/internal-messages/:id", requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { isRecipient } = req.query;
+      const deleted = await storage.deleteInternalMessage(
+        id,
+        req.session.userId,
+        isRecipient === "true"
+      );
+      if (!deleted) {
+        return res.status(404).json({ message: "Message non trouv\xE9" });
+      }
+      res.json({ message: "Message supprim\xE9" });
+    } catch (error) {
+      res.status(500).json({ message: "Erreur serveur" });
+    }
+  });
+  app2.get("/api/client-messages", requireStaff, async (req, res) => {
+    try {
+      const { clientId } = req.query;
+      let messages;
+      if (clientId) {
+        messages = await storage.getClientMessagesByClient(parseInt(clientId));
+      } else {
+        messages = await storage.getClientMessages();
+      }
+      res.json(messages);
+    } catch (error) {
+      res.status(500).json({ message: "Erreur serveur" });
+    }
+  });
+  app2.post("/api/client-messages", requireStaff, async (req, res) => {
+    try {
+      const messageData = insertClientMessageSchema.parse(req.body);
+      const message = await storage.createClientMessage({
+        ...messageData,
+        senderId: req.session.userId,
+        sentAt: /* @__PURE__ */ new Date()
+      });
+      res.status(201).json(message);
+    } catch (error) {
+      res.status(400).json({ message: "Donn\xE9es invalides" });
+    }
+  });
+  app2.get("/api/menu", async (req, res) => {
+    try {
+      const items = await storage.getMenuItems();
+      res.json(items);
+    } catch (error) {
+      res.status(500).json({ message: "Erreur serveur" });
+    }
+  });
+  app2.post("/api/menu", requirePermission("manage_menu"), async (req, res) => {
+    try {
+      const itemData = insertMenuItemSchema.parse(req.body);
+      const item = await storage.createMenuItem(itemData);
+      res.status(201).json(item);
+    } catch (error) {
+      res.status(400).json({ message: "Donn\xE9es invalides" });
+    }
+  });
+  app2.put("/api/menu/:id", requirePermission("manage_menu"), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updates = insertMenuItemSchema.partial().parse(req.body);
+      const item = await storage.updateMenuItem(id, updates);
+      if (!item) {
+        return res.status(404).json({ message: "Article non trouv\xE9" });
+      }
+      res.json(item);
+    } catch (error) {
+      res.status(400).json({ message: "Donn\xE9es invalides" });
+    }
+  });
+  app2.put("/api/menu/:id/price", requirePermission("manage_menu"), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { price } = req.body;
+      if (!price || isNaN(parseFloat(price))) {
+        return res.status(400).json({ message: "Prix invalide" });
+      }
+      const item = await storage.updateMenuItem(id, { price });
+      if (!item) {
+        return res.status(404).json({ message: "Article non trouv\xE9" });
+      }
+      res.json(item);
+    } catch (error) {
+      res.status(400).json({ message: "Donn\xE9es invalides" });
+    }
+  });
+  app2.put("/api/menu/:id/photo", requirePermission("manage_menu"), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { imageUrl } = req.body;
+      if (!imageUrl) {
+        return res.status(400).json({ message: "URL de l'image requise" });
+      }
+      const item = await storage.updateMenuItem(id, { imageUrl });
+      if (!item) {
+        return res.status(404).json({ message: "Article non trouv\xE9" });
+      }
+      res.json(item);
+    } catch (error) {
+      res.status(400).json({ message: "Donn\xE9es invalides" });
+    }
+  });
+  app2.delete("/api/menu/:id", requirePermission("manage_menu"), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const deleted = await storage.deleteMenuItem(id);
+      if (!deleted) {
+        return res.status(404).json({ message: "Article non trouv\xE9" });
+      }
+      res.json({ message: "Article supprim\xE9" });
+    } catch (error) {
+      res.status(500).json({ message: "Erreur serveur" });
+    }
+  });
+  app2.get("/api/announcements", async (req, res) => {
+    try {
+      const { position, active } = req.query;
+      let announcements2;
+      if (position) {
+        announcements2 = await storage.getAnnouncementsByPosition(position);
+      } else if (active === "true") {
+        announcements2 = await storage.getActiveAnnouncements();
+      } else {
+        announcements2 = await storage.getAnnouncements();
+      }
+      res.json(announcements2);
+    } catch (error) {
+      res.status(500).json({ message: "Erreur serveur" });
+    }
+  });
+  app2.post("/api/announcements", requirePermission("manage_announcements"), async (req, res) => {
+    try {
+      const announcementData = insertAnnouncementSchema.parse(req.body);
+      const announcement = await storage.createAnnouncement({
+        ...announcementData,
+        createdBy: req.session.userId
+      });
+      res.status(201).json(announcement);
+    } catch (error) {
+      res.status(400).json({ message: "Donn\xE9es invalides" });
+    }
+  });
+  app2.put("/api/announcements/:id", requirePermission("manage_announcements"), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updates = insertAnnouncementSchema.partial().parse(req.body);
+      const announcement = await storage.updateAnnouncement(id, updates);
+      if (!announcement) {
+        return res.status(404).json({ message: "Annonce non trouv\xE9e" });
+      }
+      res.json(announcement);
+    } catch (error) {
+      res.status(400).json({ message: "Donn\xE9es invalides" });
+    }
+  });
   app2.get("/api/admin/stats", requireStaff, async (req, res) => {
     try {
       const user = await storage.getUser(req.session.userId);
@@ -1038,7 +2303,7 @@ async function registerRoutes(app2) {
       res.status(500).json({ message: "Erreur serveur" });
     }
   });
-  app2.post("/api/users", async (req, res) => {
+  app2.post("/api/users", requireAdmin, async (req, res) => {
     try {
       const userData = insertUserSchema.parse(req.body);
       const hashedPassword = await bcrypt.hash(userData.password, 10);
@@ -1049,48 +2314,6 @@ async function registerRoutes(app2) {
       res.status(201).json({ ...user, password: void 0 });
     } catch (error) {
       res.status(400).json({ message: "Donn\xE9es invalides" });
-    }
-  });
-  app2.get("/api/menu", async (req, res) => {
-    try {
-      const items = await storage.getMenuItems();
-      res.json(items);
-    } catch (error) {
-      res.status(500).json({ message: "Erreur serveur" });
-    }
-  });
-  app2.post("/api/menu", requireAuth, async (req, res) => {
-    try {
-      const itemData = insertMenuItemSchema.parse(req.body);
-      const item = await storage.createMenuItem(itemData);
-      res.status(201).json(item);
-    } catch (error) {
-      res.status(400).json({ message: "Donn\xE9es invalides" });
-    }
-  });
-  app2.put("/api/menu/:id", requireAuth, async (req, res) => {
-    try {
-      const id = parseInt(req.params.id);
-      const updates = insertMenuItemSchema.partial().parse(req.body);
-      const item = await storage.updateMenuItem(id, updates);
-      if (!item) {
-        return res.status(404).json({ message: "Article non trouv\xE9" });
-      }
-      res.json(item);
-    } catch (error) {
-      res.status(400).json({ message: "Donn\xE9es invalides" });
-    }
-  });
-  app2.delete("/api/menu/:id", requireAuth, async (req, res) => {
-    try {
-      const id = parseInt(req.params.id);
-      const deleted = await storage.deleteMenuItem(id);
-      if (!deleted) {
-        return res.status(404).json({ message: "Article non trouv\xE9" });
-      }
-      res.json({ message: "Article supprim\xE9" });
-    } catch (error) {
-      res.status(500).json({ message: "Erreur serveur" });
     }
   });
   app2.get("/api/orders", requireAuth, async (req, res) => {
@@ -1354,24 +2577,33 @@ async function registerRoutes(app2) {
       res.status(400).json({ message: "Donn\xE9es invalides" });
     }
   });
-  app2.get("/api/announcements", async (req, res) => {
+  app2.get("/api/health", async (req, res) => {
     try {
-      const announcements2 = await storage.getActiveAnnouncements();
-      res.json(announcements2);
-    } catch (error) {
-      res.status(500).json({ message: "Erreur serveur" });
-    }
-  });
-  app2.post("/api/announcements", requireAuth, async (req, res) => {
-    try {
-      const announcementData = insertAnnouncementSchema.parse(req.body);
-      const announcement = await storage.createAnnouncement({
-        ...announcementData,
-        createdBy: req.session.userId
+      const users2 = await storage.getUsers();
+      const dbStatus = users2 ? "connected" : "disconnected";
+      res.json({
+        status: "healthy",
+        timestamp: (/* @__PURE__ */ new Date()).toISOString(),
+        version: "1.0.0",
+        database: dbStatus,
+        services: {
+          auth: "running",
+          quotes: "running",
+          orders: "running",
+          reservations: "running",
+          messaging: "running",
+          inventory: "running",
+          finance: "running"
+        },
+        uptime: process.uptime(),
+        memory: process.memoryUsage()
       });
-      res.status(201).json(announcement);
     } catch (error) {
-      res.status(400).json({ message: "Donn\xE9es invalides" });
+      res.status(503).json({
+        status: "unhealthy",
+        timestamp: (/* @__PURE__ */ new Date()).toISOString(),
+        error: "Database connection failed"
+      });
     }
   });
   app2.get("/api/dashboard/stats", requireAuth, async (req, res) => {
@@ -1392,11 +2624,17 @@ async function registerRoutes(app2) {
       const tomorrowReservations = await storage.getReservationsByDate(tomorrow);
       const users2 = await storage.getUsers?.() || [];
       const totalLoyaltyPoints = users2.reduce((sum, user) => sum + (user.loyaltyPoints || 0), 0);
+      const unreadCustomerMessages = await storage.getUnreadCustomerMessages();
+      const totalClients = (await storage.getClients()).length;
+      const recentQuotes = (await storage.getQuotes()).slice(0, 5);
       res.json({
         todayRevenue,
         activeOrders,
         tomorrowReservations: tomorrowReservations.length,
-        totalLoyaltyPoints
+        totalLoyaltyPoints,
+        unreadMessages: unreadCustomerMessages.length,
+        totalClients,
+        recentQuotes: recentQuotes.length
       });
     } catch (error) {
       res.status(500).json({ message: "Erreur serveur" });
@@ -1409,371 +2647,374 @@ async function registerRoutes(app2) {
 // init-data.ts
 import bcrypt2 from "bcrypt";
 async function initializeData() {
+  console.log("\u{1F680} Initialisation des donn\xE9es Dounie Cuisine...");
   try {
-    const existingThemes = await storage.getFestiveThemes();
-    if (existingThemes.length > 0) {
-      console.log("\u2713 Donn\xE9es d\xE9j\xE0 initialis\xE9es");
-      return;
+    await initializeRolePermissions();
+    await initializeCompanySettings();
+    await initializeDefaultUsers();
+    await initializeDefaultGalleries();
+    await initializeContentPages();
+    await initializeMenuData();
+    await initializeFestiveThemes();
+    await initializeDefaultAnnouncements();
+    console.log("\u2705 Initialisation termin\xE9e avec succ\xE8s!");
+  } catch (error) {
+    console.error("\u274C Erreur lors de l'initialisation:", error);
+    throw error;
+  }
+}
+async function initializeRolePermissions() {
+  console.log("\u{1F510} Initialisation des permissions par r\xF4le...");
+  const roles = [
+    {
+      roleName: "admin",
+      description: "Administrateur syst\xE8me - Acc\xE8s complet",
+      permissions: {
+        // Gestion utilisateurs
+        manage_users: true,
+        view_users: true,
+        create_users: true,
+        edit_users: true,
+        delete_users: true,
+        // Gestion clients
+        manage_clients: true,
+        view_clients: true,
+        create_clients: true,
+        edit_clients: true,
+        delete_clients: true,
+        // Gestion menu
+        manage_menu: true,
+        view_menu: true,
+        create_menu_items: true,
+        edit_menu_items: true,
+        delete_menu_items: true,
+        // Gestion devis
+        manage_quotes: true,
+        view_quotes: true,
+        create_quotes: true,
+        edit_quotes: true,
+        delete_quotes: true,
+        send_quotes: true,
+        // Gestion commandes
+        manage_orders: true,
+        view_orders: true,
+        edit_orders: true,
+        cancel_orders: true,
+        // Gestion réservations
+        manage_reservations: true,
+        view_reservations: true,
+        edit_reservations: true,
+        cancel_reservations: true,
+        // Gestion galeries
+        manage_galleries: true,
+        view_galleries: true,
+        create_galleries: true,
+        edit_galleries: true,
+        delete_galleries: true,
+        upload_images: true,
+        // Gestion contenu
+        manage_content: true,
+        view_content: true,
+        create_content: true,
+        edit_content: true,
+        delete_content: true,
+        // Gestion annonces
+        manage_announcements: true,
+        view_announcements: true,
+        create_announcements: true,
+        edit_announcements: true,
+        delete_announcements: true,
+        // Messagerie
+        manage_internal_messaging: true,
+        view_customer_messages: true,
+        respond_customer_messages: true,
+        send_client_messages: true,
+        // Finances
+        manage_finances: true,
+        view_financial_reports: true,
+        create_transactions: true,
+        // Paramètres système
+        manage_company_settings: true,
+        manage_permissions: true,
+        view_system_logs: true,
+        // Inventaire
+        manage_inventory: true,
+        view_inventory: true,
+        // Calendrier
+        manage_calendar: true,
+        view_calendar: true,
+        // Personnel
+        manage_staff: true,
+        view_staff: true
+      }
+    },
+    {
+      roleName: "manager",
+      description: "Manager - Gestion op\xE9rationnelle",
+      permissions: {
+        // Gestion clients
+        manage_clients: true,
+        view_clients: true,
+        create_clients: true,
+        edit_clients: true,
+        delete_clients: false,
+        // Gestion menu
+        manage_menu: true,
+        view_menu: true,
+        create_menu_items: true,
+        edit_menu_items: true,
+        delete_menu_items: false,
+        // Gestion devis
+        manage_quotes: true,
+        view_quotes: true,
+        create_quotes: true,
+        edit_quotes: true,
+        delete_quotes: false,
+        send_quotes: true,
+        // Gestion commandes
+        manage_orders: true,
+        view_orders: true,
+        edit_orders: true,
+        cancel_orders: true,
+        // Gestion réservations
+        manage_reservations: true,
+        view_reservations: true,
+        edit_reservations: true,
+        cancel_reservations: true,
+        // Gestion galeries
+        manage_galleries: true,
+        view_galleries: true,
+        create_galleries: false,
+        edit_galleries: true,
+        delete_galleries: false,
+        upload_images: true,
+        // Gestion contenu
+        manage_content: false,
+        view_content: true,
+        edit_content: false,
+        // Gestion annonces
+        manage_announcements: true,
+        view_announcements: true,
+        create_announcements: true,
+        edit_announcements: true,
+        delete_announcements: false,
+        // Messagerie
+        manage_internal_messaging: true,
+        view_customer_messages: true,
+        respond_customer_messages: true,
+        send_client_messages: true,
+        // Finances
+        view_financial_reports: true,
+        create_transactions: true,
+        // Inventaire
+        manage_inventory: true,
+        view_inventory: true,
+        // Calendrier
+        manage_calendar: true,
+        view_calendar: true,
+        // Personnel
+        view_staff: true
+      }
+    },
+    {
+      roleName: "staff",
+      description: "Personnel - Op\xE9rations de base",
+      permissions: {
+        // Gestion clients
+        view_clients: true,
+        create_clients: true,
+        edit_clients: true,
+        // Menu
+        view_menu: true,
+        edit_menu_items: false,
+        // Gestion devis
+        view_quotes: true,
+        create_quotes: true,
+        edit_quotes: true,
+        send_quotes: false,
+        // Gestion commandes
+        view_orders: true,
+        edit_orders: true,
+        // Gestion réservations
+        view_reservations: true,
+        edit_reservations: true,
+        // Galeries
+        view_galleries: true,
+        upload_images: false,
+        // Messagerie
+        manage_internal_messaging: true,
+        view_customer_messages: true,
+        respond_customer_messages: true,
+        // Inventaire
+        view_inventory: true,
+        // Calendrier
+        view_calendar: true
+      }
+    },
+    {
+      roleName: "client",
+      description: "Client - Acc\xE8s limit\xE9",
+      permissions: {
+        // Commandes personnelles
+        view_own_orders: true,
+        create_orders: true,
+        // Réservations personnelles
+        view_own_reservations: true,
+        create_reservations: true,
+        // Menu public
+        view_menu: true,
+        // Galeries publiques
+        view_galleries: true,
+        // Messages
+        send_customer_messages: true
+      }
     }
-    const haitianTheme = await storage.createFestiveTheme({
-      name: "Ha\xEFti",
-      nameEn: "Haiti",
-      description: "Th\xE8me authentique ha\xEFtien avec couleurs du drapeau et culture traditionnelle",
-      isActive: true,
-      priority: 1,
-      colors: {
-        primary: "hsl(0, 84%, 55%)",
-        // Rouge haïtien du drapeau
-        secondary: "hsl(220, 100%, 50%)",
-        // Bleu haïtien du drapeau
-        accent: "hsl(45, 95%, 50%)",
-        // Jaune/or des armoiries
-        background: "hsl(50, 100%, 98%)",
-        // Blanc pur
-        surface: "hsl(0, 0%, 97%)",
-        // Gris très clair
-        text: "hsl(220, 25%, 15%)",
-        // Bleu foncé
-        muted: "hsl(220, 15%, 75%)"
-        // Gris doux
+  ];
+  for (const role of roles) {
+    const existingRole = await storage.getRolePermissionByName(role.roleName);
+    if (!existingRole) {
+      await storage.createRolePermission(role);
+      console.log(`\u2705 R\xF4le cr\xE9\xE9: ${role.roleName}`);
+    }
+  }
+}
+async function initializeCompanySettings() {
+  console.log("\u{1F3E2} Initialisation des param\xE8tres de l'entreprise...");
+  const existingSettings = await storage.getCompanySettings();
+  if (!existingSettings) {
+    await storage.createCompanySettings({
+      companyName: "Dounie Cuisine",
+      address: "Montr\xE9al, QC, Canada",
+      phoneNumber: "+1 (514) 123-4567",
+      email: "contact@dounie-cuisine.ca",
+      website: "https://dounie-cuisine.ca",
+      logoUrl: "/images/logo-dounie.png",
+      siret: "12345678901234",
+      tvaNumber: "FR12345678901",
+      salesPolicy: `## Politique de Vente - Dounie Cuisine
+
+### Conditions G\xE9n\xE9rales
+- Toutes nos prestations sont soumises aux pr\xE9sentes conditions g\xE9n\xE9rales de vente
+- Les prix sont indiqu\xE9s en CAD, taxes comprises (TPS/TVQ)
+- Un acompte de 30% est demand\xE9 \xE0 la confirmation de commande
+
+### Modalit\xE9s de Paiement
+- Esp\xE8ces, carte bancaire, virement bancaire accept\xE9s
+- Paiement de l'acompte \xE0 la commande
+- Solde \xE0 r\xE9gler le jour de la prestation
+
+### D\xE9lais
+- Commande minimale de 48h pour les prestations traiteur
+- Commande minimale de 7 jours pour les \xE9v\xE9nements importants (+ de 50 personnes)`,
+      returnPolicy: `## Politique de Retour - Dounie Cuisine
+
+### Produits Alimentaires
+- Aucun retour possible sur les produits alimentaires frais pour des raisons sanitaires
+- En cas de probl\xE8me qualit\xE9, nous nous engageons \xE0 remplacer ou rembourser
+
+### Annulation
+- Annulation gratuite jusqu'\xE0 24h avant la prestation
+- Annulation entre 24h et 12h : 50% de l'acompte retenu
+- Annulation moins de 12h avant : acompte non remboursable
+
+### R\xE9clamations
+- Toute r\xE9clamation doit \xEAtre formul\xE9e dans les 24h suivant la prestation
+- Nous nous engageons \xE0 traiter toute r\xE9clamation dans les 48h`,
+      cancellationPolicy: `## Politique d'Annulation - Dounie Cuisine
+
+### D\xE9lais d'Annulation
+1. **Plus de 7 jours avant** : Annulation gratuite, remboursement int\xE9gral
+2. **Entre 7 et 3 jours avant** : Frais d'annulation de 25%
+3. **Entre 3 jours et 24h avant** : Frais d'annulation de 50%
+4. **Moins de 24h avant** : Frais d'annulation de 100%
+
+### Cas Exceptionnels
+- Force majeure (m\xE9t\xE9o, urgence sanitaire) : remboursement int\xE9gral
+- Maladie justifi\xE9e par certificat m\xE9dical : remboursement \xE0 75%
+
+### Proc\xE9dure
+- Annulation par t\xE9l\xE9phone ou email
+- Confirmation \xE9crite de l'annulation envoy\xE9e par nos soins
+- Remboursement sous 5 \xE0 10 jours ouvr\xE9s`,
+      termsOfService: `## Conditions G\xE9n\xE9rales d'Utilisation - Dounie Cuisine
+
+### Acceptation des Conditions
+En utilisant nos services, vous acceptez les pr\xE9sentes conditions g\xE9n\xE9rales.
+
+### Propri\xE9t\xE9 Intellectuelle
+Tous les contenus pr\xE9sents sur notre site sont prot\xE9g\xE9s par le droit d'auteur.
+
+### Protection des Donn\xE9es
+Nous nous engageons \xE0 prot\xE9ger vos donn\xE9es personnelles conform\xE9ment au RGPD.
+
+### Responsabilit\xE9
+Notre responsabilit\xE9 est limit\xE9e au montant de la prestation command\xE9e.`,
+      privacyPolicy: `## Politique de Confidentialit\xE9 - Dounie Cuisine
+
+### Collecte des Donn\xE9es
+Nous collectons uniquement les donn\xE9es n\xE9cessaires \xE0 la fourniture de nos services.
+
+### Utilisation des Donn\xE9es
+- Traitement des commandes et r\xE9servations
+- Communication commerciale (avec votre accord)
+- Am\xE9lioration de nos services
+
+### Vos Droits
+Vous disposez d'un droit d'acc\xE8s, de rectification et de suppression de vos donn\xE9es.
+
+### Conservation
+Vos donn\xE9es sont conserv\xE9es 3 ans apr\xE8s votre derni\xE8re commande.
+
+### Contact
+Pour toute question : privacy@dounie-cuisine.ca`,
+      bankInfo: {
+        bankName: "Banque Nationale du Canada",
+        accountName: "Dounie Cuisine Inc.",
+        accountNumber: "****1234",
+        swiftCode: "BNDCCAMMTOR",
+        iban: "CA123456789012345678901234"
       },
-      animations: {
-        kompaRhythm: true,
-        flagWave: true,
-        drumbeat: true
-      },
-      styles: {
-        backgroundImage: "linear-gradient(135deg, hsl(0, 84%, 55%) 0%, hsl(220, 100%, 50%) 100%)",
-        borderRadius: "12px",
-        shadows: "0 4px 20px rgba(210, 16, 52, 0.2)"
-      },
-      customCSS: `
-        .haitian-theme {
-          --primary: 0 84% 55%;
-          --secondary: 220 100% 50%;
-          --accent: 45 95% 50%;
-          --background: 50 100% 98%;
-          --surface: 0 0% 97%;
-          --text: 220 25% 15%;
-          --muted: 220 15% 75%;
-        }
-        
-        .haiti-gradient {
-          background: linear-gradient(135deg, hsl(0, 84%, 55%) 0%, hsl(220, 100%, 50%) 100%);
-        }
-        
-        .haitian-card {
-          background: rgba(255, 255, 255, 0.95);
-          backdrop-filter: blur(10px);
-          border: 2px solid transparent;
-          border-radius: 12px;
-          box-shadow: 0 4px 20px rgba(210, 16, 52, 0.1);
-        }
-      `,
-      startDate: "2024-01-01",
-      endDate: "2024-12-31",
-      recurringYearly: true
+      defaultQuoteValidity: 30
     });
-    const hashedPassword = await bcrypt2.hash("admin123", 10);
-    const adminUser = await storage.createUser({
+    console.log("\u2705 Param\xE8tres d'entreprise initialis\xE9s");
+  }
+}
+async function initializeDefaultUsers() {
+  console.log("\u{1F465} Initialisation des utilisateurs par d\xE9faut...");
+  const defaultUsers = [
+    {
       username: "admin",
-      email: "admin@dounie-cuisine.com",
-      password: hashedPassword,
+      email: "admin@dounie-cuisine.ca",
+      password: "Admin123!",
       firstName: "Administrateur",
-      lastName: "Principal",
-      role: "admin",
-      phoneNumber: "+1-514-555-0001",
-      loyaltyPoints: 0,
-      preferences: {
-        language: "fr",
-        notifications: true,
-        theme: "haitian"
-      },
-      allergies: []
-    });
-    const menuItems2 = [
-      {
-        name: "Diri ak Djon Djon",
-        nameEn: "Black Mushroom Rice",
-        description: "Riz parfum\xE9 aux champignons noirs ha\xEFtiens, accompagn\xE9 de l\xE9gumes cr\xE9oles et viande de choix",
-        descriptionEn: "Fragrant rice with Haitian black mushrooms, served with Creole vegetables and choice meat",
-        category: "Plats Principaux",
-        price: "24.95",
-        isAvailable: true,
-        isFestive: true,
-        festiveTheme: "Ha\xEFti",
-        allergies: [],
-        ingredients: ["riz", "champignons djon djon", "\xE9pices cr\xE9oles", "l\xE9gumes"],
-        preparationTime: 35,
-        calories: 450
-      },
-      {
-        name: "Poisson Grill\xE9 aux \xC9pices",
-        nameEn: "Spiced Grilled Fish",
-        description: "Poisson frais grill\xE9 aux \xE9pices carib\xE9ennes, sauce ti-malice",
-        descriptionEn: "Fresh grilled fish with Caribbean spices and ti-malice sauce",
-        category: "Fruits de Mer",
-        price: "28.50",
-        isAvailable: true,
-        isFestive: true,
-        festiveTheme: "Cara\xEFbes",
-        allergies: ["poisson"],
-        ingredients: ["poisson frais", "\xE9pices carib\xE9ennes", "lime", "piments"],
-        preparationTime: 25,
-        calories: 380
-      },
-      {
-        name: "Plantain Frit",
-        nameEn: "Fried Plantain",
-        description: "Banane plantain frite dor\xE9e, accompagn\xE9e de sauce \xE9pic\xE9e",
-        descriptionEn: "Golden fried plantain served with spicy sauce",
-        category: "Accompagnements",
-        price: "8.95",
-        isAvailable: true,
-        isFestive: true,
-        festiveTheme: "Cara\xEFbes",
-        allergies: [],
-        ingredients: ["banane plantain", "huile", "\xE9pices"],
-        preparationTime: 10,
-        calories: 180
-      },
-      {
-        name: "Accras de Morue",
-        nameEn: "Cod Fritters",
-        description: "Beignets de morue \xE9pic\xE9s, frits \xE0 la perfection",
-        descriptionEn: "Spiced cod fritters, fried to perfection",
-        category: "Entr\xE9es",
-        price: "12.95",
-        isAvailable: true,
-        isFestive: true,
-        festiveTheme: "Cara\xEFbes",
-        allergies: ["poisson", "gluten"],
-        ingredients: ["morue", "farine", "\xE9pices", "piments"],
-        preparationTime: 15,
-        calories: 220
-      },
-      {
-        name: "Punch au Rhum",
-        nameEn: "Rum Punch",
-        description: "Cocktail traditionnel des Cara\xEFbes au rhum blanc et fruits tropicaux",
-        descriptionEn: "Traditional Caribbean cocktail with white rum and tropical fruits",
-        category: "Boissons",
-        price: "14.50",
-        isAvailable: true,
-        isFestive: true,
-        festiveTheme: "Cara\xEFbes",
-        allergies: [],
-        ingredients: ["rhum blanc", "jus d'ananas", "jus de passion", "lime"],
-        preparationTime: 5,
-        calories: 180
-      }
-    ];
-    for (const item of menuItems2) {
-      await storage.createMenuItem(item);
+      lastName: "Syst\xE8me",
+      role: "admin"
+    },
+    {
+      username: "manager",
+      email: "manager@dounie-cuisine.ca",
+      password: "Manager123!",
+      firstName: "Lucie",
+      lastName: "Manager",
+      role: "manager"
+    },
+    {
+      username: "staff",
+      email: "staff@dounie-cuisine.ca",
+      password: "Staff123!",
+      firstName: "Marc",
+      lastName: "Staff",
+      role: "staff"
     }
-    const now = /* @__PURE__ */ new Date();
-    const events = [
-      {
-        title: "Festival Carib\xE9en",
-        description: "Soir\xE9e sp\xE9ciale avec musique live et plats traditionnels",
-        eventType: "special_event",
-        startTime: new Date(now.getFullYear(), now.getMonth(), now.getDate() + 7, 19, 0),
-        endTime: new Date(now.getFullYear(), now.getMonth(), now.getDate() + 7, 23, 0),
-        allDay: false,
-        location: "Salle principale",
-        priority: "high",
-        status: "scheduled",
-        isPublic: true,
-        createdBy: adminUser.id
-      },
-      {
-        title: "Formation Personnel",
-        description: "Formation sur les nouveaux plats carib\xE9ens",
-        eventType: "training",
-        startTime: new Date(now.getFullYear(), now.getMonth(), now.getDate() + 3, 14, 0),
-        endTime: new Date(now.getFullYear(), now.getMonth(), now.getDate() + 3, 17, 0),
-        allDay: false,
-        location: "Cuisine",
-        priority: "normal",
-        status: "scheduled",
-        isPublic: false,
-        createdBy: adminUser.id
-      }
-    ];
-    for (const event of events) {
-      await storage.createCalendarEvent(event);
-    }
-    const inventoryItems = [
-      {
-        name: "Champignons Djon Djon",
-        category: "\xC9pices",
-        currentStock: 50,
-        minimumStock: 10,
-        unit: "grammes",
-        costPerUnit: "0.85",
-        supplier: "\xC9picerie Tropicale Ha\xEFtienne",
-        location: "Garde-manger"
-      },
-      {
-        name: "Poisson Frais",
-        category: "Prot\xE9ines",
-        currentStock: 25,
-        minimumStock: 5,
-        unit: "kilogrammes",
-        costPerUnit: "18.50",
-        supplier: "Poissonnerie Atlantique",
-        location: "R\xE9frig\xE9rateur"
-      },
-      {
-        name: "Bananes Plantain",
-        category: "L\xE9gumes",
-        currentStock: 100,
-        minimumStock: 20,
-        unit: "unit\xE9s",
-        costPerUnit: "0.75",
-        supplier: "March\xE9 Tropical",
-        location: "Garde-manger"
-      }
-    ];
-    for (const item of inventoryItems) {
-      await storage.createInventoryItem(item);
-    }
-    await storage.createLoyaltyReward({
-      name: "Repas Ha\xEFtien Gratuit",
-      description: "Un plat principal ha\xEFtien traditionnel offert",
-      pointsCost: 500,
-      rewardType: "free_item",
-      value: "25.00",
-      isActive: true,
-      isFestive: true,
-      festiveTheme: "Ha\xEFti",
-      maxRedemptions: 100,
-      validFrom: (/* @__PURE__ */ new Date()).toISOString(),
-      validUntil: new Date(Date.now() + 365 * 24 * 60 * 60 * 1e3).toISOString(),
-      conditions: {
-        minimumOrderValue: 50,
-        applicableCategories: ["Plats Principaux"]
-      }
-    });
-    await storage.createAnnouncement({
-      title: "Bienvenue chez Dounie Cuisine!",
-      content: "D\xE9couvrez l'authenticit\xE9 de la cuisine ha\xEFtienne dans notre restaurant. Go\xFBtez nos sp\xE9cialit\xE9s traditionnelles pr\xE9par\xE9es avec amour selon les recettes ancestrales!",
-      type: "promotion",
-      targetAudience: "public",
-      isActive: true,
-      priority: "high",
-      createdBy: adminUser.id,
-      validFrom: (/* @__PURE__ */ new Date()).toISOString(),
-      validUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1e3).toISOString()
-    });
-    const clientNames = [
-      { firstName: "Marie", lastName: "Delorme", username: "marie.delorme", email: "marie.delorme@email.com" },
-      { firstName: "Jean", lastName: "Baptiste", username: "jean.baptiste", email: "jean.baptiste@email.com" },
-      { firstName: "Rose", lastName: "Charlot", username: "rose.charlot", email: "rose.charlot@email.com" },
-      { firstName: "Pierre", lastName: "Moreau", username: "pierre.moreau", email: "pierre.moreau@email.com" },
-      { firstName: "Sophie", lastName: "Dubois", username: "sophie.dubois", email: "sophie.dubois@email.com" },
-      { firstName: "Andr\xE9", lastName: "Lafleur", username: "andre.lafleur", email: "andre.lafleur@email.com" },
-      { firstName: "Claudine", lastName: "Germain", username: "claudine.germain", email: "claudine.germain@email.com" },
-      { firstName: "Michel", lastName: "Vincent", username: "michel.vincent", email: "michel.vincent@email.com" },
-      { firstName: "Francine", lastName: "Joseph", username: "francine.joseph", email: "francine.joseph@email.com" },
-      { firstName: "Robert", lastName: "Sylvain", username: "robert.sylvain", email: "robert.sylvain@email.com" },
-      { firstName: "Carla", lastName: "Denis", username: "carla.denis", email: "carla.denis@email.com" },
-      { firstName: "Daniel", lastName: "Etienne", username: "daniel.etienne", email: "daniel.etienne@email.com" },
-      { firstName: "Marl\xE8ne", lastName: "Beauvais", username: "marlene.beauvais", email: "marlene.beauvais@email.com" },
-      { firstName: "Patrick", lastName: "L\xE9ger", username: "patrick.leger", email: "patrick.leger@email.com" },
-      { firstName: "Nicole", lastName: "Philippe", username: "nicole.philippe", email: "nicole.philippe@email.com" },
-      { firstName: "Emmanuel", lastName: "C\xE9sar", username: "emmanuel.cesar", email: "emmanuel.cesar@email.com" },
-      { firstName: "Vanessa", lastName: "Augustin", username: "vanessa.augustin", email: "vanessa.augustin@email.com" },
-      { firstName: "Fran\xE7ois", lastName: "Mo\xEFse", username: "francois.moise", email: "francois.moise@email.com" },
-      { firstName: "Diane", lastName: "Th\xE9odore", username: "diane.theodore", email: "diane.theodore@email.com" },
-      { firstName: "Alain", lastName: "Guerrier", username: "alain.guerrier", email: "alain.guerrier@email.com" }
-    ];
-    const clientPassword = await bcrypt2.hash("client123", 10);
-    const createdClients = [];
-    for (const client2 of clientNames) {
-      const newClient = await storage.createUser({
-        username: client2.username,
-        email: client2.email,
-        password: clientPassword,
-        firstName: client2.firstName,
-        lastName: client2.lastName,
-        role: "client",
-        phoneNumber: `+1-514-${Math.floor(Math.random() * 900) + 100}-${Math.floor(Math.random() * 9e3) + 1e3}`,
-        loyaltyPoints: Math.floor(Math.random() * 1e3),
-        preferences: {
-          language: Math.random() > 0.5 ? "fr" : "en",
-          notifications: true,
-          theme: "haitian"
-        },
-        allergies: Math.random() > 0.7 ? ["gluten"] : []
-      });
-      createdClients.push(newClient);
-    }
-    const orderStatuses = ["completed", "pending", "confirmed", "preparing", "ready"];
-    const orderTypes = ["dine-in", "takeout", "delivery"];
-    for (let i = 0; i < 150; i++) {
-      const randomClient = createdClients[Math.floor(Math.random() * createdClients.length)];
-      const orderDate = new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1e3);
-      const orderItems = [
-        { menuItemId: 1, quantity: Math.floor(Math.random() * 3) + 1, price: "24.95", customizations: [] },
-        { menuItemId: 2, quantity: Math.floor(Math.random() * 2) + 1, price: "28.50", customizations: [] }
-      ];
-      const subtotal = orderItems.reduce((sum, item) => sum + parseFloat(item.price) * item.quantity, 0);
-      const gst = subtotal * 0.05;
-      const qst = subtotal * 0.09975;
-      const total = subtotal + gst + qst;
-      await storage.createOrder({
-        userId: randomClient.id,
-        status: orderStatuses[Math.floor(Math.random() * orderStatuses.length)],
-        items: orderItems,
-        totalAmount: total.toFixed(2),
-        gstAmount: gst.toFixed(2),
-        qstAmount: qst.toFixed(2),
-        discountAmount: "0",
-        loyaltyPointsUsed: Math.random() > 0.8 ? Math.floor(Math.random() * 100) : 0,
-        loyaltyPointsEarned: Math.floor(total / 10),
-        paymentMethod: Math.random() > 0.5 ? "carte" : "comptant",
-        paymentStatus: "completed",
-        orderType: orderTypes[Math.floor(Math.random() * orderTypes.length)],
-        specialRequests: Math.random() > 0.7 ? "Pas \xE9pic\xE9" : null,
-        estimatedReadyTime: new Date(orderDate.getTime() + 30 * 60 * 1e3)
-      });
-    }
-    for (let i = 0; i < 50; i++) {
-      const randomClient = createdClients[Math.floor(Math.random() * createdClients.length)];
-      const reservationDate = new Date(Date.now() + Math.random() * 60 * 24 * 60 * 60 * 1e3);
-      await storage.createReservation({
-        userId: randomClient.id,
-        guestName: `${randomClient.firstName} ${randomClient.lastName}`,
-        guestEmail: randomClient.email,
-        guestPhone: randomClient.phoneNumber || "+1-514-555-0000",
-        partySize: Math.floor(Math.random() * 8) + 1,
-        dateTime: reservationDate,
-        tableNumber: Math.floor(Math.random() * 20) + 1,
-        status: Math.random() > 0.8 ? "pending" : "confirmed",
-        specialRequests: Math.random() > 0.6 ? "Anniversaire" : null,
-        occasion: Math.random() > 0.5 ? "birthday" : null,
-        dietaryRestrictions: Math.random() > 0.8 ? ["vegetarian"] : [],
-        confirmationCode: Math.random().toString(36).substring(2, 8).toUpperCase(),
-        reminderSent: false
-      });
-    }
-    const staffMembers = [
-      { firstName: "Lucie", lastName: "Gervais", username: "lucie.manager", role: "manager" },
-      { firstName: "Marc", lastName: "Dupont", username: "marc.staff", role: "staff" },
-      { firstName: "Sarah", lastName: "Lapointe", username: "sarah.staff", role: "staff" },
-      { firstName: "David", lastName: "Tremblay", username: "david.staff", role: "staff" }
-    ];
-    const staffPassword = await bcrypt2.hash("staff123", 10);
-    for (const staff of staffMembers) {
-      await storage.createUser({
-        username: staff.username,
-        email: `${staff.username}@dounie-cuisine.com`,
-        password: staffPassword,
-        firstName: staff.firstName,
-        lastName: staff.lastName,
-        role: staff.role,
-        phoneNumber: `+1-514-${Math.floor(Math.random() * 900) + 100}-${Math.floor(Math.random() * 9e3) + 1e3}`,
+  ];
+  for (const userData of defaultUsers) {
+    const existingUser = await storage.getUserByEmail(userData.email);
+    if (!existingUser) {
+      const hashedPassword = await bcrypt2.hash(userData.password, 10);
+      const user = await storage.createUser({
+        ...userData,
+        password: hashedPassword,
+        phoneNumber: null,
         loyaltyPoints: 0,
         preferences: {
           language: "fr",
@@ -1782,19 +3023,475 @@ async function initializeData() {
         },
         allergies: []
       });
+      if (userData.role !== "client") {
+        await storage.createEmployee({
+          userId: user.id,
+          employeeId: `EMP${String(user.id).padStart(4, "0")}`,
+          position: userData.role === "admin" ? "Administrateur" : userData.role === "manager" ? "Manager" : "Staff",
+          department: "Administration",
+          hireDate: (/* @__PURE__ */ new Date()).toISOString().split("T")[0],
+          hourlyRate: userData.role === "admin" ? "35.00" : userData.role === "manager" ? "25.00" : "18.00",
+          isActive: true,
+          certifications: [],
+          availability: {},
+          permissions: {}
+        });
+      }
+      console.log(`\u2705 Utilisateur cr\xE9\xE9: ${userData.username}`);
     }
-    console.log("\u2713 Donn\xE9es ha\xEFtiennes initialis\xE9es avec succ\xE8s!");
-    console.log("\u2713 Th\xE8me Ha\xEFti activ\xE9 par d\xE9faut");
-    console.log("\u2713 Utilisateur admin cr\xE9\xE9: admin / admin123");
-    console.log(`\u2713 ${createdClients.length} clients de test cr\xE9\xE9s (mot de passe: client123)`);
-    console.log(`\u2713 ${staffMembers.length} employ\xE9s cr\xE9\xE9s (mot de passe: staff123)`);
-    console.log("\u2713 150 commandes de test cr\xE9\xE9es");
-    console.log("\u2713 50 r\xE9servations de test cr\xE9\xE9es");
-    console.log("\u2713 Menu ha\xEFtien authentique ajout\xE9");
-    console.log("\u2713 \xC9v\xE9nements et inventaire initialis\xE9s");
-  } catch (error) {
-    console.error("\u274C Erreur lors de l'initialisation des donn\xE9es:", error);
-    throw error;
+  }
+}
+async function initializeDefaultGalleries() {
+  console.log("\u{1F5BC}\uFE0F Initialisation des galeries par d\xE9faut...");
+  const galleries2 = [
+    {
+      name: "Plats Signature",
+      description: "Nos cr\xE9ations culinaires embl\xE9matiques",
+      isActive: true,
+      sortOrder: 1
+    },
+    {
+      name: "\xC9v\xE9nements",
+      description: "Photos de nos prestations \xE9v\xE9nementielles",
+      isActive: true,
+      sortOrder: 2
+    },
+    {
+      name: "Cuisine en Action",
+      description: "Nos chefs \xE0 l'\u0153uvre",
+      isActive: true,
+      sortOrder: 3
+    },
+    {
+      name: "Ambiance Restaurant",
+      description: "L'atmosph\xE8re de notre \xE9tablissement",
+      isActive: true,
+      sortOrder: 4
+    }
+  ];
+  for (const gallery of galleries2) {
+    const existingGallery = await storage.getGalleries();
+    const found = existingGallery.find((g) => g.name === gallery.name);
+    if (!found) {
+      await storage.createGallery(gallery);
+      console.log(`\u2705 Galerie cr\xE9\xE9e: ${gallery.name}`);
+    }
+  }
+}
+async function initializeContentPages() {
+  console.log("\u{1F4C4} Initialisation des pages de contenu...");
+  const pages = [
+    {
+      slug: "faq",
+      title: "Questions Fr\xE9quemment Pos\xE9es",
+      content: `# Questions Fr\xE9quemment Pos\xE9es
+
+## Commandes et Livraisons
+
+### Quel est le d\xE9lai minimum pour commander ?
+Nous demandons un d\xE9lai minimum de 48h pour les commandes standard et 7 jours pour les \xE9v\xE9nements importants (plus de 50 personnes).
+
+### Livrez-vous ?
+Oui, nous livrons dans un rayon de 25km autour de Montr\xE9al. Des frais de livraison peuvent s'appliquer selon la distance.
+
+### Peut-on personnaliser les menus ?
+Absolument ! Nous adaptons nos menus selon vos go\xFBts, allergies et restrictions alimentaires.
+
+## Paiement
+
+### Quels moyens de paiement acceptez-vous ?
+Nous acceptons les esp\xE8ces, cartes bancaires, virements bancaires et Interac.
+
+### Quand dois-je payer ?
+Un acompte de 30% est demand\xE9 \xE0 la confirmation, le solde \xE9tant d\xFB le jour de la prestation.
+
+## Allergies et R\xE9gimes
+
+### Proposez-vous des options v\xE9g\xE9tariennes/v\xE9ganes ?
+Oui, nous avons une large gamme de plats v\xE9g\xE9tariens et v\xE9g\xE9taliens. Consultez notre section d\xE9di\xE9e.
+
+### Comment g\xE9rez-vous les allergies alimentaires ?
+Nous prenons les allergies tr\xE8s au s\xE9rieux. Informez-nous lors de votre commande et nous adapterons la pr\xE9paration.
+
+## Annulations
+
+### Puis-je annuler ma commande ?
+Oui, selon notre politique d'annulation d\xE9taill\xE9e dans nos conditions g\xE9n\xE9rales.
+
+### Que se passe-t-il en cas de force majeure ?
+En cas de force majeure (m\xE9t\xE9o, urgence sanitaire), nous remboursons int\xE9gralement.`,
+      metaDescription: "Trouvez les r\xE9ponses \xE0 vos questions sur nos services traiteur, livraisons, paiements et plus encore.",
+      isActive: true,
+      showInNavigation: true,
+      sortOrder: 1
+    },
+    {
+      slug: "about",
+      title: "\xC0 Propos de Dounie Cuisine",
+      content: `# \xC0 Propos de Dounie Cuisine
+
+## Notre Histoire
+
+Dounie Cuisine est n\xE9e de la passion de cr\xE9er des exp\xE9riences culinaires m\xE9morables qui c\xE9l\xE8brent les saveurs authentiques des Cara\xEFbes, avec une touche moderne et raffin\xE9e.
+
+## Notre Mission
+
+Nous nous engageons \xE0 :
+- Offrir une cuisine authentique et de qualit\xE9 sup\xE9rieure
+- Utiliser des ingr\xE9dients frais et locaux quand possible
+- Cr\xE9er des moments de partage et de convivialit\xE9
+- Respecter les traditions culinaires carib\xE9ennes
+
+## Notre \xC9quipe
+
+Notre \xE9quipe de chefs passionn\xE9s combine expertise traditionnelle et innovation culinaire pour vous offrir des plats exceptionnels.
+
+## Nos Valeurs
+
+- **Qualit\xE9** : Nous ne transigeons jamais sur la qualit\xE9 de nos ingr\xE9dients et pr\xE9parations
+- **Authenticit\xE9** : Respect des recettes traditionnelles
+- **Innovation** : Adaptation aux go\xFBts contemporains
+- **Service** : Excellence dans l'accueil et le service client
+
+## Certifications
+
+- Certification MAPAQ
+- Certification sanitaire AAA
+- Formation continue de l'\xE9quipe aux normes d'hygi\xE8ne`,
+      metaDescription: "D\xE9couvrez l'histoire, la mission et les valeurs de Dounie Cuisine, votre sp\xE9cialiste de la cuisine carib\xE9enne.",
+      isActive: true,
+      showInNavigation: true,
+      sortOrder: 2
+    },
+    {
+      slug: "contact",
+      title: "Nous Contacter",
+      content: `# Nous Contacter
+
+## Coordonn\xE9es
+
+**Adresse :** Montr\xE9al, QC, Canada
+**T\xE9l\xE9phone :** +1 (514) 123-4567
+**Email :** contact@dounie-cuisine.ca
+
+## Horaires d'Ouverture
+
+**Lundi - Vendredi :** 9h00 - 19h00
+**Samedi :** 10h00 - 18h00
+**Dimanche :** 11h00 - 17h00
+
+## Zone de Livraison
+
+Nous livrons dans un rayon de 25km autour de Montr\xE9al :
+- Montr\xE9al et arrondissements
+- Laval
+- Longueuil
+- Brossard
+- Saint-Lambert
+
+## Nous Suivre
+
+Restez connect\xE9s pour nos derni\xE8res cr\xE9ations et offres sp\xE9ciales !
+
+**Facebook :** @douinecuisine
+**Instagram :** @dounie_cuisine
+**Twitter :** @douinecuisine`,
+      metaDescription: "Contactez Dounie Cuisine pour vos commandes et renseignements. Coordonn\xE9es, horaires et zone de livraison.",
+      isActive: true,
+      showInNavigation: true,
+      sortOrder: 3
+    }
+  ];
+  const adminUser = await storage.getUserByEmail("admin@dounie-cuisine.ca");
+  const adminId = adminUser?.id || 1;
+  for (const page of pages) {
+    const existingPage = await storage.getContentPageBySlug(page.slug);
+    if (!existingPage) {
+      await storage.createContentPage({
+        ...page,
+        lastEditedBy: adminId
+      });
+      console.log(`\u2705 Page cr\xE9\xE9e: ${page.title}`);
+    }
+  }
+}
+async function initializeMenuData() {
+  console.log("\u{1F37D}\uFE0F Initialisation des donn\xE9es du menu...");
+  const menuCategories = {
+    "plats-principaux": [
+      {
+        name: "Griot Traditionnel",
+        nameEn: "Traditional Griot",
+        description: "Porc marin\xE9 et frit, accompagn\xE9 de riz coll\xE9 aux pois rouges et de bananes plantains frites",
+        descriptionEn: "Marinated and fried pork, served with rice and red beans and fried plantains",
+        price: "18.50",
+        imageUrl: "/images/menu/griot-traditionnel.jpg",
+        preparationTime: 25,
+        calories: 680,
+        allergies: [],
+        ingredients: ["porc", "riz", "pois rouges", "bananes plantains", "\xE9pices cr\xE9oles"]
+      },
+      {
+        name: "Poisson Gros Sel",
+        nameEn: "Salt Fish",
+        description: "Morue dessal\xE9e saut\xE9e aux l\xE9gumes cr\xE9oles, riz blanc et sauce ti-malice",
+        descriptionEn: "Desalted cod saut\xE9ed with Creole vegetables, white rice and ti-malice sauce",
+        price: "16.75",
+        imageUrl: "/images/menu/poisson-gros-sel.jpg",
+        preparationTime: 20,
+        calories: 520,
+        allergies: ["poisson"],
+        ingredients: ["morue", "l\xE9gumes cr\xE9oles", "riz", "sauce ti-malice"]
+      },
+      {
+        name: "Poulet Boucann\xE9",
+        nameEn: "Smoked Chicken",
+        description: "Poulet marin\xE9 aux \xE9pices et grill\xE9 au feu de bois, accompagn\xE9 de l\xE9gumes racines",
+        descriptionEn: "Chicken marinated with spices and grilled over wood fire, served with root vegetables",
+        price: "17.25",
+        imageUrl: "/images/menu/poulet-boucanne.jpg",
+        preparationTime: 30,
+        calories: 590,
+        allergies: [],
+        ingredients: ["poulet", "\xE9pices cr\xE9oles", "l\xE9gumes racines", "marinade"]
+      }
+    ],
+    "entrees": [
+      {
+        name: "Accras de Morue",
+        nameEn: "Cod Fritters",
+        description: "Beignets de morue \xE9pic\xE9s, croustillants \xE0 l'ext\xE9rieur et moelleux \xE0 l'int\xE9rieur",
+        descriptionEn: "Spiced cod fritters, crispy outside and tender inside",
+        price: "8.50",
+        imageUrl: "/images/menu/accras-morue.jpg",
+        preparationTime: 15,
+        calories: 280,
+        allergies: ["poisson", "gluten"],
+        ingredients: ["morue", "farine", "\xE9pices", "huile"]
+      },
+      {
+        name: "Boudin Cr\xE9ole",
+        nameEn: "Creole Blood Sausage",
+        description: "Boudin noir aux \xE9pices antillaises, accompagn\xE9 de sauce piment",
+        descriptionEn: "Black pudding with West Indian spices, served with hot sauce",
+        price: "9.25",
+        imageUrl: "/images/menu/boudin-creole.jpg",
+        preparationTime: 12,
+        calories: 320,
+        allergies: [],
+        ingredients: ["sang de porc", "\xE9pices cr\xE9oles", "oignons", "piment"]
+      }
+    ],
+    "desserts": [
+      {
+        name: "Blanc-Manger Coco",
+        nameEn: "Coconut Blancmange",
+        description: "Dessert cr\xE9meux \xE0 la noix de coco, parfum\xE9 \xE0 la vanille et cannelle",
+        descriptionEn: "Creamy coconut dessert, flavored with vanilla and cinnamon",
+        price: "6.50",
+        imageUrl: "/images/menu/blanc-manger-coco.jpg",
+        preparationTime: 10,
+        calories: 220,
+        allergies: ["lait"],
+        ingredients: ["lait de coco", "vanille", "cannelle", "sucre"]
+      },
+      {
+        name: "Tarte \xE0 la Patate Douce",
+        nameEn: "Sweet Potato Pie",
+        description: "Tarte cr\xE9meuse \xE0 la patate douce \xE9pic\xE9e, p\xE2te sabl\xE9e maison",
+        descriptionEn: "Creamy spiced sweet potato pie with homemade shortbread crust",
+        price: "7.75",
+        imageUrl: "/images/menu/tarte-patate-douce.jpg",
+        preparationTime: 15,
+        calories: 310,
+        allergies: ["gluten", "\u0153ufs", "lait"],
+        ingredients: ["patate douce", "\xE9pices", "p\xE2te sabl\xE9e", "\u0153ufs", "cr\xE8me"]
+      }
+    ],
+    "boissons": [
+      {
+        name: "Jus de Fruit de la Passion",
+        nameEn: "Passion Fruit Juice",
+        description: "Jus naturel de fruit de la passion, rafra\xEEchissant et vitamin\xE9",
+        descriptionEn: "Natural passion fruit juice, refreshing and vitamin-rich",
+        price: "4.50",
+        imageUrl: "/images/menu/jus-passion.jpg",
+        preparationTime: 5,
+        calories: 95,
+        allergies: [],
+        ingredients: ["fruit de la passion", "eau", "sucre de canne"]
+      },
+      {
+        name: "Punch Planteur",
+        nameEn: "Planter's Punch",
+        description: "Cocktail traditionnel au rhum, jus de fruits tropicaux (sans alcool disponible)",
+        descriptionEn: "Traditional rum cocktail with tropical fruit juices (non-alcoholic available)",
+        price: "8.25",
+        imageUrl: "/images/menu/punch-planteur.jpg",
+        preparationTime: 5,
+        calories: 180,
+        allergies: [],
+        ingredients: ["rhum", "jus d'ananas", "jus d'orange", "grenadine", "muscade"]
+      }
+    ]
+  };
+  for (const [category, items] of Object.entries(menuCategories)) {
+    for (const item of items) {
+      const existingItems = await storage.getMenuItems();
+      const found = existingItems.find((existing) => existing.name === item.name);
+      if (!found) {
+        await storage.createMenuItem({
+          ...item,
+          category,
+          isAvailable: true,
+          isFestive: false,
+          festiveTheme: null
+        });
+        console.log(`\u2705 Plat ajout\xE9: ${item.name}`);
+      }
+    }
+  }
+}
+async function initializeFestiveThemes() {
+  console.log("\u{1F3AD} Initialisation des th\xE8mes festifs...");
+  const themes = [
+    {
+      name: "Ha\xEFtien Classique",
+      nameEn: "Classic Haitian",
+      description: "Th\xE8me traditionnel aux couleurs du drapeau ha\xEFtien",
+      isActive: true,
+      isAutomatic: false,
+      colors: {
+        primary: "#0072CE",
+        secondary: "#CE1126",
+        accent: "#FFD100",
+        background: "#F8F9FA"
+      },
+      animations: {},
+      icons: {
+        flag: "\u{1F1ED}\u{1F1F9}",
+        food: "\u{1F37D}\uFE0F",
+        celebration: "\u{1F389}"
+      },
+      priority: 1,
+      recurringYearly: false
+    },
+    {
+      name: "Carnaval",
+      nameEn: "Carnival",
+      description: "Th\xE8me festif pour la p\xE9riode du carnaval",
+      isActive: false,
+      isAutomatic: true,
+      startDate: "2025-02-01",
+      endDate: "2025-03-15",
+      colors: {
+        primary: "#FF6B35",
+        secondary: "#F7931E",
+        accent: "#FFD23F",
+        background: "#FFF8E1"
+      },
+      animations: {
+        confetti: true,
+        bounce: true
+      },
+      icons: {
+        mask: "\u{1F3AD}",
+        music: "\u{1F3B5}",
+        dance: "\u{1F483}"
+      },
+      priority: 2,
+      recurringYearly: true
+    },
+    {
+      name: "F\xEAte des M\xE8res",
+      nameEn: "Mother's Day",
+      description: "Th\xE8me sp\xE9cial pour la f\xEAte des m\xE8res",
+      isActive: false,
+      isAutomatic: true,
+      startDate: "2025-05-01",
+      endDate: "2025-05-31",
+      colors: {
+        primary: "#E91E63",
+        secondary: "#F8BBD9",
+        accent: "#FF4081",
+        background: "#FCE4EC"
+      },
+      animations: {
+        hearts: true,
+        sparkle: true
+      },
+      icons: {
+        heart: "\u{1F49D}",
+        flower: "\u{1F338}",
+        love: "\u{1F496}"
+      },
+      priority: 3,
+      recurringYearly: true
+    }
+  ];
+  for (const theme of themes) {
+    const existingThemes = await storage.getFestiveThemes();
+    const found = existingThemes.find((t) => t.name === theme.name);
+    if (!found) {
+      await storage.createFestiveTheme(theme);
+      console.log(`\u2705 Th\xE8me cr\xE9\xE9: ${theme.name}`);
+    }
+  }
+}
+async function initializeDefaultAnnouncements() {
+  console.log("\u{1F4E2} Initialisation des annonces par d\xE9faut...");
+  const adminUser = await storage.getUserByEmail("admin@dounie-cuisine.ca");
+  const adminId = adminUser?.id || 1;
+  const announcements2 = [
+    {
+      title: "Bienvenue chez Dounie Cuisine!",
+      content: "D\xE9couvrez nos sp\xE9cialit\xE9s carib\xE9ennes authentiques et nos services traiteur pour tous vos \xE9v\xE9nements.",
+      type: "info",
+      priority: "normal",
+      position: "banner",
+      targetAudience: "all",
+      isActive: true,
+      startDate: /* @__PURE__ */ new Date(),
+      endDate: null,
+      imageUrl: null,
+      actionUrl: "/menu",
+      actionText: "Voir notre menu",
+      viewCount: 0,
+      displayRules: {
+        showOnHomepage: true,
+        showToNewVisitors: true
+      },
+      createdBy: adminId
+    },
+    {
+      title: "Nouveau: Service de Devis en Ligne",
+      content: "Demandez facilement un devis personnalis\xE9 pour vos \xE9v\xE9nements directement depuis notre interface.",
+      type: "success",
+      priority: "high",
+      position: "modal",
+      targetAudience: "customers",
+      isActive: true,
+      startDate: /* @__PURE__ */ new Date(),
+      endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1e3),
+      // 30 jours
+      imageUrl: null,
+      actionUrl: "/contact",
+      actionText: "Demander un devis",
+      viewCount: 0,
+      displayRules: {
+        showOnce: true,
+        requiresLogin: false
+      },
+      createdBy: adminId
+    }
+  ];
+  for (const announcement of announcements2) {
+    const existingAnnouncements = await storage.getAnnouncements();
+    const found = existingAnnouncements.find((a) => a.title === announcement.title);
+    if (!found) {
+      await storage.createAnnouncement(announcement);
+      console.log(`\u2705 Annonce cr\xE9\xE9e: ${announcement.title}`);
+    }
   }
 }
 
