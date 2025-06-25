@@ -85,7 +85,7 @@ def test_health_endpoint():
         response = requests.get(f"{API_BASE_URL}/health")
         response_time = time.time() - start_time
         
-        success = response.status_code == 200 and response.json().get("status") == "ok"
+        success = response.status_code == 200 and response.json().get("status") == "healthy"
         return log_test("Health Endpoint", success, response, response_time=response_time)
     except Exception as e:
         return log_test("Health Endpoint", False, error=e)
