@@ -9,10 +9,10 @@ import os
 from datetime import datetime, timedelta
 
 # Configuration
-API_BASE_URL = "http://localhost:5000/api"
-ADMIN_CREDENTIALS = {"username": "admin", "password": "admin123"}
-CLIENT_CREDENTIALS = {"username": "lucie.manager", "password": "staff123"}
-STAFF_CREDENTIALS = {"username": "marc.staff", "password": "staff123"}
+API_BASE_URL = "http://localhost:8001/api"  # Direct connection to backend port
+ADMIN_CREDENTIALS = {"username": "admin", "password": "Admin123!"}
+CLIENT_CREDENTIALS = {"username": "staff", "password": "Staff123!"}
+STAFF_CREDENTIALS = {"username": "staff", "password": "Staff123!"}
 
 # Test session for maintaining cookies
 admin_session = requests.Session()
