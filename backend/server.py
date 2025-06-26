@@ -90,33 +90,29 @@ async def health_check():
         "version": "1.0.0"
     }
 
+# In-memory storage for reset codes and user credentials (to be replaced with MongoDB)
+reset_codes_storage = {}
+user_credentials = {
+    "admin": {"password": "Admin123!", "user_data": {
+        "id": "1", "username": "admin", "email": "admin@dounie-cuisine.ca",
+        "firstName": "Admin", "lastName": "Dounie", "role": "admin"
+    }},
+    "staff": {"password": "Staff123!", "user_data": {
+        "id": "2", "username": "staff", "email": "staff@dounie-cuisine.ca", 
+        "firstName": "Staff", "lastName": "Member", "role": "staff"
+    }}
+}
+
 # Authentication endpoints
 @app.post("/api/auth/login", response_model=dict)
 async def login(login_data: LoginRequest):
-    """Login endpoint - simplified for now"""
-    # Cette implémentation sera complétée selon les besoins
-    if login_data.username == "admin" and login_data.password == "Admin123!":
-        user = {
-            "id": "1",
-            "username": "admin",
-            "email": "admin@dounie-cuisine.ca",
-            "firstName": "Admin",
-            "lastName": "Dounie",
-            "role": "admin"
-        }
-        return {"user": user, "token": "fake-jwt-token"}
-    elif login_data.username == "staff" and login_data.password == "Staff123!":
-        user = {
-            "id": "2", 
-            "username": "staff",
-            "email": "staff@dounie-cuisine.ca",
-            "firstName": "Staff",
-            "lastName": "Member",
-            "role": "staff"
-        }
-        return {"user": user, "token": "fake-jwt-token"}
-    else:
-        raise HTTPException(status_code=401, detail="Invalid credentials")
+    """Login endpoint - improved with dynamic credentials"""
+    if login_data.username in user_credentials:
+        stored_creds = user_credentials[login_data.username]
+        if stored_creds["password"] == login_data.password:
+            return {"user": stored_creds["user_data"], "token": "fake-jwt-token"}
+    
+    raise HTTPException(status_code=401, detail="Invalid credentials")
 
 @app.post("/api/auth/logout")
 async def logout():
