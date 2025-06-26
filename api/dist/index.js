@@ -8,6 +8,7 @@ var __export = (target, all) => {
 import express from "express";
 import cors from "cors";
 import session from "express-session";
+import MemoryStore from "memorystore";
 
 // routes.ts
 import { createServer } from "http";
@@ -3499,17 +3500,7 @@ async function initializeDefaultAnnouncements() {
 import dotenv2 from "dotenv";
 dotenv2.config();
 var app = express();
-app.use(session({
-  secret: process.env.SESSION_SECRET || "dounie-cuisine-session-secret-key-2024",
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    secure: process.env.NODE_ENV === "production",
-    httpOnly: true,
-    maxAge: 24 * 60 * 60 * 1e3
-    // 24 hours
-  }
-}));
+var MemStore = MemoryStore(session);
 app.use(cors({
   origin: [
     "http://localhost:5173",
@@ -3525,6 +3516,25 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+app.use(session({
+  secret: process.env.SESSION_SECRET || "dounie-cuisine-session-secret-key-2024",
+  resave: true,
+  // Changé selon le plan
+  saveUninitialized: true,
+  name: "connect.sid",
+  store: new MemStore({
+    checkPeriod: 864e5
+    // prune expired entries every 24h
+  }),
+  cookie: {
+    secure: false,
+    httpOnly: false,
+    // Allow access for testing
+    maxAge: 24 * 60 * 60 * 1e3,
+    // 24 hours
+    sameSite: "lax"
+  }
+}));
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
