@@ -30,11 +30,19 @@ class PasswordRecoveryTester:
     def test_admin_login(self):
         """Test admin authentication for password recovery operations"""
         try:
+            # Configure session with proper headers
+            self.session.headers.update({
+                'Content-Type': 'application/json',
+                'User-Agent': 'Dounie-Cuisine-Tester/1.0'
+            })
+            
             response = self.session.post(f"{BASE_URL}/auth/login", json=self.admin_credentials)
             success = response.status_code == 200 and "user" in response.json()
             
             if success:
                 user_data = response.json()["user"]
+                # Debug: print session cookies
+                print(f"   Session cookies: {dict(self.session.cookies)}")
                 self.print_test("Admin Login", True, f"Logged in as {user_data['firstName']} {user_data['lastName']} (Role: {user_data['role']})")
             else:
                 self.print_test("Admin Login", False, f"Status: {response.status_code}, Response: {response.text}")
