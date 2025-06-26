@@ -192,7 +192,7 @@ def test_generate_password_reset(session, email="staff@dounie-cuisine.ca"):
     except Exception as e:
         return log_test(f"Generate Password Reset Code for {email}", False, error=e)
 
-def test_get_password_reset_codes(session):
+def test_get_password_reset_codes(session, check_for_code=None, expect_used=False):
     """Test retrieving active password reset codes (admin only)"""
     try:
         start_time = time.time()
@@ -202,11 +202,22 @@ def test_get_password_reset_codes(session):
         success = response.status_code == 200 and isinstance(response.json(), list)
         
         # Check if our generated code is in the list
-        if success and password_reset_code:
-            codes = [item.get("code") for item in response.json()]
-            if password_reset_code not in codes:
+        if success and check_for_code:
+            codes_data = response.json()
+            found = False
+            for code_data in codes_data:
+                if code_data.get("code") == check_for_code:
+                    found = True
+                    # If we expect the code to be used, check that
+                    if expect_used and not code_data.get("used", False):
+                        return log_test("Get Password Reset Codes", False, response, 
+                                      error=f"Code {check_for_code} should be marked as used but isn't", 
+                                      response_time=response_time)
+                    break
+            
+            if not found and not expect_used:
                 return log_test("Get Password Reset Codes", False, response, 
-                               error=f"Generated code {password_reset_code} not found in active codes list", 
+                               error=f"Generated code {check_for_code} not found in active codes list", 
                                response_time=response_time)
         
         return log_test("Get Password Reset Codes", success, response, response_time=response_time)
