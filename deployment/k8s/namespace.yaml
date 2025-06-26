@@ -1,8 +1,0 @@
-# Namespace pour Dounie Cuisine
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: dounie-cuisine
-  labels:
-    app: dounie-cuisine
-    environment: production
