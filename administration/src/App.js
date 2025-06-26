@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
-const API_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001/api';
+const API_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
 
 function App() {
   const [user, setUser] = useState(null);
