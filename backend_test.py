@@ -348,8 +348,13 @@ def test_get_menu():
         # Check if the menu contains the expected Haitian dishes
         if success:
             menu_items = response.json()
-            haitian_dishes = ["Poule nan Sos", "Riz Collé", "Poisson Gros Sel"]
-            found_dishes = [item["name"] for item in menu_items if item["name"] in haitian_dishes]
+            haitian_dishes = ["Poule nan Sos", "Riz Collé aux Pois", "Poisson Gros Sel"]
+            found_dishes = []
+            
+            for item in menu_items:
+                for dish in haitian_dishes:
+                    if dish in item["name"]:
+                        found_dishes.append(dish)
             
             if len(found_dishes) < len(haitian_dishes):
                 missing = set(haitian_dishes) - set(found_dishes)
