@@ -12,7 +12,7 @@ function App() {
 
   useEffect(() => {
     // Test de connexion API
-    axios.get(`${API_URL}/health`)
+    axios.get(`${API_URL}/api/health`)
       .then(response => setHealth(response.data))
       .catch(error => console.error('API Error:', error));
   }, []);
@@ -20,7 +20,7 @@ function App() {
   const handlePasswordReset = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post(`${API_URL}/auth/reset-password`, {
+      const response = await axios.post(`${API_URL}/api/auth/reset-password`, {
         code: resetCode,
         newPassword: newPassword
       });
