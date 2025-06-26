@@ -980,9 +980,6 @@ main() {
     # Affichage final
     show_final_summary
 }
-
-# Execution du script
 -e 
 # Execution du script
 main "$@"
-
