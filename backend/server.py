@@ -212,6 +212,15 @@ async def reset_password(request: PasswordResetComplete):
         if code_data["expires_at"] > datetime.now() and not code_data["used"]:
             # Vérifier la force du mot de passe
             if len(request.newPassword) >= 8:
+                # Mettre à jour le mot de passe de l'utilisateur
+                email = code_data["email"]
+                # Trouver l'utilisateur par email et mettre à jour son mot de passe
+                for username, creds in user_credentials.items():
+                    if creds["user_data"]["email"] == email:
+                        user_credentials[username]["password"] = request.newPassword
+                        logger.info(f"Password updated for user {username}")
+                        break
+                
                 # Marquer le code comme utilisé
                 reset_codes_storage[request.code]["used"] = True
                 return {"message": "Mot de passe réinitialisé avec succès"}
