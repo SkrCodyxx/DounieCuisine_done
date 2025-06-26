@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # =============================================================================
-# DÉPLOIEMENT COMPLET DOUNIE CUISINE - DEBIAN/UBUNTU
+# DPLOIEMENT COMPLET DOUNIE CUISINE - DEBIAN/UBUNTU
 # Script unique pour deploiement production sur serveur VPS/dedie
 # Architecture: Express.js + FastAPI + React + PostgreSQL + MongoDB
 # Auteur: Dounie Cuisine Team
@@ -37,7 +37,7 @@ log_checkpoint() { echo -e "${PURPLE}[CHECKPOINT]${NC} $1"; }
 
 # Verification de l'arborescence du projet
 check_project_structure() {
-    log_info "🔍 Verification de l'arborescence du projet..."
+    log_info " Verification de l'arborescence du projet..."
     
     local required_dirs=("api" "public" "administration" "backend" "frontend")
     local required_files=("api/package.json" "public/package.json" "administration/package.json" "backend/requirements.txt" "frontend/package.json")
@@ -63,17 +63,17 @@ check_project_structure() {
     done
     
     if [[ ${#missing_items[@]} -eq 0 ]]; then
-        log_success "✅ Arborescence complete detectee"
+        log_success " Arborescence complete detectee"
         return 0
     else
-        log_warning "⚠️ Élements manquants: ${missing_items[*]}"
+        log_warning " lements manquants: ${missing_items[*]}"
         return 1
     fi
 }
 
 # Clonage intelligent depuis GitHub
 clone_project_from_github() {
-    log_info "📥 Clonage du projet depuis GitHub..."
+    log_info " Clonage du projet depuis GitHub..."
     
     if [[ -d "$PROJECT_PATH" ]]; then
         local backup_name="backup-$(date +%Y%m%d_%H%M%S)"
@@ -86,17 +86,17 @@ clone_project_from_github() {
     cd "$INSTALL_DIR"
     
     if git clone "$GITHUB_REPO" "$PROJECT_NAME"; then
-        log_success "✅ Projet clone avec succes depuis GitHub"
+        log_success " Projet clone avec succes depuis GitHub"
         return 0
     else
-        log_error "❌ Échec du clonage"
+        log_error " chec du clonage"
         return 1
     fi
 }
 
 # Gestion intelligente des sources
 manage_project_sources() {
-    log_info "📋 Gestion des sources du projet..."
+    log_info " Gestion des sources du projet..."
     
     if check_project_structure; then
         log_success "Utilisation des fichiers existants"
@@ -147,11 +147,11 @@ get_last_checkpoint() {
 }
 
 # =============================================================================
-# IMPLÉMENTATION DES ÉTAPES DE DÉPLOIEMENT
+# IMPLMENTATION DES TAPES DE DPLOIEMENT
 # =============================================================================
 
 check_environment() {
-    log_info "🔍 Verification de l'environnement..."
+    log_info " Verification de l'environnement..."
     
     if [[ $EUID -ne 0 ]]; then
         log_error "Ce script doit etre execute en tant que root"
@@ -177,7 +177,7 @@ manage_sources() {
 }
 
 prepare_system() {
-    log_info "🔧 Preparation du systeme..."
+    log_info " Preparation du systeme..."
     
     export DEBIAN_FRONTEND=noninteractive
     
@@ -204,12 +204,12 @@ prepare_system() {
 }
 
 install_nodejs() {
-    log_info "📦 Installation de Node.js 20..."
+    log_info " Installation de Node.js 20..."
     
     if command -v node &> /dev/null; then
         node_version=$(node --version | cut -d'v' -f2 | cut -d'.' -f1)
         if [[ "$node_version" -ge 20 ]]; then
-            log_success "Node.js $node_version dejà installe"
+            log_success "Node.js $node_version dej installe"
             
             # Installer les outils globaux si manquants
             npm install -g yarn pm2 serve 2>/dev/null || true
@@ -229,7 +229,7 @@ install_nodejs() {
 }
 
 install_python() {
-    log_info "🐍 Installation de Python et dependances..."
+    log_info " Installation de Python et dependances..."
     
     apt-get install -y python3 python3-pip python3-venv python3-dev python3-full
     
@@ -254,7 +254,7 @@ install_python() {
 }
 
 install_databases() {
-    log_info "🗄️ Installation des bases de donnees..."
+    log_info " Installation des bases de donnees..."
     
     # PostgreSQL
     apt-get install -y postgresql postgresql-contrib
@@ -288,7 +288,7 @@ install_databases() {
 }
 
 install_webserver() {
-    log_info "🌐 Configuration de Nginx..."
+    log_info " Configuration de Nginx..."
     
     systemctl start nginx
     systemctl enable nginx
@@ -305,7 +305,7 @@ install_webserver() {
 }
 
 configure_databases() {
-    log_info "🔐 Configuration des bases de donnees..."
+    log_info " Configuration des bases de donnees..."
     
     # Generer des mots de passe securises
     local PG_PASSWORD="dounie_pg_$(openssl rand -hex 16 2>/dev/null || echo "secure$(date +%s)")"
@@ -355,7 +355,7 @@ try {
       pwd: "$MONGO_PASSWORD",
       roles: ["userAdminAnyDatabase", "dbAdminAnyDatabase", "readWriteAnyDatabase"]
     })
-} catch(e) { print("Admin existe dejà") }
+} catch(e) { print("Admin existe dej") }
 
 use dounie_cuisine
 try {
@@ -364,7 +364,7 @@ try {
       pwd: "$MONGO_PASSWORD",
       roles: ["readWrite"]
     })
-} catch(e) { print("Utilisateur existe dejà") }
+} catch(e) { print("Utilisateur existe dej") }
 EOF
     
     # Sauvegarder les identifiants
@@ -380,7 +380,7 @@ EOF
 }
 
 setup_environment_variables() {
-    log_info "🔐 Configuration des variables d'environnement..."
+    log_info " Configuration des variables d'environnement..."
     
     source /root/.dounie-credentials
     
@@ -426,32 +426,32 @@ EOF
 }
 
 install_dependencies() {
-    log_info "📦 Installation des dependances..."
+    log_info " Installation des dependances..."
     
     cd "$PROJECT_PATH"
     
     # API Express.js
-    log_info "→ Dependances API Express.js..."
+    log_info " Dependances API Express.js..."
     cd api && npm install --production && cd ..
     
     # Application publique
-    log_info "→ Dependances application publique..."
+    log_info " Dependances application publique..."
     cd public && npm install && cd ..
     
     # Administration
-    log_info "→ Dependances administration..."
+    log_info " Dependances administration..."
     cd administration && npm install && cd ..
     
     # Backend FastAPI
-    log_info "→ Dependances Backend FastAPI..."
+    log_info " Dependances Backend FastAPI..."
     cd backend
     python3 -m pip install --break-system-packages -r requirements.txt || {
-        log_warning "Installation pip echouee, packages dejà installes via apt"
+        log_warning "Installation pip echouee, packages dej installes via apt"
     }
     cd ..
     
     # Frontend React
-    log_info "→ Dependances Frontend React..."
+    log_info " Dependances Frontend React..."
     cd frontend && yarn install && cd ..
     
     log_success "Toutes les dependances installees"
@@ -459,24 +459,24 @@ install_dependencies() {
 }
 
 build_applications() {
-    log_info "🏗️ Construction des applications..."
+    log_info " Construction des applications..."
     
     cd "$PROJECT_PATH"
     
     # Build API Express.js
-    log_info "→ Build API Express.js..."
+    log_info " Build API Express.js..."
     cd api && (npm run build || log_warning "Build API echoue") && cd ..
     
     # Build application publique
-    log_info "→ Build application publique..."
+    log_info " Build application publique..."
     cd public && (npm run build || log_warning "Build public echoue") && cd ..
     
     # Build administration
-    log_info "→ Build administration..."
+    log_info " Build administration..."
     cd administration && (npm run build || log_warning "Build admin echoue") && cd ..
     
     # Build frontend React
-    log_info "→ Build frontend React..."
+    log_info " Build frontend React..."
     cd frontend && (yarn build || log_warning "Build frontend echoue") && cd ..
     
     log_success "Applications construites"
@@ -484,7 +484,7 @@ build_applications() {
 }
 
 configure_nginx() {
-    log_info "🌐 Configuration de Nginx..."
+    log_info " Configuration de Nginx..."
     
     cat > /etc/nginx/sites-available/dounie-cuisine << 'EOF'
 server {
@@ -594,7 +594,7 @@ EOF
 }
 
 configure_services() {
-    log_info "⚙️ Configuration des services..."
+    log_info " Configuration des services..."
     
     cat > /etc/supervisor/conf.d/dounie-cuisine.conf << EOF
 [group:dounie-cuisine]
@@ -639,7 +639,7 @@ EOF
 }
 
 setup_monitoring() {
-    log_info "📊 Configuration du monitoring..."
+    log_info " Configuration du monitoring..."
     
     cat > /usr/local/bin/dounie-monitor << 'EOF'
 #!/bin/bash
@@ -716,7 +716,7 @@ EOF
 }
 
 setup_backups() {
-    log_info "💾 Configuration des sauvegardes..."
+    log_info " Configuration des sauvegardes..."
     
     cat > /etc/cron.daily/dounie-backup << 'EOF'
 #!/bin/bash
@@ -760,7 +760,7 @@ EOF
 }
 
 configure_firewall() {
-    log_info "🛡️ Configuration du firewall..."
+    log_info " Configuration du firewall..."
     
     ufw --force reset
     ufw default deny incoming
@@ -780,7 +780,7 @@ configure_firewall() {
 }
 
 run_final_tests() {
-    log_info "🧪 Tests finaux du systeme..."
+    log_info " Tests finaux du systeme..."
     
     sleep 30
     
@@ -789,52 +789,52 @@ run_final_tests() {
     
     # Tests des services
     if timeout 10 curl -f -s http://localhost:5000/api/health > /dev/null 2>&1; then
-        log_success "✅ API Express.js - OK"
+        log_success " API Express.js - OK"
         ((tests_passed++))
     else
-        log_error "❌ API Express.js - ÉCHEC"
+        log_error " API Express.js - CHEC"
     fi
     
     if timeout 10 curl -f -s http://localhost:8001/api/health > /dev/null 2>&1; then
-        log_success "✅ Backend FastAPI - OK"
+        log_success " Backend FastAPI - OK"
         ((tests_passed++))
     else
-        log_error "❌ Backend FastAPI - ÉCHEC"
+        log_error " Backend FastAPI - CHEC"
     fi
     
     if timeout 10 curl -f -s http://localhost:3000 > /dev/null 2>&1; then
-        log_success "✅ Frontend React - OK"
+        log_success " Frontend React - OK"
         ((tests_passed++))
     else
-        log_error "❌ Frontend React - ÉCHEC"
+        log_error " Frontend React - CHEC"
     fi
     
     if timeout 10 curl -f -s http://localhost/ > /dev/null 2>&1; then
-        log_success "✅ Application publique - OK"
+        log_success " Application publique - OK"
         ((tests_passed++))
     else
-        log_error "❌ Application publique - ÉCHEC"
+        log_error " Application publique - CHEC"
     fi
     
     if timeout 10 curl -f -s http://localhost/admin > /dev/null 2>&1; then
-        log_success "✅ Interface admin - OK"
+        log_success " Interface admin - OK"
         ((tests_passed++))
     else
-        log_error "❌ Interface admin - ÉCHEC"
+        log_error " Interface admin - CHEC"
     fi
     
     if systemctl is-active --quiet postgresql; then
-        log_success "✅ PostgreSQL - OK"
+        log_success " PostgreSQL - OK"
         ((tests_passed++))
     else
-        log_error "❌ PostgreSQL - ÉCHEC"
+        log_error " PostgreSQL - CHEC"
     fi
     
     if systemctl is-active --quiet mongod || systemctl is-active --quiet mongodb; then
-        log_success "✅ MongoDB - OK"
+        log_success " MongoDB - OK"
         ((tests_passed++))
     else
-        log_error "❌ MongoDB - ÉCHEC"
+        log_error " MongoDB - CHEC"
     fi
     
     # Executer le monitoring
@@ -843,18 +843,18 @@ run_final_tests() {
     log_info "Tests reussis: $tests_passed/$total_tests"
     
     if [[ $tests_passed -eq $total_tests ]]; then
-        log_success "🎉 Tous les tests sont RÉUSSIS!"
+        log_success " Tous les tests sont RUSSIS!"
     elif [[ $tests_passed -ge 5 ]]; then
-        log_warning "⚠️ Systeme partiellement fonctionnel"
+        log_warning " Systeme partiellement fonctionnel"
     else
-        log_error "❌ Plusieurs problemes detectes"
+        log_error " Plusieurs problemes detectes"
     fi
     
     save_checkpoint "finalize_deployment"
 }
 
 finalize_deployment() {
-    log_info "🎯 Finalisation du deploiement..."
+    log_info " Finalisation du deploiement..."
     
     rm -f "$CHECKPOINT_FILE"
     /usr/local/bin/dounie-monitor
@@ -868,47 +868,47 @@ finalize_deployment() {
 
 show_final_summary() {
     echo ""
-    echo "🎉============================================================🎉"
-    log_success "   DÉPLOIEMENT DOUNIE CUISINE TERMINÉ!"
+    echo "============================================================"
+    log_success "   DPLOIEMENT DOUNIE CUISINE TERMIN!"
     echo "   Architecture Double Backend Deployee avec Succes"
     echo "=============================================================="
     echo ""
     
     local server_ip=$(hostname -I | awk '{print $1}')
     
-    log_info "🌐 URLS D'ACCÈS:"
-    echo "   🌍 Site Public:         http://$server_ip"
-    echo "   ⚙️  Administration:      http://$server_ip/admin"
-    echo "   📱 App React:           http://$server_ip/app"
-    echo "   🔵 API Express:         http://$server_ip/api"
-    echo "   🟠 API FastAPI:         http://$server_ip/api/v2"
-    echo "   💬 WebSocket:           ws://$server_ip/ws"
+    log_info " URLS D'ACCS:"
+    echo "    Site Public:         http://$server_ip"
+    echo "     Administration:      http://$server_ip/admin"
+    echo "    App React:           http://$server_ip/app"
+    echo "    API Express:         http://$server_ip/api"
+    echo "    API FastAPI:         http://$server_ip/api/v2"
+    echo "    WebSocket:           ws://$server_ip/ws"
     echo ""
     
-    log_info "🎮 SERVICES ACTIFS:"
-    echo "   📡 API Express.js:      Port 5000"
-    echo "   🐍 Backend FastAPI:     Port 8001"
-    echo "   ⚛️  Frontend React:      Port 3000"
-    echo "   🌐 Nginx Proxy:         Port 80"
-    echo "   🗄️  PostgreSQL:         Port 5432"
-    echo "   📊 MongoDB:             Port 27017"
+    log_info " SERVICES ACTIFS:"
+    echo "    API Express.js:      Port 5000"
+    echo "    Backend FastAPI:     Port 8001"
+    echo "     Frontend React:      Port 3000"
+    echo "    Nginx Proxy:         Port 80"
+    echo "     PostgreSQL:         Port 5432"
+    echo "    MongoDB:             Port 27017"
     echo ""
     
-    log_info "👥 COMPTES PAR DÉFAUT:"
-    echo "   🔐 Admin:    admin / admin123"
-    echo "   👔 Manager:  lucie.manager / staff123"
-    echo "   👨‍💼 Staff:    marc.staff / staff123"
-    echo "   👤 Client:   marie.delorme / client123"
+    log_info " COMPTES PAR DFAUT:"
+    echo "    Admin:    admin / admin123"
+    echo "    Manager:  lucie.manager / staff123"
+    echo "    Staff:    marc.staff / staff123"
+    echo "    Client:   marie.delorme / client123"
     echo ""
     
-    log_info "📋 GESTION:"
+    log_info " GESTION:"
     echo "   Status:     supervisorctl status dounie-cuisine:*"
     echo "   Restart:    supervisorctl restart dounie-cuisine:*"
     echo "   Logs:       tail -f /var/log/dounie-cuisine/*.log"
     echo "   Monitoring: cat /var/log/dounie-cuisine/status.json"
     echo ""
     
-    log_info "📁 EMPLACEMENTS:"
+    log_info " EMPLACEMENTS:"
     echo "   Application:   /var/www/html/dounie-cuisine"
     echo "   Logs:          /var/log/dounie-cuisine/"
     echo "   Sauvegardes:   /backup/dounie-cuisine"
@@ -916,25 +916,25 @@ show_final_summary() {
     echo "   Identifiants:  /root/.dounie-credentials"
     echo ""
     
-    log_info "✨ FONCTIONNALITÉS ACTIVÉES:"
-    echo "   💬 Messagerie temps reel"
-    echo "   📊 Monitoring automatique (1 min)"
-    echo "   💾 Sauvegardes quotidiennes"
-    echo "   🔄 Auto-redemarrage des services"
-    echo "   🛡️  Firewall UFW + Fail2ban"
-    echo "   🔐 Architecture double backend"
+    log_info " FONCTIONNALITS ACTIVES:"
+    echo "    Messagerie temps reel"
+    echo "    Monitoring automatique (1 min)"
+    echo "    Sauvegardes quotidiennes"
+    echo "    Auto-redemarrage des services"
+    echo "     Firewall UFW + Fail2ban"
+    echo "    Architecture double backend"
     echo ""
     
-    log_info "📚 PROCHAINES ÉTAPES:"
-    echo "   1. ✅ Tester toutes les URLs ci-dessus"
-    echo "   2. ✅ Changer les mots de passe par defaut"
-    echo "   3. ✅ Configurer SSL: certbot --nginx -d votre-domaine.com"
-    echo "   4. ✅ Personnaliser le contenu"
-    echo "   5. ✅ Former l'equipe"
+    log_info " PROCHAINES TAPES:"
+    echo "   1.  Tester toutes les URLs ci-dessus"
+    echo "   2.  Changer les mots de passe par defaut"
+    echo "   3.  Configurer SSL: certbot --nginx -d votre-domaine.com"
+    echo "   4.  Personnaliser le contenu"
+    echo "   5.  Former l'equipe"
     echo ""
     
-    echo "🍽️============================================================🍽️"
-    log_success "   DOUNIE CUISINE PRÊT POUR LA PRODUCTION!"
+    echo "============================================================"
+    log_success "   DOUNIE CUISINE PRT POUR LA PRODUCTION!"
     echo "=============================================================="
 }
 
@@ -945,8 +945,8 @@ show_final_summary() {
 main() {
     trap 'log_error "Erreur ligne $LINENO"; exit 1' ERR
     
-    echo "🚀============================================================🚀"
-    echo "   DÉPLOIEMENT PRODUCTION DOUNIE CUISINE"
+    echo "============================================================"
+    echo "   DPLOIEMENT PRODUCTION DOUNIE CUISINE"
     echo "   Debian/Ubuntu - Architecture Double Backend"
     echo "   Express.js + FastAPI + React + PostgreSQL + MongoDB"
     echo "=============================================================="
@@ -957,7 +957,7 @@ main() {
     start_from_checkpoint=false
     
     if [[ -n "$last_checkpoint" ]]; then
-        log_warning "⚡ Checkpoint detecte: $last_checkpoint"
+        log_warning " Checkpoint detecte: $last_checkpoint"
         log_info "Reprise du deploiement..."
         start_from_checkpoint=true
     fi
@@ -973,7 +973,7 @@ main() {
             fi
         fi
         
-        log_info "🎯 Étape: $checkpoint"
+        log_info " tape: $checkpoint"
         $checkpoint
     done
     
