@@ -1,154 +1,90 @@
 #!/bin/bash
-# SCRIPT DE DÉPLOIEMENT DEBIAN - DOUNIE CUISINE
-# Déploiement complet sur serveur Debian/Ubuntu VPS
+# Script de déploiement automatique Dounie Cuisine sur VPS Debian
+# Usage: ./deploy-debian.sh
 
 set -e
 
-echo "🚀 DÉMARRAGE DÉPLOIEMENT DOUNIE CUISINE SUR DEBIAN"
-
-# Variables
-PROJECT_DIR="/var/www/dounie-cuisine"
-SERVICE_USER="dounie"
-DB_NAME="dounie_cuisine"
-
-# Fonction de log
-log() {
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1"
-}
+echo "🚀 DÉPLOIEMENT DOUNIE CUISINE SUR VPS DEBIAN"
+echo "============================================="
 
 # 1. Mise à jour système
-log "Mise à jour du système..."
+echo "📦 Mise à jour du système..."
 sudo apt update && sudo apt upgrade -y
 
-# 2. Installation des dépendances
-log "Installation des dépendances..."
-sudo apt install -y python3 python3-pip nodejs npm mongodb nginx git supervisor curl
+# 2. Installation des dépendances système
+echo "🔧 Installation des dépendances..."
+sudo apt install -y \
+    nodejs npm \
+    python3 python3-pip python3-venv \
+    mongodb \
+    nginx \
+    supervisor \
+    git curl wget
 
-# 3. Création utilisateur système
-log "Création utilisateur système..."
-sudo useradd -m -s /bin/bash $SERVICE_USER || true
-
-# 4. Clonage/copie du projet
-log "Installation du projet..."
-sudo mkdir -p $PROJECT_DIR
-sudo cp -r /app/* $PROJECT_DIR/
-sudo chown -R $SERVICE_USER:$SERVICE_USER $PROJECT_DIR
-
-# 5. Installation des dépendances backend
-log "Installation dépendances Python..."
-cd $PROJECT_DIR/backend
-sudo -u $SERVICE_USER pip3 install -r requirements.txt
-
-# 6. Installation des dépendances frontend
-log "Installation dépendances Node.js..."
-cd $PROJECT_DIR/frontend
-sudo -u $SERVICE_USER npm install
-sudo -u $SERVICE_USER npm run build
-
-# 7. Configuration MongoDB
-log "Configuration MongoDB..."
+# 3. Configuration MongoDB
+echo "🗃️ Configuration MongoDB..."
 sudo systemctl start mongodb
 sudo systemctl enable mongodb
 
-# 8. Configuration des variables d'environnement
-log "Configuration environnement..."
-sudo -u $SERVICE_USER tee $PROJECT_DIR/backend/.env > /dev/null <<EOF
-MONGO_URL=mongodb://localhost:27017/$DB_NAME
-DATABASE_NAME=$DB_NAME
-PORT=8001
-NODE_ENV=production
-EOF
+# 4. Création de l'environnement Python
+echo "🐍 Configuration Python..."
+python3 -m venv /app/.venv
+source /app/.venv/bin/activate
+pip install --upgrade pip
 
-sudo -u $SERVICE_USER tee $PROJECT_DIR/frontend/.env > /dev/null <<EOF
-REACT_APP_BACKEND_URL=http://localhost/api
-EOF
+# 5. Installation dépendances backend
+echo "📚 Installation dépendances backend..."
+cd /app/backend
+pip install -r requirements.txt
 
-# 9. Configuration Nginx
-log "Configuration Nginx..."
-sudo tee /etc/nginx/sites-available/dounie-cuisine > /dev/null <<EOF
-server {
-    listen 80;
-    server_name _;
+# 6. Installation dépendances frontend
+echo "⚛️ Installation dépendances frontend..."
+cd /app/frontend
+npm install
+npm run build
 
-    # Frontend (React)
-    location / {
-        root $PROJECT_DIR/frontend/build;
-        index index.html;
-        try_files \$uri \$uri/ /index.html;
-    }
-
-    # Backend API
-    location /api {
-        rewrite ^/api/(.*) /\$1 break;
-        proxy_pass http://localhost:8001;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade \$http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host \$host;
-        proxy_set_header X-Real-IP \$remote_addr;
-        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto \$scheme;
-        proxy_cache_bypass \$http_upgrade;
-    }
-}
-EOF
-
+# 7. Configuration Nginx
+echo "🌐 Configuration Nginx..."
+sudo cp /app/nginx-dounie.conf /etc/nginx/sites-available/dounie-cuisine
 sudo ln -sf /etc/nginx/sites-available/dounie-cuisine /etc/nginx/sites-enabled/
 sudo rm -f /etc/nginx/sites-enabled/default
-sudo nginx -t && sudo systemctl restart nginx
+sudo nginx -t
+sudo systemctl restart nginx
+sudo systemctl enable nginx
 
-# 10. Configuration Supervisor
-log "Configuration Supervisor..."
-sudo tee /etc/supervisor/conf.d/dounie-backend.conf > /dev/null <<EOF
-[program:dounie-backend]
-command=python3 -m uvicorn server:app --host 0.0.0.0 --port 8001
-directory=$PROJECT_DIR/backend
-user=$SERVICE_USER
-autostart=true
-autorestart=true
-stderr_logfile=/var/log/dounie-backend.err.log
-stdout_logfile=/var/log/dounie-backend.out.log
-environment=PYTHONPATH="$PROJECT_DIR/backend"
-EOF
-
-# 11. Démarrage des services
-log "Démarrage des services..."
-sudo systemctl enable supervisor
+# 8. Configuration services Supervisor
+echo "👷 Configuration Supervisor..."
+sudo cp /app/supervisor-dounie.conf /etc/supervisor/conf.d/dounie.conf
 sudo systemctl restart supervisor
+sudo systemctl enable supervisor
+
+# 9. Démarrage des services
+echo "🚀 Démarrage des services..."
 sudo supervisorctl reread
 sudo supervisorctl update
-sudo supervisorctl start dounie-backend
+sudo supervisorctl start all
 
-# 12. Vérification finale
-log "Vérification du déploiement..."
+# 10. Configuration firewall
+echo "🔒 Configuration firewall..."
+sudo ufw allow ssh
+sudo ufw allow 80
+sudo ufw allow 443
+sudo ufw --force enable
+
+# 11. Vérification finale
+echo "✅ Vérification du déploiement..."
 sleep 5
 
-if curl -f http://localhost:8001/api/health > /dev/null 2>&1; then
-    log "✅ Backend démarré avec succès"
+if curl -f http://localhost/api/health; then
+    echo "🎉 DÉPLOIEMENT RÉUSSI!"
+    echo "🌐 Site accessible sur: http://$(curl -s ifconfig.me)"
+    echo "🛠️ Admin accessible sur: http://$(curl -s ifconfig.me)/admin"
 else
-    log "❌ Erreur backend - vérifiez les logs"
-    sudo supervisorctl status dounie-backend
-    exit 1
+    echo "❌ Erreur de déploiement - vérifiez les logs"
+    sudo supervisorctl status
 fi
 
-if curl -f http://localhost > /dev/null 2>&1; then
-    log "✅ Frontend accessible avec succès"
-else
-    log "❌ Erreur frontend - vérifiez Nginx"
-    sudo nginx -t
-    exit 1
-fi
-
-log "🎉 DÉPLOIEMENT TERMINÉ AVEC SUCCÈS!"
-log "🌐 Application accessible sur: http://votre-ip"
-log "📊 Backend API: http://votre-ip/api/health"
-log "👀 Logs backend: sudo supervisorctl tail dounie-backend"
-log "🔧 Gestion services: sudo supervisorctl status"
-
-echo ""
-echo "=== INFORMATIONS DÉPLOIEMENT ==="
-echo "Utilisateur système: $SERVICE_USER"
-echo "Répertoire projet: $PROJECT_DIR"
-echo "Base de données: MongoDB ($DB_NAME)"
-echo "Services: Nginx + Supervisor + MongoDB"
-echo "================================="
+echo "📋 Commandes utiles:"
+echo "- Statut services: sudo supervisorctl status"
+echo "- Redémarrer: sudo supervisorctl restart all"
+echo "- Logs: sudo tail -f /var/log/supervisor/*.log"
