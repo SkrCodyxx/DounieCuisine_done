@@ -26,7 +26,7 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 PURPLE='\033[0;35m'
 CYAN='\033[0;36m'
-NC='033[0m'
+NC='\033[0m'
 
 # Fonctions de logging
 log_info() { echo -e "${BLUE}[INFO]${NC} $1"; }
