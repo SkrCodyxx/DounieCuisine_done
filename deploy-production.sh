@@ -346,9 +346,7 @@ EOF
     log_info "Configuration de MongoDB..."
     sleep 5
     
-    mongosh << EOF || {
-        log_warning "Configuration MongoDB avancee echouee, mais on continue..."
-    }
+    if ! mongosh << EOF
 use admin
 try {
     db.createUser({
@@ -367,6 +365,9 @@ try {
     })
 } catch(e) { print("Utilisateur existe dej") }
 EOF
+    then
+        log_warning "Configuration MongoDB avancee echouee, mais on continue..."
+    fi
     
     # Sauvegarder les identifiants
     cat > /root/.dounie-credentials << EOF
