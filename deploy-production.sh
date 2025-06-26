@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # =============================================================================
-# DPLOIEMENT COMPLET DOUNIE CUISINE - DEBIAN/UBUNTU
+# DEPLOIEMENT COMPLET DOUNIE CUISINE - DEBIAN/UBUNTU
 # Script unique pour deploiement production sur serveur VPS/dedie
 # Architecture: Express.js + FastAPI + React + PostgreSQL + MongoDB
 # Auteur: Dounie Cuisine Team
