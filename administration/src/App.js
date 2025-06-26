@@ -13,14 +13,14 @@ function App() {
 
   useEffect(() => {
     // Test connexion API
-    axios.get(`${API_URL}/health`)
+    axios.get(`${API_URL}/api/health`)
       .then(response => setHealth(response.data))
       .catch(error => console.error('API Error:', error));
   }, []);
 
   const login = async (username, password) => {
     try {
-      const response = await axios.post(`${API_URL}/auth/login`, { username, password });
+      const response = await axios.post(`${API_URL}/api/auth/login`, { username, password });
       setUser(response.data.user);
       setMessage(`✅ Connexion réussie - ${response.data.user.firstName}`);
       loadResetCodes();
@@ -36,7 +36,7 @@ function App() {
       return;
     }
     try {
-      const response = await axios.post(`${API_URL}/admin/generate-password-reset`, { email });
+      const response = await axios.post(`${API_URL}/api/admin/generate-password-reset`, { email });
       setMessage(`🔑 Code généré: ${response.data.resetCode} (valide 24h)`);
       loadResetCodes();
     } catch (error) {
@@ -46,7 +46,7 @@ function App() {
 
   const loadResetCodes = async () => {
     try {
-      const response = await axios.get(`${API_URL}/admin/password-reset-codes`);
+      const response = await axios.get(`${API_URL}/api/admin/password-reset-codes`);
       setResetCodes(response.data);
     } catch (error) {
       console.error('Erreur chargement codes');
@@ -55,7 +55,7 @@ function App() {
 
   const loadQuotes = async () => {
     try {
-      const response = await axios.get(`${API_URL}/quotes`);
+      const response = await axios.get(`${API_URL}/api/quotes`);
       setQuotes(response.data);
     } catch (error) {
       console.error('Erreur chargement devis');
@@ -72,7 +72,7 @@ function App() {
         status: "draft",
         validUntil: "2025-12-31"
       };
-      const response = await axios.post(`${API_URL}/quotes`, quoteData);
+      const response = await axios.post(`${API_URL}/api/quotes`, quoteData);
       setMessage(`📋 Devis créé: ID ${response.data.id}`);
       loadQuotes();
     } catch (error) {
@@ -82,7 +82,7 @@ function App() {
 
   const sendQuote = async (quoteId) => {
     try {
-      const response = await axios.post(`${API_URL}/quotes/${quoteId}/send`);
+      const response = await axios.post(`${API_URL}/api/quotes/${quoteId}/send`);
       setMessage(`📧 ${response.data.message} - ${response.data.note || 'Envoi manuel requis'}`);
     } catch (error) {
       setMessage('❌ Erreur envoi devis');
