@@ -10,13 +10,8 @@ import subprocess
 from datetime import datetime, timedelta
 
 # Configuration
-# Use the REACT_APP_BACKEND_URL from frontend/.env
-with open('/app/frontend/.env', 'r') as f:
-    for line in f:
-        if line.startswith('REACT_APP_BACKEND_URL='):
-            API_BASE_URL = line.strip().split('=')[1]
-            break
-
+# Use direct connection to backend port
+API_BASE_URL = "http://localhost:8001/api"
 print(f"Using API URL: {API_BASE_URL}")
 
 ADMIN_CREDENTIALS = {"username": "admin", "password": "Admin123!"}
