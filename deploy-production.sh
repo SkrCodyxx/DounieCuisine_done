@@ -972,10 +972,14 @@ main() {
                 continue
             fi
         fi
+        
+        log_info " tape: $checkpoint"
+        $checkpoint
+    done
     
     # Affichage final
     show_final_summary
 }
 
-# Execution du script  
+# Execution du script
 main "$@"
