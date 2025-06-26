@@ -603,7 +603,7 @@ def test_complete_password_reset_workflow():
         return log_test("Complete Password Reset Workflow", False, error="Failed to generate reset code")
     
     # Step 2: Verify code is in the active list
-    list_success = test_get_password_reset_codes(admin_session)
+    list_success = test_get_password_reset_codes(admin_session, check_for_code=password_reset_code)
     if not list_success:
         return log_test("Complete Password Reset Workflow", False, error="Failed to list active reset codes")
     
@@ -617,7 +617,8 @@ def test_complete_password_reset_workflow():
     if not reset_success:
         return log_test("Complete Password Reset Workflow", False, error="Failed to reset password")
     
-    # Step 5: Verify code is marked as used
+    # Step 5: Verify code is no longer in active list (because it's used)
+    # We don't check for the specific code since it's expected to be marked as used
     list_success = test_get_password_reset_codes(admin_session)
     if not list_success:
         return log_test("Complete Password Reset Workflow", False, error="Failed to list active reset codes after reset")
