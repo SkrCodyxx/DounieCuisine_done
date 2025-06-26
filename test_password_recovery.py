@@ -10,7 +10,7 @@ import time
 from datetime import datetime
 
 # API Base URL
-BASE_URL = "http://localhost:5000/api"
+BASE_URL = "http://localhost:8001/api"
 
 class PasswordRecoveryTester:
     def __init__(self):
