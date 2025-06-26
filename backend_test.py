@@ -91,7 +91,7 @@ def test_health_endpoint():
     except Exception as e:
         return log_test("Health Endpoint", False, error=e)
 
-def test_login(session, credentials, user_type="admin"):
+def test_login(session, credentials):
     """Test login functionality"""
     try:
         start_time = time.time()
@@ -102,9 +102,9 @@ def test_login(session, credentials, user_type="admin"):
         response_time = time.time() - start_time
         
         success = response.status_code == 200 and "user" in response.json()
-        return log_test(f"{user_type.capitalize()} Login", success, response, response_time=response_time)
+        return log_test("Admin Login", success, response, response_time=response_time)
     except Exception as e:
-        return log_test(f"{user_type.capitalize()} Login", False, error=e)
+        return log_test("Admin Login", False, error=e)
 
 def test_auth_me(session, user_type="admin"):
     """Test the auth/me endpoint"""
