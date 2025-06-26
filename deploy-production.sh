@@ -317,12 +317,7 @@ configure_databases() {
     
     # Configuration PostgreSQL
     log_info "Configuration de PostgreSQL..."
-    sudo -u postgres psql << EOF || {
-        log_warning "Configuration PostgreSQL avancee echouee, utilisation basique..."
-        sudo -u postgres createdb dounie_cuisine 2>/dev/null || true
-        sudo -u postgres psql -c "CREATE USER dounie_user WITH PASSWORD '$PG_PASSWORD';" 2>/dev/null || true
-        sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE dounie_cuisine TO dounie_user;" 2>/dev/null || true
-    }
+    if ! sudo -u postgres psql << EOF
 DO \$\$
 BEGIN
     IF EXISTS (SELECT FROM pg_user WHERE usename = 'dounie_user') THEN
@@ -340,6 +335,12 @@ BEGIN
 END
 \$\$;
 EOF
+    then
+        log_warning "Configuration PostgreSQL avancee echouee, utilisation basique..."
+        sudo -u postgres createdb dounie_cuisine 2>/dev/null || true
+        sudo -u postgres psql -c "CREATE USER dounie_user WITH PASSWORD '$PG_PASSWORD';" 2>/dev/null || true
+        sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE dounie_cuisine TO dounie_user;" 2>/dev/null || true
+    fi
     
     # Configuration MongoDB
     log_info "Configuration de MongoDB..."
