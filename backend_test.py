@@ -10,15 +10,28 @@ import subprocess
 from datetime import datetime, timedelta
 
 # Configuration
-API_BASE_URL = "http://localhost:8001/api"  # Direct connection to backend port
-ADMIN_CREDENTIALS = {"username": "admin", "password": "Admin123!"}
+# Use the REACT_APP_BACKEND_URL from frontend/.env
+with open('/app/frontend/.env', 'r') as f:
+    for line in f:
+        if line.startswith('REACT_APP_BACKEND_URL='):
+            API_BASE_URL = line.strip().split('=')[1]
+            break
 
-# Test session for maintaining cookies
+print(f"Using API URL: {API_BASE_URL}")
+
+ADMIN_CREDENTIALS = {"username": "admin", "password": "Admin123!"}
+STAFF_CREDENTIALS = {"username": "staff", "password": "Staff123!"}
+INVALID_CREDENTIALS = {"username": "invalid", "password": "WrongPassword"}
+
+# Test sessions for maintaining cookies
 admin_session = requests.Session()
+staff_session = requests.Session()
 
 # Store password reset code for testing
 password_reset_code = None
 quote_id = None
+menu_item_id = None
+reservation_id = None
 
 # Test results tracking
 test_results = {
