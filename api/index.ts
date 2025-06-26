@@ -11,13 +11,18 @@ dotenv.config();
 
 const app = express();
 
+const MemStore = MemoryStore(session);
+
 // Session configuration
 app.use(session({
   secret: process.env.SESSION_SECRET || 'dounie-cuisine-session-secret-key-2024',
   resave: false,
   saveUninitialized: false,
+  store: new MemStore({
+    checkPeriod: 86400000 // prune expired entries every 24h
+  }),
   cookie: {
-    secure: process.env.NODE_ENV === 'production',
+    secure: false, // Set to false for development
     httpOnly: true,
     maxAge: 24 * 60 * 60 * 1000 // 24 hours
   }
