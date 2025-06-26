@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI(title="Dounie Cuisine API", version="1.0.0")
 
-# CORS configuration
+# Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
