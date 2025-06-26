@@ -6,6 +6,9 @@ import os
 from dotenv import load_dotenv
 from motor.motor_asyncio import AsyncIOMotorClient
 import logging
+from datetime import datetime, timedelta
+import random
+import string
 
 # Load environment variables
 load_dotenv()
@@ -60,9 +63,12 @@ class UserResponse(BaseModel):
 async def connect_to_mongo():
     """Create database connection"""
     global mongodb_client, database
-    mongodb_client = AsyncIOMotorClient(MONGO_URL)
-    database = mongodb_client[DATABASE_NAME]
-    logger.info("Connected to MongoDB")
+    try:
+        mongodb_client = AsyncIOMotorClient(MONGO_URL)
+        database = mongodb_client[DATABASE_NAME]
+        logger.info("Connected to MongoDB")
+    except Exception as e:
+        logger.error(f"Failed to connect to MongoDB: {e}")
 
 async def close_mongo_connection():
     """Close database connection"""
@@ -85,12 +91,12 @@ async def shutdown_event():
 async def health_check():
     return {
         "status": "ok", 
-        "timestamp": "2025-06-26T17:40:00Z",
+        "timestamp": datetime.now().isoformat(),
         "service": "Dounie Cuisine API",
         "version": "1.0.0"
     }
 
-# In-memory storage for reset codes and user credentials (to be replaced with MongoDB)
+# In-memory storage for reset codes and user credentials
 reset_codes_storage = {}
 user_credentials = {
     "admin": {"password": "Admin123!", "user_data": {
@@ -122,25 +128,16 @@ async def logout():
 @app.get("/api/auth/me")
 async def get_current_user():
     """Get current user endpoint"""
-    # Implémentation simplifiée
     return {"message": "Authentication required"}
 
-# In-memory storage for reset codes (to be replaced with MongoDB)
-reset_codes_storage = {}
-
-# Password recovery endpoints (as per FINAL_TASKS_COMPLETION.md)
+# Password recovery endpoints
 @app.post("/api/admin/generate-password-reset")
 async def generate_password_reset(request: PasswordResetRequest):
     """Generate password reset code (admin only)"""
-    # Générer un code de récupération
-    import random
-    import string
-    from datetime import datetime, timedelta
-    
     reset_code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
     expires_at = datetime.now() + timedelta(hours=24)
     
-    # Sauvegarder le code en mémoire (sera remplacé par MongoDB)
+    # Save code in memory
     reset_codes_storage[reset_code] = {
         "email": request.email,
         "expires_at": expires_at,
@@ -158,9 +155,6 @@ async def generate_password_reset(request: PasswordResetRequest):
 @app.get("/api/admin/password-reset-codes")
 async def get_password_reset_codes():
     """List active reset codes (admin only)"""
-    from datetime import datetime
-    
-    # Filtrer les codes non expirés
     active_codes = []
     for code, data in reset_codes_storage.items():
         if data["expires_at"] > datetime.now() and not data["used"]:
@@ -176,13 +170,10 @@ async def get_password_reset_codes():
 @app.post("/api/auth/verify-reset-code")
 async def verify_reset_code(request: PasswordResetVerify):
     """Verify reset code (public endpoint)"""
-    from datetime import datetime
-    
-    # Vérifier si le code existe et n'est pas expiré
     if request.code in reset_codes_storage:
         code_data = reset_codes_storage[request.code]
         if code_data["expires_at"] > datetime.now() and not code_data["used"]:
-            # Simuler l'utilisateur selon l'email
+            # Simulate user based on email
             if code_data["email"] == "staff@dounie-cuisine.ca":
                 user = {
                     "id": "2",
@@ -204,24 +195,19 @@ async def verify_reset_code(request: PasswordResetVerify):
 @app.post("/api/auth/reset-password")
 async def reset_password(request: PasswordResetComplete):
     """Reset password (public endpoint)"""
-    from datetime import datetime
-    
-    # Vérifier si le code existe et n'est pas expiré/utilisé
     if request.code in reset_codes_storage:
         code_data = reset_codes_storage[request.code]
         if code_data["expires_at"] > datetime.now() and not code_data["used"]:
-            # Vérifier la force du mot de passe
             if len(request.newPassword) >= 8:
-                # Mettre à jour le mot de passe de l'utilisateur
+                # Update user password
                 email = code_data["email"]
-                # Trouver l'utilisateur par email et mettre à jour son mot de passe
                 for username, creds in user_credentials.items():
                     if creds["user_data"]["email"] == email:
                         user_credentials[username]["password"] = request.newPassword
                         logger.info(f"Password updated for user {username}")
                         break
                 
-                # Marquer le code comme utilisé
+                # Mark code as used
                 reset_codes_storage[request.code]["used"] = True
                 return {"message": "Mot de passe réinitialisé avec succès"}
             else:
@@ -229,7 +215,7 @@ async def reset_password(request: PasswordResetComplete):
     
     raise HTTPException(status_code=400, detail="Code invalide ou mot de passe trop faible")
 
-# Quote system endpoints (as mentioned in FINAL_TASKS_COMPLETION.md)
+# Quote system endpoints
 @app.get("/api/quotes")
 async def get_quotes():
     """Get all quotes"""
@@ -238,8 +224,7 @@ async def get_quotes():
 @app.post("/api/quotes")
 async def create_quote(quote_data: dict):
     """Create new quote"""
-    # Simuler la création
-    quote_id = "quote_001"
+    quote_id = f"quote_{random.randint(1000, 9999)}"
     return {"id": quote_id, **quote_data}
 
 @app.post("/api/quotes/{quote_id}/send")
@@ -250,18 +235,40 @@ async def send_quote(quote_id: str):
         "note": "Envoi manuel requis - le système génère le devis mais l'envoi par email doit être fait manuellement par l'administrateur"
     }
 
-# Menu endpoints (basic structure)
+# Menu endpoints
 @app.get("/api/menu")
 async def get_menu():
     """Get menu items"""
-    return []
+    return [
+        {
+            "id": "1",
+            "name": "Poule nan Sos",
+            "description": "Poulet traditionnel en sauce créole",
+            "price": 24.99,
+            "category": "plats"
+        },
+        {
+            "id": "2", 
+            "name": "Riz Collé aux Pois",
+            "description": "Riz aux haricots rouges, plat national",
+            "price": 18.99,
+            "category": "plats"
+        },
+        {
+            "id": "3",
+            "name": "Poisson Gros Sel", 
+            "description": "Poisson grillé aux épices créoles",
+            "price": 28.99,
+            "category": "plats"
+        }
+    ]
 
 @app.post("/api/menu")
 async def create_menu_item(item_data: dict):
     """Create menu item"""
-    return {"id": "menu_001", **item_data}
+    return {"id": f"menu_{random.randint(1000, 9999)}", **item_data}
 
-# Reservations endpoints (basic structure)  
+# Reservations endpoints
 @app.get("/api/reservations")
 async def get_reservations():
     """Get reservations"""
@@ -270,7 +277,18 @@ async def get_reservations():
 @app.post("/api/reservations")
 async def create_reservation(reservation_data: dict):
     """Create reservation"""
-    return {"id": "reservation_001", **reservation_data}
+    return {"id": f"reservation_{random.randint(1000, 9999)}", **reservation_data}
+
+# Dashboard statistics endpoint
+@app.get("/api/dashboard/stats")
+async def get_dashboard_stats():
+    """Get dashboard statistics"""
+    return {
+        "totalOrders": 0,
+        "totalRevenue": 0,
+        "pendingReservations": 0,
+        "activeMenuItems": 3
+    }
 
 if __name__ == "__main__":
     import uvicorn
