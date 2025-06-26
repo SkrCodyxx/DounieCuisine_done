@@ -1,10 +1,41 @@
 # 🍽️ Dounie Cuisine - Système de Gestion de Restaurant Haïtien
 
-[![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)](https://github.com/dounie-cuisine/dounie-cuisine)
+[![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)](https://github.com/SkrCodyxx/DounieCuisine_done)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Status](https://img.shields.io/badge/status-Production%20Ready-brightgreen.svg)](https://github.com/dounie-cuisine/dounie-cuisine)
+[![Status](https://img.shields.io/badge/status-Production%20Ready-brightgreen.svg)](https://github.com/SkrCodyxx/DounieCuisine_done)
 
-**Dounie Cuisine** est un système complet de gestion de service traiteur et organisation d'événements haïtiens avec des fonctionnalités avancées de messagerie interne, monitoring temps réel et déploiement intelligent.
+**Dounie Cuisine** est un système complet de gestion de service traiteur et organisation d'événements haïtiens avec une architecture double backend sécurisée, monitoring temps réel et déploiement automatisé.
+
+## 🚀 DÉPLOIEMENT RAPIDE - NOUVELLE VERSION
+
+### Installation en Une Commande
+
+```bash
+# Sur votre serveur Debian/Ubuntu
+git clone https://github.com/SkrCodyxx/DounieCuisine_done.git dounie-cuisine
+cd dounie-cuisine
+sudo ./deploy-production.sh
+```
+
+**C'est tout !** Le script automatique va :
+- ✅ Installer toutes les dépendances
+- ✅ Configurer les bases de données (PostgreSQL + MongoDB)
+- ✅ Builder toutes les applications
+- ✅ Configurer Nginx et les services
+- ✅ Activer monitoring et sauvegardes
+- ✅ Tester automatiquement le système
+
+### Accès Immédiat
+
+Après déploiement, accédez à :
+- **🌍 Site Public :** `http://votre-ip`
+- **⚙️ Administration :** `http://votre-ip/admin`
+- **🔵 API Express :** `http://votre-ip/api`
+- **🟠 API FastAPI :** `http://votre-ip/api/v2`
+
+### Documentation Complète
+
+📚 **[Guide de Déploiement Production](GUIDE_DEPLOIEMENT_PRODUCTION.md)** - Guide complet step-by-step
 
 ## 🌟 Fonctionnalités Principales
 
