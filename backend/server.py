@@ -129,6 +129,9 @@ async def get_current_user():
     # Implémentation simplifiée
     return {"message": "Authentication required"}
 
+# In-memory storage for reset codes (to be replaced with MongoDB)
+reset_codes_storage = {}
+
 # Password recovery endpoints (as per FINAL_TASKS_COMPLETION.md)
 @app.post("/api/admin/generate-password-reset")
 async def generate_password_reset(request: PasswordResetRequest):
@@ -141,7 +144,13 @@ async def generate_password_reset(request: PasswordResetRequest):
     reset_code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
     expires_at = datetime.now() + timedelta(hours=24)
     
-    # Simuler la sauvegarde en base (à implémenter avec MongoDB)
+    # Sauvegarder le code en mémoire (sera remplacé par MongoDB)
+    reset_codes_storage[reset_code] = {
+        "email": request.email,
+        "expires_at": expires_at,
+        "used": False
+    }
+    
     logger.info(f"Generated reset code {reset_code} for {request.email}")
     
     return {
@@ -153,40 +162,67 @@ async def generate_password_reset(request: PasswordResetRequest):
 @app.get("/api/admin/password-reset-codes")
 async def get_password_reset_codes():
     """List active reset codes (admin only)"""
-    # Simuler des codes actifs
-    codes = [
-        {
-            "code": "ABC12345",
-            "email": "staff@dounie-cuisine.ca",
-            "expiresAt": "2025-06-27T17:40:00Z",
-            "used": False
-        }
-    ]
-    return codes
+    from datetime import datetime
+    
+    # Filtrer les codes non expirés
+    active_codes = []
+    for code, data in reset_codes_storage.items():
+        if data["expires_at"] > datetime.now() and not data["used"]:
+            active_codes.append({
+                "code": code,
+                "email": data["email"],
+                "expiresAt": data["expires_at"].isoformat(),
+                "used": data["used"]
+            })
+    
+    return active_codes
 
 @app.post("/api/auth/verify-reset-code")
 async def verify_reset_code(request: PasswordResetVerify):
     """Verify reset code (public endpoint)"""
-    # Simuler la vérification
-    if request.code in ["ABC12345", "STAFF123"]:
-        user = {
-            "id": "2",
-            "firstName": "Staff",
-            "lastName": "Member", 
-            "email": "staff@dounie-cuisine.ca"
-        }
-        return {"valid": True, "user": user}
-    else:
-        return {"valid": False, "message": "Code invalide ou expiré"}
+    from datetime import datetime
+    
+    # Vérifier si le code existe et n'est pas expiré
+    if request.code in reset_codes_storage:
+        code_data = reset_codes_storage[request.code]
+        if code_data["expires_at"] > datetime.now() and not code_data["used"]:
+            # Simuler l'utilisateur selon l'email
+            if code_data["email"] == "staff@dounie-cuisine.ca":
+                user = {
+                    "id": "2",
+                    "firstName": "Staff",
+                    "lastName": "Member", 
+                    "email": "staff@dounie-cuisine.ca"
+                }
+            else:
+                user = {
+                    "id": "1",
+                    "firstName": "Admin",
+                    "lastName": "Dounie",
+                    "email": code_data["email"]
+                }
+            return {"valid": True, "user": user}
+    
+    return {"valid": False, "message": "Code invalide ou expiré"}
 
 @app.post("/api/auth/reset-password")
 async def reset_password(request: PasswordResetComplete):
     """Reset password (public endpoint)"""
-    # Simuler le reset
-    if request.code in ["ABC12345", "STAFF123"] and len(request.newPassword) >= 8:
-        return {"message": "Mot de passe réinitialisé avec succès"}
-    else:
-        raise HTTPException(status_code=400, detail="Code invalide ou mot de passe trop faible")
+    from datetime import datetime
+    
+    # Vérifier si le code existe et n'est pas expiré/utilisé
+    if request.code in reset_codes_storage:
+        code_data = reset_codes_storage[request.code]
+        if code_data["expires_at"] > datetime.now() and not code_data["used"]:
+            # Vérifier la force du mot de passe
+            if len(request.newPassword) >= 8:
+                # Marquer le code comme utilisé
+                reset_codes_storage[request.code]["used"] = True
+                return {"message": "Mot de passe réinitialisé avec succès"}
+            else:
+                raise HTTPException(status_code=400, detail="Le mot de passe doit contenir au moins 8 caractères")
+    
+    raise HTTPException(status_code=400, detail="Code invalide ou mot de passe trop faible")
 
 # Quote system endpoints (as mentioned in FINAL_TASKS_COMPLETION.md)
 @app.get("/api/quotes")
