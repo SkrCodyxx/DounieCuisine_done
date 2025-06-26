@@ -2,7 +2,7 @@
 
 # =============================================================================
 # DÉPLOIEMENT COMPLET DOUNIE CUISINE - DEBIAN/UBUNTU
-# Script unique pour déploiement production sur serveur VPS/dédié
+# Script unique pour deploiement production sur serveur VPS/dedie
 # Architecture: Express.js + FastAPI + React + PostgreSQL + MongoDB
 # Auteur: Dounie Cuisine Team
 # Version: 2.0 Final
@@ -35,16 +35,16 @@ log_warning() { echo -e "${YELLOW}[WARNING]${NC} $1"; }
 log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 log_checkpoint() { echo -e "${PURPLE}[CHECKPOINT]${NC} $1"; }
 
-# Vérification de l'arborescence du projet
+# Verification de l'arborescence du projet
 check_project_structure() {
-    log_info "🔍 Vérification de l'arborescence du projet..."
+    log_info "🔍 Verification de l'arborescence du projet..."
     
     local required_dirs=("api" "public" "administration" "backend" "frontend")
     local required_files=("api/package.json" "public/package.json" "administration/package.json" "backend/requirements.txt" "frontend/package.json")
     local missing_items=()
     
     if [[ ! -d "$PROJECT_PATH" ]]; then
-        log_warning "Répertoire $PROJECT_PATH n'existe pas"
+        log_warning "Repertoire $PROJECT_PATH n'existe pas"
         return 1
     fi
     
@@ -63,10 +63,10 @@ check_project_structure() {
     done
     
     if [[ ${#missing_items[@]} -eq 0 ]]; then
-        log_success "✅ Arborescence complète détectée"
+        log_success "✅ Arborescence complete detectee"
         return 0
     else
-        log_warning "⚠️ Éléments manquants: ${missing_items[*]}"
+        log_warning "⚠️ Élements manquants: ${missing_items[*]}"
         return 1
     fi
 }
@@ -79,14 +79,14 @@ clone_project_from_github() {
         local backup_name="backup-$(date +%Y%m%d_%H%M%S)"
         mkdir -p "$BACKUP_DIR"
         mv "$PROJECT_PATH" "$BACKUP_DIR/$backup_name"
-        log_info "Sauvegarde créée: $BACKUP_DIR/$backup_name"
+        log_info "Sauvegarde creee: $BACKUP_DIR/$backup_name"
     fi
     
     mkdir -p "$INSTALL_DIR"
     cd "$INSTALL_DIR"
     
     if git clone "$GITHUB_REPO" "$PROJECT_NAME"; then
-        log_success "✅ Projet cloné avec succès depuis GitHub"
+        log_success "✅ Projet clone avec succes depuis GitHub"
         return 0
     else
         log_error "❌ Échec du clonage"
@@ -106,7 +106,7 @@ manage_project_sources() {
         if clone_project_from_github && check_project_structure; then
             return 0
         else
-            log_error "Impossible de récupérer le projet complet"
+            log_error "Impossible de recuperer le projet complet"
             log_error "Assurez-vous que :"
             log_error "1. Les fichiers sont dans /var/www/html/ OU"
             log_error "2. Le repository GitHub est accessible"
@@ -115,7 +115,7 @@ manage_project_sources() {
     fi
 }
 
-# Système de checkpoints
+# Systeme de checkpoints
 CHECKPOINTS=(
     "check_environment"
     "manage_sources"
@@ -139,7 +139,7 @@ CHECKPOINTS=(
 
 save_checkpoint() {
     echo "$1" > "$CHECKPOINT_FILE"
-    log_checkpoint "Point sauvegardé: $1"
+    log_checkpoint "Point sauvegarde: $1"
 }
 
 get_last_checkpoint() {
@@ -151,33 +151,33 @@ get_last_checkpoint() {
 # =============================================================================
 
 check_environment() {
-    log_info "🔍 Vérification de l'environnement..."
+    log_info "🔍 Verification de l'environnement..."
     
     if [[ $EUID -ne 0 ]]; then
-        log_error "Ce script doit être exécuté en tant que root"
+        log_error "Ce script doit etre execute en tant que root"
         log_error "Utilisez: sudo ./deploy-production.sh"
         exit 1
     fi
     
     if ! command -v apt-get &> /dev/null; then
-        log_error "Système non supporté. Debian/Ubuntu requis."
+        log_error "Systeme non supporte. Debian/Ubuntu requis."
         exit 1
     fi
     
     mkdir -p "$INSTALL_DIR" "$BACKUP_DIR" "$LOG_DIR"
-    log_success "Environnement validé"
+    log_success "Environnement valide"
     save_checkpoint "manage_sources"
 }
 
 manage_sources() {
     manage_project_sources
     cd "$PROJECT_PATH"
-    log_success "Sources du projet prêtes"
+    log_success "Sources du projet pretes"
     save_checkpoint "prepare_system"
 }
 
 prepare_system() {
-    log_info "🔧 Préparation du système..."
+    log_info "🔧 Preparation du systeme..."
     
     export DEBIAN_FRONTEND=noninteractive
     
@@ -199,7 +199,7 @@ prepare_system() {
         bc \
         nginx
     
-    log_success "Système préparé"
+    log_success "Systeme prepare"
     save_checkpoint "install_nodejs"
 }
 
@@ -209,7 +209,7 @@ install_nodejs() {
     if command -v node &> /dev/null; then
         node_version=$(node --version | cut -d'v' -f2 | cut -d'.' -f1)
         if [[ "$node_version" -ge 20 ]]; then
-            log_success "Node.js $node_version déjà installé"
+            log_success "Node.js $node_version dejà installe"
             
             # Installer les outils globaux si manquants
             npm install -g yarn pm2 serve 2>/dev/null || true
@@ -224,16 +224,16 @@ install_nodejs() {
     apt-get install -y nodejs
     npm install -g yarn pm2 serve
     
-    log_success "Node.js $(node --version) installé"
+    log_success "Node.js $(node --version) installe"
     save_checkpoint "install_python"
 }
 
 install_python() {
-    log_info "🐍 Installation de Python et dépendances..."
+    log_info "🐍 Installation de Python et dependances..."
     
     apt-get install -y python3 python3-pip python3-venv python3-dev python3-full
     
-    # Corriger le problème externally-managed
+    # Corriger le probleme externally-managed
     python3 -m pip install --break-system-packages --upgrade pip virtualenv
     
     # Installer les packages Python via apt quand possible
@@ -244,22 +244,22 @@ install_python() {
         python3-bcrypt \
         python3-passlib \
         python3-python-multipart || {
-        log_warning "Installation apt échouée, utilisation de pip..."
+        log_warning "Installation apt echouee, utilisation de pip..."
         python3 -m pip install --break-system-packages \
             fastapi uvicorn pymongo bcrypt passlib python-multipart
     }
     
-    log_success "Python $(python3 --version) installé"
+    log_success "Python $(python3 --version) installe"
     save_checkpoint "install_databases"
 }
 
 install_databases() {
-    log_info "🗄️ Installation des bases de données..."
+    log_info "🗄️ Installation des bases de donnees..."
     
     # PostgreSQL
     apt-get install -y postgresql postgresql-contrib
     
-    # Créer l'utilisateur postgres si nécessaire
+    # Creer l'utilisateur postgres si necessaire
     if ! id "postgres" &>/dev/null; then
         adduser --system --group --home /var/lib/postgresql --shell /bin/bash postgres
     fi
@@ -270,20 +270,20 @@ install_databases() {
     # MongoDB
     log_info "Installation de MongoDB..."
     
-    # Méthode moderne pour MongoDB
+    # Methode moderne pour MongoDB
     curl -fsSL https://pgp.mongodb.com/server-6.0.asc | gpg --dearmor -o /usr/share/keyrings/mongodb-server-6.0.gpg
     echo "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-6.0.gpg ] https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/6.0 multiverse" | tee /etc/apt/sources.list.d/mongodb-org-6.0.list
     
     apt-get update
     apt-get install -y mongodb-org || {
-        log_warning "Installation MongoDB officielle échouée, utilisation du package Debian..."
+        log_warning "Installation MongoDB officielle echouee, utilisation du package Debian..."
         apt-get install -y mongodb
     }
     
     systemctl start mongod || systemctl start mongodb
     systemctl enable mongod || systemctl enable mongodb
     
-    log_success "Bases de données installées"
+    log_success "Bases de donnees installees"
     save_checkpoint "install_webserver"
 }
 
@@ -300,25 +300,25 @@ install_webserver() {
     systemctl start supervisor
     systemctl enable supervisor
     
-    log_success "Serveur web configuré"
+    log_success "Serveur web configure"
     save_checkpoint "configure_databases"
 }
 
 configure_databases() {
-    log_info "🔐 Configuration des bases de données..."
+    log_info "🔐 Configuration des bases de donnees..."
     
-    # Générer des mots de passe sécurisés
+    # Generer des mots de passe securises
     local PG_PASSWORD="dounie_pg_$(openssl rand -hex 16 2>/dev/null || echo "secure$(date +%s)")"
     local MONGO_PASSWORD="dounie_mongo_$(openssl rand -hex 16 2>/dev/null || echo "secure$(date +%s)")"
     local SESSION_SECRET="dounie-session-$(openssl rand -hex 32 2>/dev/null || echo "supersecure$(date +%s)")"
     
-    # Attendre que PostgreSQL soit prêt
+    # Attendre que PostgreSQL soit pret
     sleep 5
     
     # Configuration PostgreSQL
     log_info "Configuration de PostgreSQL..."
     sudo -u postgres psql << EOF || {
-        log_warning "Configuration PostgreSQL avancée échouée, utilisation basique..."
+        log_warning "Configuration PostgreSQL avancee echouee, utilisation basique..."
         sudo -u postgres createdb dounie_cuisine 2>/dev/null || true
         sudo -u postgres psql -c "CREATE USER dounie_user WITH PASSWORD '$PG_PASSWORD';" 2>/dev/null || true
         sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE dounie_cuisine TO dounie_user;" 2>/dev/null || true
@@ -346,7 +346,7 @@ EOF
     sleep 5
     
     mongosh << EOF || {
-        log_warning "Configuration MongoDB avancée échouée, mais on continue..."
+        log_warning "Configuration MongoDB avancee echouee, mais on continue..."
     }
 use admin
 try {
@@ -355,7 +355,7 @@ try {
       pwd: "$MONGO_PASSWORD",
       roles: ["userAdminAnyDatabase", "dbAdminAnyDatabase", "readWriteAnyDatabase"]
     })
-} catch(e) { print("Admin existe déjà") }
+} catch(e) { print("Admin existe dejà") }
 
 use dounie_cuisine
 try {
@@ -364,7 +364,7 @@ try {
       pwd: "$MONGO_PASSWORD",
       roles: ["readWrite"]
     })
-} catch(e) { print("Utilisateur existe déjà") }
+} catch(e) { print("Utilisateur existe dejà") }
 EOF
     
     # Sauvegarder les identifiants
@@ -375,7 +375,7 @@ SESSION_SECRET=$SESSION_SECRET
 EOF
     
     chmod 600 /root/.dounie-credentials
-    log_success "Bases de données configurées"
+    log_success "Bases de donnees configurees"
     save_checkpoint "setup_environment_variables"
 }
 
@@ -421,40 +421,40 @@ EOF
 VITE_API_URL=http://localhost:5000/api
 EOF
     
-    log_success "Variables d'environnement configurées"
+    log_success "Variables d'environnement configurees"
     save_checkpoint "install_dependencies"
 }
 
 install_dependencies() {
-    log_info "📦 Installation des dépendances..."
+    log_info "📦 Installation des dependances..."
     
     cd "$PROJECT_PATH"
     
     # API Express.js
-    log_info "→ Dépendances API Express.js..."
+    log_info "→ Dependances API Express.js..."
     cd api && npm install --production && cd ..
     
     # Application publique
-    log_info "→ Dépendances application publique..."
+    log_info "→ Dependances application publique..."
     cd public && npm install && cd ..
     
     # Administration
-    log_info "→ Dépendances administration..."
+    log_info "→ Dependances administration..."
     cd administration && npm install && cd ..
     
     # Backend FastAPI
-    log_info "→ Dépendances Backend FastAPI..."
+    log_info "→ Dependances Backend FastAPI..."
     cd backend
     python3 -m pip install --break-system-packages -r requirements.txt || {
-        log_warning "Installation pip échouée, packages déjà installés via apt"
+        log_warning "Installation pip echouee, packages dejà installes via apt"
     }
     cd ..
     
     # Frontend React
-    log_info "→ Dépendances Frontend React..."
+    log_info "→ Dependances Frontend React..."
     cd frontend && yarn install && cd ..
     
-    log_success "Toutes les dépendances installées"
+    log_success "Toutes les dependances installees"
     save_checkpoint "build_applications"
 }
 
@@ -465,19 +465,19 @@ build_applications() {
     
     # Build API Express.js
     log_info "→ Build API Express.js..."
-    cd api && (npm run build || log_warning "Build API échoué") && cd ..
+    cd api && (npm run build || log_warning "Build API echoue") && cd ..
     
     # Build application publique
     log_info "→ Build application publique..."
-    cd public && (npm run build || log_warning "Build public échoué") && cd ..
+    cd public && (npm run build || log_warning "Build public echoue") && cd ..
     
     # Build administration
     log_info "→ Build administration..."
-    cd administration && (npm run build || log_warning "Build admin échoué") && cd ..
+    cd administration && (npm run build || log_warning "Build admin echoue") && cd ..
     
     # Build frontend React
     log_info "→ Build frontend React..."
-    cd frontend && (yarn build || log_warning "Build frontend échoué") && cd ..
+    cd frontend && (yarn build || log_warning "Build frontend echoue") && cd ..
     
     log_success "Applications construites"
     save_checkpoint "configure_nginx"
@@ -495,7 +495,7 @@ server {
     access_log /var/log/nginx/dounie-cuisine.access.log;
     error_log /var/log/nginx/dounie-cuisine.error.log;
     
-    # Headers de sécurité
+    # Headers de securite
     add_header X-Frame-Options "SAMEORIGIN" always;
     add_header X-XSS-Protection "1; mode=block" always;
     add_header X-Content-Type-Options "nosniff" always;
@@ -589,7 +589,7 @@ EOF
     
     nginx -t && systemctl reload nginx
     
-    log_success "Nginx configuré"
+    log_success "Nginx configure"
     save_checkpoint "configure_services"
 }
 
@@ -634,7 +634,7 @@ EOF
     supervisorctl update
     supervisorctl start dounie-cuisine:*
     
-    log_success "Services configurés"
+    log_success "Services configures"
     save_checkpoint "setup_monitoring"
 }
 
@@ -711,7 +711,7 @@ EOF
     chmod +x /usr/local/bin/dounie-monitor
     (crontab -l 2>/dev/null || true; echo "* * * * * /usr/local/bin/dounie-monitor") | crontab -
     
-    log_success "Monitoring configuré"
+    log_success "Monitoring configure"
     save_checkpoint "setup_backups"
 }
 
@@ -750,12 +750,12 @@ find $BACKUP_DIR -name "*.sql" -mtime +30 -delete 2>/dev/null
 find $BACKUP_DIR -name "*.tar.gz" -mtime +30 -delete 2>/dev/null
 find $BACKUP_DIR -type d -name "mongodb_*" -mtime +30 -exec rm -rf {} + 2>/dev/null
 
-echo "Sauvegarde terminée: $DATE"
+echo "Sauvegarde terminee: $DATE"
 EOF
     
     chmod +x /etc/cron.daily/dounie-backup
     
-    log_success "Sauvegardes configurées"
+    log_success "Sauvegardes configurees"
     save_checkpoint "configure_firewall"
 }
 
@@ -775,12 +775,12 @@ configure_firewall() {
     systemctl start fail2ban
     systemctl enable fail2ban
     
-    log_success "Firewall configuré"
+    log_success "Firewall configure"
     save_checkpoint "run_final_tests"
 }
 
 run_final_tests() {
-    log_info "🧪 Tests finaux du système..."
+    log_info "🧪 Tests finaux du systeme..."
     
     sleep 30
     
@@ -837,29 +837,29 @@ run_final_tests() {
         log_error "❌ MongoDB - ÉCHEC"
     fi
     
-    # Exécuter le monitoring
+    # Executer le monitoring
     /usr/local/bin/dounie-monitor
     
-    log_info "Tests réussis: $tests_passed/$total_tests"
+    log_info "Tests reussis: $tests_passed/$total_tests"
     
     if [[ $tests_passed -eq $total_tests ]]; then
         log_success "🎉 Tous les tests sont RÉUSSIS!"
     elif [[ $tests_passed -ge 5 ]]; then
-        log_warning "⚠️ Système partiellement fonctionnel"
+        log_warning "⚠️ Systeme partiellement fonctionnel"
     else
-        log_error "❌ Plusieurs problèmes détectés"
+        log_error "❌ Plusieurs problemes detectes"
     fi
     
     save_checkpoint "finalize_deployment"
 }
 
 finalize_deployment() {
-    log_info "🎯 Finalisation du déploiement..."
+    log_info "🎯 Finalisation du deploiement..."
     
     rm -f "$CHECKPOINT_FILE"
     /usr/local/bin/dounie-monitor
     
-    log_success "Déploiement finalisé"
+    log_success "Deploiement finalise"
 }
 
 # =============================================================================
@@ -870,7 +870,7 @@ show_final_summary() {
     echo ""
     echo "🎉============================================================🎉"
     log_success "   DÉPLOIEMENT DOUNIE CUISINE TERMINÉ!"
-    echo "   Architecture Double Backend Déployée avec Succès"
+    echo "   Architecture Double Backend Deployee avec Succes"
     echo "=============================================================="
     echo ""
     
@@ -917,20 +917,20 @@ show_final_summary() {
     echo ""
     
     log_info "✨ FONCTIONNALITÉS ACTIVÉES:"
-    echo "   💬 Messagerie temps réel"
+    echo "   💬 Messagerie temps reel"
     echo "   📊 Monitoring automatique (1 min)"
     echo "   💾 Sauvegardes quotidiennes"
-    echo "   🔄 Auto-redémarrage des services"
+    echo "   🔄 Auto-redemarrage des services"
     echo "   🛡️  Firewall UFW + Fail2ban"
     echo "   🔐 Architecture double backend"
     echo ""
     
     log_info "📚 PROCHAINES ÉTAPES:"
     echo "   1. ✅ Tester toutes les URLs ci-dessus"
-    echo "   2. ✅ Changer les mots de passe par défaut"
+    echo "   2. ✅ Changer les mots de passe par defaut"
     echo "   3. ✅ Configurer SSL: certbot --nginx -d votre-domaine.com"
     echo "   4. ✅ Personnaliser le contenu"
-    echo "   5. ✅ Former l'équipe"
+    echo "   5. ✅ Former l'equipe"
     echo ""
     
     echo "🍽️============================================================🍽️"
@@ -957,12 +957,12 @@ main() {
     start_from_checkpoint=false
     
     if [[ -n "$last_checkpoint" ]]; then
-        log_warning "⚡ Checkpoint détecté: $last_checkpoint"
-        log_info "Reprise du déploiement..."
+        log_warning "⚡ Checkpoint detecte: $last_checkpoint"
+        log_info "Reprise du deploiement..."
         start_from_checkpoint=true
     fi
     
-    # Exécution des étapes
+    # Execution des etapes
     for checkpoint in "${CHECKPOINTS[@]}"; do
         if $start_from_checkpoint; then
             if [[ "$checkpoint" == "$last_checkpoint" ]]; then
@@ -981,5 +981,5 @@ main() {
     show_final_summary
 }
 
-# Exécution du script
+# Execution du script
 main "$@"
