@@ -17,14 +17,16 @@ const MemStore = MemoryStore(session);
 app.use(session({
   secret: process.env.SESSION_SECRET || 'dounie-cuisine-session-secret-key-2024',
   resave: false,
-  saveUninitialized: false,
+  saveUninitialized: true,
+  name: 'connect.sid',
   store: new MemStore({
     checkPeriod: 86400000 // prune expired entries every 24h
   }),
   cookie: {
-    secure: false, // Set to false for development
-    httpOnly: true,
-    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    secure: false,
+    httpOnly: false, // Allow access for testing
+    maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    sameSite: 'lax'
   }
 }));
 
