@@ -13,10 +13,25 @@ const app = express();
 
 const MemStore = MemoryStore(session);
 
-// Session configuration
+// Configuration CORS pour permettre l'accès depuis les apps frontend
+app.use(cors({
+  origin: [
+    'http://localhost:5173', // Administration
+    'http://localhost:5174', // Site public
+    'http://localhost:3000', // Alternative port
+    'http://localhost:3001', // Alternative port
+  ],
+  credentials: true
+}));
+
+// Parse middlewares AVANT session
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+
+// Session configuration (APRÈS les parsers selon le plan de correction)
 app.use(session({
   secret: process.env.SESSION_SECRET || 'dounie-cuisine-session-secret-key-2024',
-  resave: false,
+  resave: true, // Changé selon le plan
   saveUninitialized: true,
   name: 'connect.sid',
   store: new MemStore({
@@ -29,20 +44,6 @@ app.use(session({
     sameSite: 'lax'
   }
 }));
-
-// Configuration CORS pour permettre l'accès depuis les apps frontend
-app.use(cors({
-  origin: [
-    'http://localhost:5173', // Administration
-    'http://localhost:5174', // Site public
-    'http://localhost:3000', // Alternative port
-    'http://localhost:3001', // Alternative port
-  ],
-  credentials: true
-}));
-
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
 
 app.use((req, res, next) => {
   const start = Date.now();
