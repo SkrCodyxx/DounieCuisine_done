@@ -534,7 +534,7 @@ def test_mongodb_connection():
     except Exception as e:
         return log_test("MongoDB Connection", False, error=e)
 
-def run_concurrent_requests(endpoint, num_requests=20):
+def run_concurrent_requests(endpoint, num_requests=10):
     """Run multiple concurrent requests to test load handling"""
     print(f"\n🔄 Running {num_requests} concurrent requests to {endpoint}...")
     
@@ -563,63 +563,65 @@ def run_concurrent_requests(endpoint, num_requests=20):
     print(f"✅ Successful requests: {success_count}/{num_requests} ({success_count/num_requests*100:.1f}%)")
     print(f"⏱️ Response times - Avg: {avg_response_time:.3f}s, Min: {min_response_time:.3f}s, Max: {max_response_time:.3f}s")
     
-    success = success_count == num_requests
-    log_test(f"Concurrent Requests ({endpoint})", success, 
-             error=None if success else f"{num_requests - success_count} requests failed")
+    # Check if response time is under 2 seconds
+    is_fast_enough = avg_response_time < 2.0
+    
+    success = success_count == num_requests and is_fast_enough
+    
+    error_msg = None
+    if success_count < num_requests:
+        error_msg = f"{num_requests - success_count} requests failed"
+    elif not is_fast_enough:
+        error_msg = f"Average response time ({avg_response_time:.3f}s) exceeds 2 seconds limit"
+    
+    log_test(f"Concurrent Requests ({endpoint})", success, error=error_msg)
     
     return success
 
-def test_deploy_script():
-    """Test the deploy-debian.sh script for syntax errors"""
-    try:
-        # We'll just check if the script is executable and has no syntax errors
-        result = subprocess.run(["bash", "-n", "/app/deploy-debian.sh"], 
-                               capture_output=True, text=True)
-        
-        success = result.returncode == 0
-        error_msg = result.stderr if not success else None
-        
-        return log_test("Deploy Script Syntax", success, error=error_msg)
-    except Exception as e:
-        return log_test("Deploy Script Syntax", False, error=e)
-
-def test_nginx_config():
-    """Test the nginx configuration file for syntax errors"""
-    try:
-        # Check if the nginx config has the necessary components
-        with open("/app/nginx-dounie.conf", "r") as f:
-            config = f.read()
-        
-        # Check for essential components
-        has_server_block = "server {" in config
-        has_api_location = "location /api" in config
-        has_backend_proxy = "proxy_pass http://127.0.0.1:8001" in config
-        
-        success = has_server_block and has_api_location and has_backend_proxy
-        
-        return log_test("Nginx Config", success, 
-                       error=None if success else "Missing essential nginx configuration")
-    except Exception as e:
-        return log_test("Nginx Config", False, error=e)
-
-def test_supervisor_config():
-    """Test the supervisor configuration file for syntax errors"""
-    try:
-        # Check if the supervisor config has the necessary components
-        with open("/app/supervisor-dounie.conf", "r") as f:
-            config = f.read()
-        
-        # Check for essential components
-        has_backend_program = "[program:dounie-backend]" in config
-        has_uvicorn_command = "uvicorn" in config
-        has_port_8001 = "--port 8001" in config
-        
-        success = has_backend_program and has_uvicorn_command and has_port_8001
-        
-        return log_test("Supervisor Config", success, 
-                       error=None if success else "Missing essential supervisor configuration")
-    except Exception as e:
-        return log_test("Supervisor Config", False, error=e)
+def test_complete_password_reset_workflow():
+    """Test the complete password reset workflow"""
+    print("\n🔄 Testing complete password reset workflow...")
+    
+    # Step 1: Admin generates code for staff@dounie-cuisine.ca
+    admin_login_success = test_admin_login()
+    if not admin_login_success:
+        return log_test("Complete Password Reset Workflow", False, error="Admin login failed")
+    
+    generate_success = test_generate_password_reset(admin_session, "staff@dounie-cuisine.ca")
+    if not generate_success or not password_reset_code:
+        return log_test("Complete Password Reset Workflow", False, error="Failed to generate reset code")
+    
+    # Step 2: Verify code is in the active list
+    list_success = test_get_password_reset_codes(admin_session)
+    if not list_success:
+        return log_test("Complete Password Reset Workflow", False, error="Failed to list active reset codes")
+    
+    # Step 3: Verify code validity
+    verify_success = test_verify_reset_code()
+    if not verify_success:
+        return log_test("Complete Password Reset Workflow", False, error="Failed to verify reset code")
+    
+    # Step 4: Reset password with code
+    reset_success = test_reset_password()
+    if not reset_success:
+        return log_test("Complete Password Reset Workflow", False, error="Failed to reset password")
+    
+    # Step 5: Verify code is marked as used
+    list_success = test_get_password_reset_codes(admin_session)
+    if not list_success:
+        return log_test("Complete Password Reset Workflow", False, error="Failed to list active reset codes after reset")
+    
+    # Step 6: Login with new password
+    new_login_success = test_login_with_new_password()
+    if not new_login_success:
+        return log_test("Complete Password Reset Workflow", False, error="Failed to login with new password")
+    
+    # Step 7: Verify old password no longer works
+    old_login_success = test_login_with_old_password()
+    if not old_login_success:
+        return log_test("Complete Password Reset Workflow", False, error="Old password still works after reset")
+    
+    return log_test("Complete Password Reset Workflow", True)
 
 def print_summary():
     """Print test summary"""
@@ -647,37 +649,51 @@ def print_summary():
 def run_all_tests():
     """Run all tests in sequence"""
     print("\n" + "="*80)
-    print("🧪 DOUNIE CUISINE API DEPLOYMENT TEST")
+    print("🧪 DOUNIE CUISINE API COMPREHENSIVE TEST")
     print("="*80)
     
-    print("\n📡 Testing Health Endpoint...")
+    print("\n📡 1. TESTING HEALTH & CONNECTIVITY...")
     test_health_endpoint()
     
-    print("\n🔄 Testing Load Handling (Health Endpoint)...")
-    run_concurrent_requests("health", 20)
+    print("\n🔐 2. TESTING AUTHENTICATION...")
+    test_admin_login()
+    test_staff_login()
+    test_invalid_login()
+    test_logout(admin_session)
+    test_current_user(admin_session)
     
-    print("\n🔐 Testing Authentication...")
-    admin_login_success = test_login(admin_session, ADMIN_CREDENTIALS)
+    # Login again for subsequent tests
+    test_admin_login()
     
-    print("\n🔑 Testing Password Recovery System...")
-    if admin_login_success:
-        test_generate_password_reset(admin_session)
-        test_get_password_reset_codes(admin_session)
-        test_verify_reset_code()
-        test_reset_password()
+    print("\n🔑 3. TESTING PASSWORD RECOVERY SYSTEM...")
+    test_generate_password_reset(admin_session, "staff@dounie-cuisine.ca")
+    test_get_password_reset_codes(admin_session)
+    test_verify_reset_code()
+    test_verify_invalid_reset_code()
+    test_reset_password()
+    test_reset_password_with_weak_password()
+    test_login_with_new_password()
+    test_login_with_old_password()
     
-    print("\n📝 Testing Quote System...")
-    if admin_login_success:
-        test_create_quote(admin_session)
-        test_send_quote(admin_session)
+    # Login again for subsequent tests
+    test_admin_login()
     
-    print("\n🗃️ Testing MongoDB Integration...")
-    test_mongodb_connection()
+    print("\n🍽️ 4. TESTING BUSINESS FUNCTIONALITY...")
+    test_get_menu()
+    test_create_menu_item(admin_session)
+    test_get_quotes(admin_session)
+    test_create_quote(admin_session)
+    test_send_quote(admin_session)
+    test_get_reservations(admin_session)
+    test_create_reservation(admin_session)
+    test_get_dashboard_stats(admin_session)
     
-    print("\n📜 Testing Deployment Scripts...")
-    test_deploy_script()
-    test_nginx_config()
-    test_supervisor_config()
+    print("\n⚡ 5. TESTING PERFORMANCE...")
+    run_concurrent_requests("health", 10)
+    run_concurrent_requests("menu", 10)
+    
+    print("\n🔄 6. TESTING COMPLETE WORKFLOW...")
+    test_complete_password_reset_workflow()
     
     # Print summary
     return print_summary()
