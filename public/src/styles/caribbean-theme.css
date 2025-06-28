@@ -1,0 +1,178 @@
+/* Thème des Caraïbes */
+.caribbean-theme {
+  --primary: 200 100% 45%;
+  --primary-foreground: 0 0% 98%;
+  --secondary: 120 60% 50%;
+  --secondary-foreground: 220 25% 15%;
+  --accent: 30 90% 55%;
+  --accent-foreground: 0 0% 98%;
+  --background: 50 100% 97%;
+  --foreground: 220 25% 15%;
+  --card: 0 0% 100%;
+  --card-foreground: 220 25% 15%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 220 25% 15%;
+  --muted: 200 20% 70%;
+  --muted-foreground: 220 25% 45%;
+  --border: 200 20% 85%;
+  --input: 200 20% 85%;
+  --ring: 200 100% 45%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 98%;
+}
+
+/* Animations caribéennes */
+@keyframes wave {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  25% { transform: translateY(-5px) rotate(1deg); }
+  75% { transform: translateY(5px) rotate(-1deg); }
+}
+
+@keyframes tropical-breeze {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(3px); }
+}
+
+@keyframes sunshine {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.8; }
+}
+
+.wave-animation {
+  animation: wave 3s ease-in-out infinite;
+}
+
+.tropical-breeze {
+  animation: tropical-breeze 4s ease-in-out infinite;
+}
+
+.sunshine-glow {
+  animation: sunshine 2s ease-in-out infinite;
+}
+
+/* Dégradés caribéens */
+.caribbean-gradient {
+  background: linear-gradient(135deg, hsl(200, 100%, 45%) 0%, hsl(120, 60%, 50%) 100%);
+}
+
+.ocean-gradient {
+  background: linear-gradient(180deg, hsl(200, 100%, 45%) 0%, hsl(220, 100%, 35%) 100%);
+}
+
+.sunset-gradient {
+  background: linear-gradient(135deg, hsl(30, 90%, 55%) 0%, hsl(15, 85%, 60%) 50%, hsl(340, 80%, 65%) 100%);
+}
+
+/* Cartes tropicales */
+.tropical-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(0, 150, 200, 0.2);
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 150, 200, 0.1);
+  transition: all 0.3s ease;
+}
+
+.tropical-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(0, 150, 200, 0.2);
+}
+
+/* Boutons caribéens */
+.caribbean-button {
+  background: linear-gradient(135deg, hsl(200, 100%, 45%) 0%, hsl(120, 60%, 50%) 100%);
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-weight: 600;
+  padding: 12px 24px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 10px rgba(0, 150, 200, 0.3);
+}
+
+.caribbean-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 20px rgba(0, 150, 200, 0.4);
+}
+
+/* Navigation caribéenne */
+.caribbean-nav {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(0, 150, 200, 0.2);
+}
+
+/* Éléments décoratifs */
+.palm-leaf {
+  color: hsl(120, 60%, 50%);
+  filter: drop-shadow(0 2px 4px rgba(0, 150, 200, 0.2));
+}
+
+.ocean-wave {
+  color: hsl(200, 100%, 45%);
+  filter: drop-shadow(0 2px 4px rgba(0, 150, 200, 0.3));
+}
+
+.sun-icon {
+  color: hsl(30, 90%, 55%);
+  filter: drop-shadow(0 2px 4px rgba(255, 165, 0, 0.3));
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .tropical-card {
+    border-radius: 8px;
+    margin: 8px;
+  }
+  
+  .caribbean-button {
+    padding: 10px 20px;
+    font-size: 14px;
+  }
+}
+
+/* Sidebar caribéen */
+.caribbean-sidebar {
+  background: linear-gradient(180deg, hsl(200, 100%, 45%) 0%, hsl(220, 100%, 35%) 100%);
+  border-right: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.caribbean-sidebar-item {
+  color: rgba(255, 255, 255, 0.9);
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.caribbean-sidebar-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.caribbean-sidebar-item.active {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+/* Footer caribéen */
+.caribbean-footer {
+  background: linear-gradient(135deg, hsl(220, 100%, 35%) 0%, hsl(200, 100%, 45%) 100%);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* Tableaux caribéens */
+.caribbean-table {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 150, 200, 0.1);
+}
+
+.caribbean-table th {
+  background: linear-gradient(135deg, hsl(200, 100%, 45%) 0%, hsl(120, 60%, 50%) 100%);
+  color: white;
+  font-weight: 600;
+}
+
+.caribbean-table tr:nth-child(even) {
+  background: rgba(0, 150, 200, 0.05);
+}

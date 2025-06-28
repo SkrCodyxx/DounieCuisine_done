@@ -1,0 +1,151 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 220 30% 96%; /* Gris très clair bleuté */
+    --foreground: 220 25% 20%; /* Gris foncé */
+    --card: 0 0% 100%; /* Blanc */
+    --card-foreground: 220 25% 20%; /* Gris foncé */
+    --popover: 0 0% 100%; /* Blanc */
+    --popover-foreground: 220 25% 20%; /* Gris foncé */
+    --primary: 205 70% 45%; /* Bleu professionnel */
+    --primary-foreground: 0 0% 100%; /* Blanc */
+    --secondary: 195 60% 40%; /* Bleu sarcelle */
+    --secondary-foreground: 0 0% 100%; /* Blanc */
+    --muted: 220 20% 88%; /* Gris clair */
+    --muted-foreground: 220 20% 55%; /* Gris moyen pour texte discret */
+    --accent: 170 60% 40%; /* Vert d'eau/turquoise sobre */
+    --accent-foreground: 0 0% 100%; /* Blanc */
+    --destructive: 0 75% 55%; /* Rouge pour erreurs */
+    --destructive-foreground: 0 0% 100%; /* Blanc */
+    --border: 220 25% 88%; /* Gris clair */
+    --input: 220 25% 92%; /* Gris très clair pour fond de champ */
+    --ring: 205 80% 60%; /* Bleu un peu plus clair que primaire pour focus */
+    --radius: 0.5rem;
+
+    /* Les variables pour les thèmes festifs sont commentées pour l'instant
+    --festive-primary: var(--primary);
+    --festive-primary-foreground: var(--primary-foreground);
+    --festive-secondary: var(--secondary);
+    --festive-secondary-foreground: var(--secondary-foreground);
+    --festive-accent: var(--accent);
+    --festive-accent-foreground: var(--accent-foreground);
+    --festive-background: var(--background);
+    --festive-foreground: var(--foreground);
+    */
+  }
+
+  .dark {
+    --background: 220 25% 10%; /* Gris foncé bleuté */
+    --foreground: 220 15% 88%; /* Gris clair */
+    --card: 220 25% 15%; /* Gris un peu plus clair que le fond sombre */
+    --card-foreground: 220 15% 88%; /* Gris clair */
+    --popover: 220 25% 12%; /* Gris très foncé pour popovers en mode sombre */
+    --popover-foreground: 220 15% 88%; /* Gris clair */
+    --primary: 205 75% 55%; /* Bleu plus clair pour mode sombre */
+    --primary-foreground: 0 0% 100%; /* Blanc */
+    --secondary: 195 65% 50%; /* Bleu sarcelle plus clair */
+    --secondary-foreground: 0 0% 100%; /* Blanc */
+    --muted: 220 15% 30%; /* Gris moyen */
+    --muted-foreground: 220 15% 65%; /* Gris clair pour texte discret */
+    --accent: 170 65% 50%; /* Vert d'eau/turquoise plus clair */
+    --accent-foreground: 0 0% 100%; /* Blanc */
+    --destructive: 0 70% 60%; /* Rouge pour erreurs en mode sombre */
+    --destructive-foreground: 0 0% 100%; /* Blanc */
+    --border: 220 15% 25%; /* Gris foncé */
+    --input: 220 15% 20%; /* Gris foncé pour fond de champ */
+    --ring: 205 85% 70%; /* Bleu encore plus clair pour focus en mode sombre */
+
+    /* Les variables pour les thèmes festifs en mode sombre sont commentées
+    --festive-primary: var(--primary);
+    --festive-primary-foreground: var(--primary-foreground);
+    --festive-secondary: var(--secondary);
+    --festive-secondary-foreground: var(--secondary-foreground);
+    --festive-accent: var(--accent);
+    --festive-accent-foreground: var(--accent-foreground);
+    --festive-background: var(--background);
+    --festive-foreground: var(--foreground);
+    */
+  }
+
+  /* Les thèmes spécifiques comme .theme-haiti, .theme-summer sont commentés pour l'instant.
+     Ils pourront être réintroduits plus tard avec une approche plus professionnelle si nécessaire.
+  .theme-haiti {
+    --festive-primary: 346 100% 40%;
+    --festive-primary-foreground: 0 0% 100%;
+    --festive-secondary: 211 100% 40%;
+    --festive-secondary-foreground: 0 0% 100%;
+    --festive-accent: 46 100% 50%;
+    --festive-accent-foreground: 0 0% 0%;
+    --festive-background: 210 40% 96%;
+    --festive-foreground: 210 20% 20%;
+  }
+
+  .theme-summer {
+    --festive-primary: 25 100% 60%;
+    --festive-primary-foreground: 0 0% 100%;
+    --festive-secondary: 184 100% 45%;
+    --festive-secondary-foreground: 0 0% 100%;
+    --festive-accent: 46 100% 55%;
+    --festive-accent-foreground: 0 0% 0%;
+    --festive-background: 50 100% 95%;
+    --festive-foreground: 30 80% 25%;
+  }
+
+  body.theme-haiti, body.theme-summer {
+    --primary: var(--festive-primary);
+    --primary-foreground: var(--festive-primary-foreground);
+    --secondary: var(--festive-secondary);
+    --secondary-foreground: var(--festive-secondary-foreground);
+    --accent: var(--festive-accent);
+    --accent-foreground: var(--festive-accent-foreground);
+  }
+  */
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; /* Police système améliorée */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* Les animations festives sont commentées pour l'instant.
+   Elles pourront être réintroduites de manière plus subtile si le thème le justifie.
+@keyframes snowfall {
+  0% { transform: translateY(-100vh) rotate(0deg); }
+  100% { transform: translateY(100vh) rotate(360deg); }
+}
+
+@keyframes hearts {
+  0% { transform: translateY(-100vh) rotate(0deg) scale(0.5); }
+  50% { transform: rotate(180deg) scale(1); }
+  100% { transform: translateY(100vh) rotate(360deg) scale(0.5); }
+}
+
+.snowflake {
+  position: fixed;
+  top: -10px;
+  z-index: 1000;
+  user-select: none;
+  pointer-events: none;
+  animation: snowfall linear infinite;
+}
+
+.heart {
+  position: fixed;
+  top: -10px;
+  z-index: 1000;
+  user-select: none;
+  pointer-events: none;
+  animation: hearts linear infinite;
+  color: #ff69b4;
+}
+*/
