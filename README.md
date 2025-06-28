@@ -24,9 +24,9 @@
 
 ## 2. Installation des dépendances système
 - Node.js (LTS) et npm
-- Python 3.11+ et pip
+- Python 3.11+ et pip # Si le backend FastAPI est conservé pour une partie, sinon à supprimer
 - PostgreSQL 15+
-- MongoDB 7 (Debian 12/bookworm)
+# MongoDB n'est plus utilisé dans la stack principale Node.js/Express.js
 - Nginx
 - Supervisor
 - UFW (firewall)
@@ -36,14 +36,10 @@
 - Initialiser PostgreSQL :
   ```bash
   sudo systemctl start postgresql
-  sudo -u postgres createuser dounie_user --pwprompt
-  sudo -u postgres createdb dounie_cuisine -O dounie_user
+  sudo -u postgres createuser dounie_user --pwprompt # Remplacer dounie_user par le nom d'utilisateur souhaité
+  sudo -u postgres createdb dounie_cuisine -O dounie_user # Idem pour dounie_user et dounie_cuisine
   ```
-- Initialiser MongoDB :
-  ```bash
-  sudo systemctl start mongod
-  # Vérifier que le service démarre sans erreur
-  ```
+# Les instructions pour MongoDB sont supprimées car non utilisées par l'API Node.js principale.
 
 ## 4. Clonage du projet
 ```bash
@@ -52,16 +48,12 @@ cd dounie-cuisine
 ```
 
 ## 5. Installation des dépendances applicatives
-- Pour chaque dossier Node/React (api, administration, public, frontend) :
+- Pour chaque dossier Node/React (api, administration, public) :
   ```bash
-  cd <dossier>
+  cd <dossier> # ex: cd api
   npm install
   ```
-- Pour le backend FastAPI :
-  ```bash
-  cd backend
-  pip install -r requirements.txt
-  ```
+# Les instructions pour le backend FastAPI sont supprimées. S'il existe un autre backend Python, il faudrait des instructions spécifiques.
 
 ## 6. Configuration des variables d’environnement
 - Copier chaque `.env.example` en `.env` et adapter les valeurs (DB, URLs, secrets)
@@ -79,18 +71,18 @@ cd dounie-cuisine
 
 ## 8. Configuration des services système
 - Configurer Supervisor pour lancer et surveiller :
-  - API Node
-  - Backend FastAPI
-  - Frontends
-- Configurer Nginx pour servir les frontends et faire le reverse proxy vers les APIs
+  - API Node.js (Express.js)
+  # Backend FastAPI supprimé, ajuster si un autre backend Python existe
+  - (Optionnel) Servir les frontends statiques via Nginx/Supervisor si non géré autrement
+- Configurer Nginx pour servir les frontends et faire le reverse proxy vers l'API Node.js
 - Activer et configurer UFW et fail2ban
 
 ## 9. Lancement des services
 ```bash
 sudo systemctl start postgresql
-sudo systemctl start mongod
+# sudo systemctl start mongod # Supprimé
 sudo systemctl start nginx
-sudo systemctl start supervisor
+sudo systemctl start supervisor # Supervisor gérera le démarrage de l'API Node.js
 ```
 - Vérifier que tous les services sont actifs
 
@@ -102,12 +94,12 @@ sudo systemctl start supervisor
 - Vérifier les logs et corriger les éventuelles erreurs
 
 ## 11. Sauvegardes et monitoring
-- Mettre en place les scripts de sauvegarde automatique (PostgreSQL, MongoDB, fichiers)
+- Mettre en place les scripts de sauvegarde automatique (PostgreSQL, fichiers de l'application)
 - Mettre en place le monitoring automatique (script ou cron)
 
 ---
 
-Pour plus de détails, consultez le fichier GUIDE_DEPLOIEMENT_PRODUCTION.md.
+Pour plus de détails, consultez le fichier `GUIDE_DEPLOIEMENT_PRODUCTION.md` (s'il existe, sinon le créer ou détailler ici).
 
 **Ce guide garantit un déploiement reproductible, fiable et maintenable.**
 
@@ -150,46 +142,47 @@ Pour plus de détails, consultez le fichier GUIDE_DEPLOIEMENT_PRODUCTION.md.
 │  🌐 Nginx (Load Balancer + SSL)                           │
 │     ├── Application Publique (React + Vite)                │
 │     ├── Interface Administration (React + Vite)            │
-│     └── API Backend (Express.js + TypeScript)              │
+│     └── API Backend (Node.js + Express.js + TypeScript)    │
 ├─────────────────────────────────────────────────────────────┤
-│  💬 Système de Messagerie WebSocket                        │
+│  💬 Système de Messagerie WebSocket (avec la bibliothèque ws)│
 │     ├── Communication temps réel                           │
 │     ├── Notifications système                              │
-│     └── Monitoring intégré                                 │
+│     └── (Monitoring à intégrer si besoin)                  │
 ├─────────────────────────────────────────────────────────────┤
-│  📊 Monitoring & Alertes                                   │
-│     ├── Health checks automatiques                         │
-│     ├── Métriques de performance                           │
-│     └── Auto-correction intelligente                       │
+│  📊 Monitoring & Alertes (Conceptuel - à développer)       │
+│     ├── Health checks basiques (ex: /api/health)           │
+│     ├── Métriques de performance (via PM2 ou autre)        │
+│     └── (Auto-correction à développer)                     │
 ├─────────────────────────────────────────────────────────────┤
-│  🗄️ PostgreSQL 15 + Sauvegardes Intelligentes             │
-│     ├── Base optimisée pour restaurant                     │
-│     ├── Sauvegardes quotidiennes                           │
-│     └── Tests de restauration automatiques                 │
+│  🗄️ PostgreSQL 15 (Base de données principale)            │
+│     ├── Schéma défini dans `api/storage-db.ts`             │
+│     ├── Sauvegardes à configurer (voir section sauvegardes)│
+│     └── (Tests de restauration à mettre en place)           │
 └─────────────────────────────────────────────────────────────┘
 ```
 
 ### Stack Technologique
 
 #### Backend
-- **Express.js 4.21+** avec TypeScript
-- **PostgreSQL 15** avec Drizzle ORM
-- **WebSocket** pour communication temps réel
-- **Passport.js** pour l'authentification
-- **PM2** pour la gestion des processus
+- **Node.js** avec **Express.js** et **TypeScript**
+- **PostgreSQL 15** (accès via `storage.ts`, schéma dans `storage-db.ts` - Drizzle ORM n'est pas explicitement mentionné dans le code que j'ai vu, mais `pg` ou un query builder simple est probable)
+- **WebSocket** (avec la bibliothèque `ws`, nécessite installation) pour communication temps réel
+- **express-session** pour la gestion des sessions (authentification)
+- **PM2** (recommandé pour la production) pour la gestion des processus
 
-#### Frontend
-- **React 18** avec hooks modernes
-- **Vite 7** pour le build optimisé
-- **Tailwind CSS 3** pour le design
-- **Framer Motion** pour les animations
-- **TanStack Query** pour la gestion d'état
+#### Frontend (Applications `administration` et `public`)
+- **React 18** avec TypeScript et Vite
+- **Tailwind CSS** pour le design (avec Shadcn/UI pour les composants de base)
+- **TanStack Query** (`@tanstack/react-query`) pour la gestion d'état et le data fetching
+- **React Hook Form** et **Zod** pour la validation des formulaires
+- **wouter** pour le routage (dans `AdminLayout.tsx` au moins)
+- `lucide-react` pour les icônes
 
-#### Infrastructure
-- **Nginx** comme reverse proxy
-- **Docker** & **Kubernetes** ready
-- **SSL/TLS** automatique
-- **Monitoring** intégré
+#### Infrastructure (Recommandations basées sur le README)
+- **Nginx** comme reverse proxy et pour servir les frontends statiques
+- **Docker** & **Kubernetes** (le README mentionne "ready", mais les configurations spécifiques ne sont pas dans le code que j'ai exploré)
+- **SSL/TLS** (par exemple, avec Let's Encrypt via Nginx)
+- **Supervisor** ou **PM2** pour la gestion des processus Node.js
 
 ## 🚀 Installation Rapide
 
@@ -205,11 +198,12 @@ Pour plus de détails, consultez le fichier GUIDE_DEPLOIEMENT_PRODUCTION.md.
 git clone https://github.com/dounie-cuisine/dounie-cuisine.git
 cd dounie-cuisine
 
-# Déploiement intelligent avec auto-correction
-sudo ./deploy-smart.sh
+# Déploiement intelligent avec auto-correction (si ce script existe et est fonctionnel)
+# sudo ./deploy-smart.sh
 
-# Configuration SSL (optionnel)
-sudo ./setup-ssl.sh votre-domaine.com
+# Configuration SSL (optionnel, exemple avec Certbot pour Nginx)
+# sudo apt install certbot python3-certbot-nginx
+# sudo certbot --nginx -d votre-domaine.com
 ```
 
 ### Déploiement Docker
@@ -320,9 +314,53 @@ npm run dev
 ```
 
 ### URLs de Développement
-- **API:** http://localhost:5000
-- **Site Public:** http://localhost:3000
-- **Administration:** http://localhost:3001
+- **API:** `http://localhost:5000` (configurable via `PORT` dans `api/.env`)
+- **Site Public:** `http://localhost:5174` (port par défaut de Vite pour `public/`)
+- **Administration:** `http://localhost:5173` (port par défaut de Vite pour `administration/`)
+
+### Variables d'Environnement Essentielles
+
+Assurez-vous de créer et configurer les fichiers `.env` pour chaque module :
+
+*   **`api/.env`**:
+    *   `DATABASE_URL`: URL de connexion à votre base de données PostgreSQL.
+        *   Format : `postgresql://USER:PASSWORD@HOST:PORT/DATABASE`
+        *   Exemple : `postgresql://dounie_user:secretpassword@localhost:5432/dounie_cuisine`
+    *   `SESSION_SECRET`: Chaîne aléatoire longue et sécurisée pour les sessions.
+        *   Exemple : `openssl rand -hex 32` pour générer une clé.
+    *   `NODE_ENV`: `development` ou `production`.
+    *   `PORT`: Port d'écoute pour l'API (par défaut `5000`).
+    *   `CORS_ORIGIN_ADMIN`: URL du frontend admin (ex: `http://localhost:5173`).
+    *   `CORS_ORIGIN_PUBLIC`: URL du frontend public (ex: `http://localhost:5174`).
+    *   `WEBSOCKET_PORT`: Port pour le serveur WebSocket (peut être le même que `PORT` si intégré au serveur HTTP).
+
+*   **`administration/.env`** (et **`public/.env`**):
+    *   `VITE_API_URL`: URL complète de votre API backend.
+        *   Exemple : `http://localhost:5000/api`
+    *   `VITE_WS_URL`: URL de votre serveur WebSocket.
+        *   Exemple : `ws://localhost:5000` (utiliser `wss://` en production avec SSL).
+    *   `VITE_APP_NAME`: Nom de l'application (ex: "Dounie Cuisine Administration").
+
+### Build et Démarrage
+
+1.  **API (`api/` dossier) :**
+    *   Installer les dépendances : `npm install`
+        *   *Note : Pour la messagerie temps réel, la dépendance `ws` est nécessaire. Si elle n'est pas encore installée : `npm install ws` et `npm install --save-dev @types/ws`.*
+    *   Mode Développement : `npm run dev`
+    *   Build pour Production : `npm run build`
+    *   Lancer en Production : `npm start` (ou utiliser un gestionnaire de processus comme PM2 : `pm2 start dist/index.js --name dounie-api`)
+
+2.  **Frontend Administration (`administration/` dossier) :**
+    *   Installer les dépendances : `npm install`
+    *   Mode Développement : `npm run dev` (généralement sur `http://localhost:5173`)
+    *   Build pour Production : `npm run build` (les fichiers statiques seront dans `administration/dist/`)
+
+3.  **Frontend Public (`public/` dossier) :**
+    *   Installer les dépendances : `npm install`
+    *   Mode Développement : `npm run dev` (généralement sur `http://localhost:5174`)
+    *   Build pour Production : `npm run build` (les fichiers statiques seront dans `public/dist/`)
+
+En production, les frontends buildés (contenu des dossiers `dist/`) doivent être servis par un serveur web comme Nginx, qui peut également agir comme reverse proxy pour l'API.
 
 ### Scripts Disponibles
 
@@ -416,11 +454,11 @@ npm run preview      # Aperçu production locale
 
 ### Restauration d'Urgence
 ```bash
-# Restauration complète automatique
-sudo /usr/local/bin/dounie-disaster-recovery
+# Restauration complète automatique (si le script `/usr/local/bin/dounie-disaster-recovery` est configuré)
+# sudo /usr/local/bin/dounie-disaster-recovery
 
-# Restauration manuelle
-sudo /usr/local/bin/dounie-restore-from-backup YYYYMMDD_HHMMSS
+# Restauration manuelle (exemple avec pg_restore si les sauvegardes sont faites avec pg_dump)
+# sudo -u postgres pg_restore -d dounie_cuisine /backup/dounie-cuisine/db/backup_YYYYMMDD_HHMMSS.dump
 ```
 
 ## 🔄 Mises à Jour

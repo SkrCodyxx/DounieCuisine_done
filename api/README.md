@@ -80,79 +80,178 @@ npm run db:migrate       # Migrations manuelles
 
 ## 📊 Endpoints API
 
-### 🔐 Authentification
+### 🔐 Authentification & Profil
 ```http
 POST   /api/auth/login          # Connexion utilisateur
 POST   /api/auth/logout         # Déconnexion
-GET    /api/auth/profile        # Profil utilisateur actuel
 POST   /api/auth/register       # Inscription (clients)
+GET    /api/auth/current-user   # Profil utilisateur authentifié
+PUT    /api/auth/profile        # Mettre à jour le profil utilisateur authentifié
 ```
 
-### 👥 Gestion Utilisateurs
+### 🔑 Réinitialisation de Mot de Passe (Admin & Utilisateur)
 ```http
-GET    /api/users               # Liste des utilisateurs
-POST   /api/users               # Créer utilisateur
-PUT    /api/users/:id           # Modifier utilisateur
-DELETE /api/users/:id           # Supprimer utilisateur
-GET    /api/users/:id/profile   # Profil utilisateur spécifique
+POST   /api/admin/generate-password-reset # (Admin) Générer un code pour un utilisateur
+GET    /api/admin/password-reset-codes    # (Admin) Voir les codes actifs
+POST   /api/auth/verify-reset-code        # Vérifier la validité d'un code
+POST   /api/auth/reset-password           # Réinitialiser le mot de passe avec un code valide
 ```
 
-### 🍽️ Gestion du Menu
+### 👥 Gestion Utilisateurs & Permissions (Admin)
 ```http
-GET    /api/menu                # Menu complet
-GET    /api/menu/categories     # Catégories du menu
-GET    /api/menu/items          # Articles du menu
-POST   /api/menu/items          # Ajouter article
-PUT    /api/menu/items/:id      # Modifier article
-DELETE /api/menu/items/:id      # Supprimer article
-POST   /api/menu/items/:id/image # Upload image
+GET    /api/users                         # (Admin) Liste de tous les utilisateurs
+POST   /api/users                         # (Admin) Créer un nouvel utilisateur
+# PUT    /api/users/:id                     # (Admin) Modifier utilisateur (à implémenter si besoin au-delà de /api/auth/profile)
+# DELETE /api/users/:id                   # (Admin) Supprimer utilisateur (à implémenter si besoin)
+GET    /api/admin/role-permissions        # (Admin) Lister les rôles et permissions
+POST   /api/admin/role-permissions        # (Admin) Créer un rôle et ses permissions
+PUT    /api/admin/role-permissions/:id    # (Admin) Modifier un rôle et ses permissions
 ```
 
-### 📋 Gestion des Commandes
+### 🏢 Gestion des Clients (Staff/Admin)
 ```http
-GET    /api/orders              # Liste des commandes
-POST   /api/orders              # Créer commande
-GET    /api/orders/:id          # Détails commande
-PUT    /api/orders/:id          # Modifier commande
-PUT    /api/orders/:id/status   # Changer statut
-DELETE /api/orders/:id          # Annuler commande
+GET    /api/clients                       # Lister les clients (avec recherche)
+POST   /api/clients                       # Créer un client
+GET    /api/clients/:id                   # Détails d'un client
+PUT    /api/clients/:id                   # Modifier un client
+DELETE /api/clients/:id                   # (Admin) Supprimer un client
 ```
 
-### 🎉 Gestion des Événements
+### ⚙️ Paramètres de l'Entreprise (Admin)
 ```http
-GET    /api/events              # Liste des événements
-POST   /api/events              # Créer événement
-GET    /api/events/:id          # Détails événement
-PUT    /api/events/:id          # Modifier événement
-DELETE /api/events/:id          # Annuler événement
-GET    /api/events/calendar     # Vue calendrier
+GET    /api/company-settings              # Récupérer les paramètres
+PUT    /api/company-settings              # Mettre à jour les paramètres
 ```
 
-### 💬 Messagerie Interne
+### 📝 Gestion des Devis (Staff/Admin)
 ```http
-GET    /api/messages            # Messages utilisateur
-POST   /api/messages            # Envoyer message
-PUT    /api/messages/:id/read   # Marquer comme lu
-GET    /api/messages/conversations # Conversations actives
+GET    /api/quotes                        # Lister les devis (avec filtre clientId)
+POST   /api/quotes                        # Créer un devis
+GET    /api/quotes/:id                    # Détails d'un devis
+PUT    /api/quotes/:id                    # Modifier un devis
+POST   /api/quotes/:id/send               # Marquer un devis comme envoyé
+DELETE /api/quotes/:id                    # (Admin) Supprimer un devis
 ```
 
-### 📊 Monitoring et Statistiques
+### 🖼️ Gestion des Galeries (Staff/Admin avec permission 'manage_galleries')
 ```http
-GET    /api/health              # Health check
-GET    /api/stats               # Statistiques générales
-GET    /api/stats/sales         # Statistiques ventes
-GET    /api/stats/orders        # Statistiques commandes
-GET    /api/system/status       # Statut système
-GET    /api/system/metrics      # Métriques performance
+GET    /api/galleries                     # Lister les galeries
+POST   /api/galleries                     # Créer une galerie
+PUT    /api/galleries/:id                 # Modifier une galerie
+DELETE /api/galleries/:id               # Supprimer une galerie
+GET    /api/gallery-images                # Lister les images (avec filtre galleryId)
+POST   /api/gallery-images                # Ajouter une image à une galerie
+PUT    /api/gallery-images/:id            # Modifier une image
+DELETE /api/gallery-images/:id          # Supprimer une image
 ```
 
-### 🔧 Administration
+### 📄 Gestion des Pages de Contenu (Staff/Admin avec permission 'manage_content')
 ```http
-GET    /api/admin/users         # Gestion utilisateurs
-GET    /api/admin/system        # Configuration système
-PUT    /api/admin/settings      # Modifier paramètres
-GET    /api/admin/logs          # Logs système
-POST   /api/admin/backup        # Déclencher sauvegarde
+GET    /api/content-pages                 # Lister toutes les pages
+POST   /api/content-pages                 # Créer une page
+GET    /api/content-pages/:slug           # Récupérer une page par son slug
+PUT    /api/content-pages/:id             # Modifier une page
+DELETE /api/content-pages/:id           # Supprimer une page
+```
+
+### ✉️ Messages Clients (Formulaire de Contact) (Staff/Admin)
+```http
+GET    /api/customer-messages             # Lister les messages (avec filtre non lus)
+POST   /api/customer-messages             # (Public) Envoyer un message via formulaire de contact
+PUT    /api/customer-messages/:id         # Marquer un message (ex: comme lu)
+```
+
+### 💬 Messagerie Interne (Employés authentifiés)
+```http
+GET    /api/internal-messages             # Lister les messages reçus ou envoyés
+POST   /api/internal-messages             # Envoyer un message interne
+PUT    /api/internal-messages/:id         # Marquer un message (ex: comme lu)
+DELETE /api/internal-messages/:id       # Supprimer un message (logique soft delete)
+```
+
+### 💬 Messagerie Client (Admin <-> Client) (Staff)
+```http
+GET    /api/client-messages               # Lister les conversations (avec filtre clientId)
+POST   /api/client-messages               # (Staff) Envoyer un message à un client
+```
+
+### 🍽️ Gestion du Menu (Staff/Admin avec permission 'manage_menu')
+```http
+GET    /api/menu                          # Menu complet (public)
+POST   /api/menu                          # Ajouter un article au menu
+PUT    /api/menu/:id                      # Modifier un article du menu
+DELETE /api/menu/:id                    # Supprimer un article du menu
+PUT    /api/menu/:id/price                # Mettre à jour le prix d'un article
+PUT    /api/menu/:id/photo                # Mettre à jour la photo d'un article
+```
+
+### 📢 Gestion des Annonces (Staff/Admin avec permission 'manage_announcements')
+```http
+GET    /api/announcements                 # Lister les annonces (avec filtres)
+POST   /api/announcements                 # Créer une annonce
+PUT    /api/announcements/:id             # Modifier une annonce
+```
+
+### 📋 Gestion des Commandes (Staff/Auth)
+```http
+GET    /api/orders                        # (Staff) Lister toutes les commandes
+POST   /api/orders                        # (Auth) Créer une commande
+PUT    /api/orders/:id                    # (Staff) Modifier une commande (ex: statut)
+# GET    /api/orders/:id                    # Détails commande (implicite ou à ajouter)
+```
+
+### 🎉 Gestion des Réservations (Staff/Public)
+```http
+GET    /api/reservations                  # (Staff) Lister toutes les réservations
+POST   /api/reservations                  # (Public/Auth) Créer une réservation
+GET    /api/reservations/date/:date       # (Public) Vérifier dispo pour une date
+PUT    /api/reservations/:id              # (Staff) Modifier une réservation
+```
+
+### 🗓️ Gestion du Calendrier des Employés (Staff)
+```http
+GET    /api/calendar/events               # Lister les événements (avec filtre de date)
+POST   /api/calendar/events               # Créer un événement
+PUT    /api/calendar/events/:id           # Modifier un événement
+DELETE /api/calendar/events/:id         # Supprimer un événement
+```
+
+### 💰 Gestion Financière (Staff avec permissions 'view_financials', 'manage_financials')
+```http
+GET    /api/finance/transactions          # Lister les transactions (avec filtre de date)
+POST   /api/finance/transactions          # Créer une transaction
+GET    /api/finance/summary               # Obtenir un résumé financier
+POST   /api/finance/calculate-taxes       # Calculer les taxes canadiennes pour un montant
+```
+
+### 🎨 Gestion des Thèmes Festifs (Admin)
+```http
+GET    /api/themes                        # Lister les thèmes
+POST   /api/themes                        # Créer un thème
+GET    /api/themes/active                 # Obtenir le thème actif
+PUT    /api/themes/:id/activate           # Activer un thème
+```
+
+### 🎁 Gestion des Récompenses de Fidélité (Admin/Auth)
+```http
+GET    /api/loyalty/rewards               # Lister les récompenses
+POST   /api/loyalty/rewards               # (Admin) Créer une récompense
+```
+
+### 📦 Gestion de l'Inventaire (Staff avec permission 'manage_inventory')
+```http
+GET    /api/inventory                     # Lister les articles d'inventaire
+POST   /api/inventory                     # Ajouter un article à l'inventaire
+# PUT /api/inventory/:id ...             # TODO: Routes pour modifier/supprimer inventaire
+```
+
+### 📊 Statistiques & Santé
+```http
+GET    /api/ping                          # Ping pour vérifier si l'API est en ligne
+GET    /api/health                        # Health check détaillé (si implémenté)
+GET    /api/status                        # Statut basique (pour tests)
+GET    /api/admin/stats                   # (Staff) Statistiques utilisateur/profil (anciennement /api/auth/profile)
+GET    /api/dashboard/stats               # (Staff) Statistiques pour le tableau de bord admin
 ```
 
 ## 💬 Système de Messagerie WebSocket
@@ -243,25 +342,53 @@ Réponse:
 
 ## 🗄️ Base de Données
 
-### Schéma Principal
-```sql
--- Utilisateurs
-users (id, username, email, password_hash, role, created_at, is_active)
+### Schéma Principal (basé sur `shared/schema.ts`)
+Voici les principales tables utilisées par l'application (liste non exhaustive des champs) :
 
--- Menu
-menu_categories (id, name, description, sort_order)
-menu_items (id, category_id, name, description, price, image_url, available)
+*   **`users`**: Informations des utilisateurs (clients, employés, admins).
+    *   `(id, username, email, password, role, firstName, lastName, etc.)`
+*   **`rolePermissions`**: Définit les permissions pour chaque rôle.
+    *   `(id, roleName, permissionsJson, etc.)`
+*   **`clients`**: Informations spécifiques aux clients (pour CRM).
+    *   `(id, firstName, lastName, email, phoneNumber, company, address, source, etc.)`
+*   **`companySettings`**: Paramètres globaux de l'entreprise.
+    *   `(id, companyName, logoUrl, defaultTaxRate, currency, etc.)`
+*   **`menuItems`**: Articles du menu.
+    *   `(id, name, description, category, price, imageUrl, isAvailable, etc.)`
+*   **`orders`**: Commandes passées par les clients.
+    *   `(id, userId, clientId, itemsJson, totalAmount, gstAmount, qstAmount, status, orderType, etc.)`
+*   **`reservations`**: Réservations de tables ou d'événements.
+    *   `(id, userId, guestName, partySize, dateTime, status, confirmationCode, etc.)`
+*   **`employees`**: Informations sur les employés (liées à la table `users`).
+    *   `(id, userId, position, hireDate, hourlyRate, etc.)`
+*   **`calendarEvents`**: Événements du calendrier interne (équipes, réunions).
+    *   `(id, title, eventType, startTime, endTime, createdBy, etc.)`
+*   **`inventory`**: Gestion des stocks.
+    *   `(id, name, currentStock, minimumStock, unit, costPerUnit, etc.)`
+*   **`financialTransactions`**: Suivi des transactions financières.
+    *   `(id, type, category, amount, date, description, etc.)`
+*   **`loyaltyRewards`**: Programme de fidélité.
+    *   `(id, name, pointsRequired, discountAmount, etc.)`
+*   **`festiveThemes`**: Thèmes pour occasions spéciales.
+    *   `(id, name, startDate, endDate, stylesJson, isActive, etc.)`
+*   **`announcements`**: Annonces affichées sur le site.
+    *   `(id, title, content, position, isActive, createdBy, etc.)`
+*   **`quotes`**: Devis pour clients.
+    *   `(id, quoteNumber, clientId, itemsJson, totalTTC, status, validityDate, etc.)`
+*   **`galleries`**: Galeries de photos.
+    *   `(id, name, description, isActive, sortOrder, etc.)`
+*   **`galleryImages`**: Images des galeries.
+    *   `(id, galleryId, imageUrl, title, sortOrder, etc.)`
+*   **`contentPages`**: Pages de contenu personnalisables (ex: "À propos").
+    *   `(id, slug, title, content, isActive, showInNavigation, etc.)`
+*   **`customerMessages`**: Messages reçus via le formulaire de contact public.
+    *   `(id, firstName, email, message, isRead, etc.)`
+*   **`internalMessages`**: Messagerie entre employés/admins.
+    *   `(id, senderId, recipientId, content, threadId, isRead, etc.)`
+*   **`clientMessages`**: Messagerie entre staff et clients enregistrés.
+    *   `(id, clientId, senderId, content, sentAt, isReadByClient, isReadByAdmin, etc.)`
 
--- Commandes
-orders (id, user_id, total_amount, status, created_at, delivery_date)
-order_items (id, order_id, menu_item_id, quantity, unit_price)
-
--- Événements
-events (id, client_id, event_type, event_date, guest_count, budget, status)
-
--- Messagerie
-messages (id, from_user_id, to_user_id, content, type, priority, created_at, read_at)
-```
+> Le schéma exact avec tous les champs et relations est défini dans `api/shared/schema.ts` et appliqué via Drizzle ORM (ou un outil similaire) dans `api/db.ts` et `api/storage-db.ts`.
 
 ### Migrations
 ```bash

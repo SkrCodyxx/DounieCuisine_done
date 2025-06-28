@@ -60,19 +60,17 @@ test_services() {
         record_test "api_express" "FAIL" "API Express.js non accessible"
     fi
     
-    # Test Backend FastAPI
-    if timeout 10 curl -f -s http://localhost:8001/api/health > /dev/null 2>&1; then
-        record_test "backend_fastapi" "PASS" "Backend FastAPI accessible sur port 8001"
-    else
-        record_test "backend_fastapi" "FAIL" "Backend FastAPI non accessible"
-    fi
-    
-    # Test Frontend React
-    if timeout 10 curl -f -s http://localhost:3000 > /dev/null 2>&1; then
-        record_test "frontend_react" "PASS" "Frontend React accessible sur port 3000"
-    else
-        record_test "frontend_react" "FAIL" "Frontend React non accessible"
-    fi
+    # Test Backend FastAPI - Supprimé
+
+    # Test Frontend React (si frontend/ est conservé et servi par `serve` sur le port 3000)
+    # Pour l'instant, on commente car Nginx devrait servir /app
+    # if [ -d "$PROJECT_PATH/frontend" ]; then # Condition à ajouter si on garde ce test
+    #    if timeout 10 curl -f -s http://localhost:3000 > /dev/null 2>&1; then
+    #        record_test "frontend_react_serve" "PASS" "Frontend React (frontend/) accessible sur port 3000"
+    #    else
+    #        record_test "frontend_react_serve" "FAIL" "Frontend React (frontend/) non accessible sur port 3000"
+    #    fi
+    # fi
     
     # Test Application publique
     if timeout 10 curl -f -s http://localhost/ > /dev/null 2>&1; then
@@ -111,16 +109,7 @@ test_databases() {
         record_test "postgresql" "FAIL" "PostgreSQL non démarré"
     fi
     
-    # Test MongoDB
-    if systemctl is-active --quiet mongod || systemctl is-active --quiet mongodb; then
-        if mongosh --eval "db.adminCommand('ismaster')" > /dev/null 2>&1; then
-            record_test "mongodb" "PASS" "MongoDB opérationnel et accessible"
-        else
-            record_test "mongodb" "FAIL" "MongoDB en cours mais non accessible"
-        fi
-    else
-        record_test "mongodb" "FAIL" "MongoDB non démarré"
-    fi
+    # Test MongoDB - Supprimé
 }
 
 # Tests des services système
@@ -170,13 +159,7 @@ test_performance() {
         record_test "api_performance" "FAIL" "API Express lente: ${api_response_time}s"
     fi
     
-    # Test temps de réponse Backend FastAPI
-    local backend_response_time=$(timeout 10 curl -o /dev/null -s -w "%{time_total}" http://localhost:8001/api/health 2>/dev/null || echo "999")
-    if (( $(echo "$backend_response_time < 2.0" | bc -l) )); then
-        record_test "backend_performance" "PASS" "Backend FastAPI répond en ${backend_response_time}s"
-    else
-        record_test "backend_performance" "FAIL" "Backend FastAPI lent: ${backend_response_time}s"
-    fi
+    # Test temps de réponse Backend FastAPI - Supprimé
     
     # Test utilisation mémoire
     local memory_usage=$(free | awk 'NR==2{printf "%.1f", $3*100/$2}')
@@ -249,11 +232,12 @@ test_functionality() {
         record_test "nginx_proxy_api" "FAIL" "Proxy Nginx vers API non fonctionnel"
     fi
     
-    if timeout 10 curl -f -s http://localhost/api/v2/health > /dev/null 2>&1; then
-        record_test "nginx_proxy_backend" "PASS" "Proxy Nginx vers Backend fonctionnel"
-    else
-        record_test "nginx_proxy_backend" "FAIL" "Proxy Nginx vers Backend non fonctionnel"
-    fi
+    # Proxy vers backend FastAPI supprimé
+    # if timeout 10 curl -f -s http://localhost/api/v2/health > /dev/null 2>&1; then
+    #     record_test "nginx_proxy_backend" "PASS" "Proxy Nginx vers Backend FastAPI fonctionnel"
+    # else
+    #     record_test "nginx_proxy_backend" "FAIL" "Proxy Nginx vers Backend FastAPI non fonctionnel"
+    # fi
 }
 
 # Tests de monitoring
@@ -316,7 +300,7 @@ generate_report() {
     local overall_status="SUCCESS"
     
     if [[ $failed_tests -gt 0 ]]; then
-        if [[ $failed_tests -le 3 ]]; then
+        if [[ $failed_tests -le 2 ]]; then # Ajusté car moins de tests critiques après suppression
             overall_status="PARTIAL_SUCCESS"
         else
             overall_status="FAILURE"
@@ -325,18 +309,17 @@ generate_report() {
     
     # Créer le rapport JSON
     mkdir -p "$LOG_DIR"
-    cat > "$TEST_REPORT" << EOF
-{
-    "test_date": "$(date -Iseconds)",
-    "overall_status": "$overall_status",
-    "summary": {
-        "total_tests": $total_tests,
-        "passed_tests": $passed_tests,
-        "failed_tests": $failed_tests,
-        "success_rate": "${success_rate}%"
-    },
-    "results": {
-EOF
+    # Initialiser le JSON
+    echo "{" > "$TEST_REPORT"
+    echo "    \"test_date\": \"$(date -Iseconds)\"," >> "$TEST_REPORT"
+    echo "    \"overall_status\": \"$overall_status\"," >> "$TEST_REPORT"
+    echo "    \"summary\": {" >> "$TEST_REPORT"
+    echo "        \"total_tests\": $total_tests," >> "$TEST_REPORT"
+    echo "        \"passed_tests\": $passed_tests," >> "$TEST_REPORT"
+    echo "        \"failed_tests\": $failed_tests," >> "$TEST_REPORT"
+    echo "        \"success_rate\": \"${success_rate}%\"" >> "$TEST_REPORT"
+    echo "    }," >> "$TEST_REPORT"
+    echo "    \"results\": {" >> "$TEST_REPORT"
     
     # Ajouter tous les résultats de tests
     local first=true
@@ -346,21 +329,32 @@ EOF
         else
             echo "," >> "$TEST_REPORT"
         fi
+        # Assurer que le nom du test est une clé JSON valide (pas de soucis avec les noms actuels)
         echo "        \"$test_name\": \"${test_results[$test_name]}\"" >> "$TEST_REPORT"
     done
     
-    cat >> "$TEST_REPORT" << EOF
-    },
-    "recommendations": [
-$(if [[ "${test_results[api_express]}" == "FAIL" ]]; then echo '        "Vérifier les logs API Express: tail -f /var/log/dounie-cuisine/api.err.log",'; fi)
-$(if [[ "${test_results[backend_fastapi]}" == "FAIL" ]]; then echo '        "Vérifier les logs Backend FastAPI: tail -f /var/log/dounie-cuisine/backend.err.log",'; fi)
-$(if [[ "${test_results[postgresql]}" == "FAIL" ]]; then echo '        "Redémarrer PostgreSQL: systemctl restart postgresql",'; fi)
-$(if [[ "${test_results[mongodb]}" == "FAIL" ]]; then echo '        "Redémarrer MongoDB: systemctl restart mongod",'; fi)
-$(if [[ "${test_results[nginx]}" == "FAIL" ]]; then echo '        "Vérifier configuration Nginx: nginx -t",'; fi)
-        "Consulter les logs détaillés dans /var/log/dounie-cuisine/"
-    ]
-}
-EOF
+    echo "    }," >> "$TEST_REPORT" # Fermer results
+    echo "    \"recommendations\": [" >> "$TEST_REPORT"
+
+    local rec_first=true
+    add_recommendation() {
+        if [[ "$rec_first" == true ]]; then
+            rec_first=false
+        else
+            echo "," >> "$TEST_REPORT"
+        fi
+        echo "        \"$1\"" >> "$TEST_REPORT"
+    }
+
+    if [[ "${test_results[api_express]}" == "FAIL" ]]; then add_recommendation "Vérifier les logs API Express: tail -f /var/log/dounie-cuisine/api.err.log"; fi
+    # backend_fastapi supprimé
+    if [[ "${test_results[postgresql]}" == "FAIL" ]]; then add_recommendation "Redémarrer PostgreSQL: systemctl restart postgresql"; fi
+    # mongodb supprimé
+    if [[ "${test_results[nginx]}" == "FAIL" ]]; then add_recommendation "Vérifier configuration Nginx: nginx -t"; fi
+    if [[ $failed_tests -gt 0 ]]; then add_recommendation "Consulter les logs détaillés dans /var/log/dounie-cuisine/"; fi
+
+    echo "    ]" >> "$TEST_REPORT" # Fermer recommendations
+    echo "}" >> "$TEST_REPORT" # Fermer JSON principal
     
     log_info "Rapport sauvegardé dans: $TEST_REPORT"
 }

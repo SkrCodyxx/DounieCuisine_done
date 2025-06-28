@@ -41,7 +41,7 @@ export function MenuManagement() {
     queryKey: ["menu-items"],
     queryFn: async () => {
       const response = await fetch("/api/menu");
-      if (!response.ok) throw new Error("Failed to fetch menu items");
+      if (!response.ok) throw new Error("Échec de la récupération des articles du menu");
       return response.json();
     },
   });
@@ -53,7 +53,7 @@ export function MenuManagement() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
-      if (!response.ok) throw new Error("Failed to create menu item");
+      if (!response.ok) throw new Error("Échec de la création de l'article du menu");
       return response.json();
     },
     onSuccess: () => {
@@ -61,10 +61,10 @@ export function MenuManagement() {
       setIsCreateDialogOpen(false);
       toast({ title: "Article du menu créé avec succès" });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
-        title: "Erreur",
-        description: error.message,
+        title: "Erreur de Création",
+        description: error.message || "Une erreur est survenue lors de la création de l'article du menu.",
         variant: "destructive",
       });
     },
@@ -77,7 +77,10 @@ export function MenuManagement() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
-      if (!response.ok) throw new Error("Failed to update menu item");
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: "Échec de la mise à jour de l'article du menu" }));
+        throw new Error(errorData.message || "Échec de la mise à jour de l'article du menu");
+      }
       return response.json();
     },
     onSuccess: () => {
@@ -85,10 +88,10 @@ export function MenuManagement() {
       setEditingItem(null);
       toast({ title: "Article du menu mis à jour avec succès" });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
-        title: "Erreur",
-        description: error.message,
+        title: "Erreur de Modification",
+        description: error.message || "Une erreur est survenue lors de la modification de l'article du menu.",
         variant: "destructive",
       });
     },
@@ -99,17 +102,20 @@ export function MenuManagement() {
       const response = await fetch(`/api/admin/menu/${id}`, {
         method: "DELETE",
       });
-      if (!response.ok) throw new Error("Failed to delete menu item");
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: "Échec de la suppression de l'article du menu" }));
+        throw new Error(errorData.message || "Échec de la suppression de l'article du menu");
+      }
       return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["menu-items"] });
       toast({ title: "Article du menu supprimé avec succès" });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
-        title: "Erreur",
-        description: error.message,
+        title: "Erreur de Suppression",
+        description: error.message || "Une erreur est survenue lors de la suppression de l'article du menu.",
         variant: "destructive",
       });
     },
@@ -200,7 +206,7 @@ export function MenuManagement() {
             <Label htmlFor="category">Catégorie</Label>
             <Select value={formData.category} onValueChange={(value) => setFormData({ ...formData, category: value })}>
               <SelectTrigger>
-                <SelectValue />
+                <SelectValue placeholder="Choisir une catégorie"/>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="entrees">Entrées</SelectItem>
@@ -212,7 +218,7 @@ export function MenuManagement() {
             </Select>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="price">Prix ($)</Label>
+            <Label htmlFor="price">Prix ($CA)</Label>
             <Input
               id="price"
               type="number"
@@ -402,7 +408,7 @@ export function MenuManagement() {
                 <div className="grid grid-cols-2 gap-2 text-sm mb-4">
                   <div className="flex items-center">
                     <DollarSign className="w-4 h-4 mr-1 text-green-600" />
-                    <span className="font-semibold">{item.price}$</span>
+                    <span className="font-semibold">{item.price} $CA</span>
                   </div>
                   {item.preparationTime && (
                     <div className="flex items-center">

@@ -23,7 +23,7 @@ export function AdminDashboard() {
     queryKey: ["dashboard-stats"],
     queryFn: async () => {
       const response = await fetch("/api/admin/dashboard/stats");
-      if (!response.ok) throw new Error("Failed to fetch stats");
+      if (!response.ok) throw new Error("Échec de la récupération des statistiques");
       return response.json();
     },
   });
@@ -47,7 +47,7 @@ export function AdminDashboard() {
     },
     {
       title: "Revenus du jour",
-      value: `${stats?.todayRevenue || 0}$`,
+      value: `${stats?.todayRevenue || 0} $CA`,
       description: "Chiffre d'affaires aujourd'hui",
       icon: DollarSign,
       color: "text-emerald-600",

@@ -117,7 +117,7 @@ export function QuoteManagement() {
       
       const response = await fetch(url);
       if (!response.ok) {
-        throw new Error('Erreur lors du chargement des devis');
+        throw new Error('Échec du chargement des devis');
       }
       return response.json();
     },
@@ -128,7 +128,7 @@ export function QuoteManagement() {
     queryKey: ["clients"],
     queryFn: async () => {
       const response = await fetch('/api/clients');
-      if (!response.ok) return [];
+      if (!response.ok) throw new Error('Échec du chargement des clients pour la sélection');
       return response.json();
     },
   });
@@ -138,7 +138,7 @@ export function QuoteManagement() {
     queryKey: ["company-settings"],
     queryFn: async () => {
       const response = await fetch('/api/company-settings');
-      if (!response.ok) return null;
+      if (!response.ok) throw new Error('Échec du chargement des paramètres de l\'entreprise');
       return response.json();
     },
   });
@@ -152,7 +152,7 @@ export function QuoteManagement() {
         body: JSON.stringify(quoteData),
       });
       if (!response.ok) {
-        throw new Error('Erreur lors de la création du devis');
+        throw new Error('Échec de la création du devis');
       }
       return response.json();
     },
@@ -165,10 +165,10 @@ export function QuoteManagement() {
       setIsCreateDialogOpen(false);
       resetForm();
     },
-    onError: () => {
+    onError: (error: Error) => {
       toast({
-        title: "Erreur",
-        description: "Erreur lors de la création du devis",
+        title: "Erreur de Création",
+        description: error.message || "Une erreur est survenue lors de la création du devis.",
         variant: "destructive",
       });
     },
@@ -183,7 +183,8 @@ export function QuoteManagement() {
         body: JSON.stringify(data),
       });
       if (!response.ok) {
-        throw new Error('Erreur lors de la modification du devis');
+        const errorData = await response.json().catch(() => ({ message: "Échec de la modification du devis" }));
+        throw new Error(errorData.message || "Échec de la modification du devis");
       }
       return response.json();
     },
@@ -196,10 +197,10 @@ export function QuoteManagement() {
       setIsEditDialogOpen(false);
       resetForm();
     },
-    onError: () => {
+    onError: (error: Error) => {
       toast({
-        title: "Erreur",
-        description: "Erreur lors de la modification du devis",
+        title: "Erreur de Modification",
+        description: error.message || "Une erreur est survenue lors de la modification du devis.",
         variant: "destructive",
       });
     },
@@ -212,7 +213,8 @@ export function QuoteManagement() {
         method: 'POST',
       });
       if (!response.ok) {
-        throw new Error('Erreur lors de l\'envoi du devis');
+        const errorData = await response.json().catch(() => ({ message: "Échec de l'envoi du devis" }));
+        throw new Error(errorData.message || "Échec de l'envoi du devis");
       }
       return response.json();
     },
@@ -223,10 +225,10 @@ export function QuoteManagement() {
       });
       queryClient.invalidateQueries({ queryKey: ["quotes"] });
     },
-    onError: () => {
+    onError: (error: Error) => {
       toast({
-        title: "Erreur",
-        description: "Erreur lors de l'envoi du devis",
+        title: "Erreur d'Envoi",
+        description: error.message || "Une erreur est survenue lors de l'envoi du devis.",
         variant: "destructive",
       });
     },
@@ -239,7 +241,8 @@ export function QuoteManagement() {
         method: 'DELETE',
       });
       if (!response.ok) {
-        throw new Error('Erreur lors de la suppression du devis');
+        const errorData = await response.json().catch(() => ({ message: "Échec de la suppression du devis" }));
+        throw new Error(errorData.message || "Échec de la suppression du devis");
       }
       return response.json();
     },
@@ -250,10 +253,10 @@ export function QuoteManagement() {
       });
       queryClient.invalidateQueries({ queryKey: ["quotes"] });
     },
-    onError: () => {
+    onError: (error: Error) => {
       toast({
-        title: "Erreur",
-        description: "Erreur lors de la suppression du devis",
+        title: "Erreur de Suppression",
+        description: error.message || "Une erreur est survenue lors de la suppression du devis.",
         variant: "destructive",
       });
     },

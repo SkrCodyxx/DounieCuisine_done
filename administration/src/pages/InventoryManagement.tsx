@@ -39,7 +39,7 @@ export function InventoryManagement() {
     queryKey: ["inventory"],
     queryFn: async () => {
       const response = await fetch("/api/admin/inventory");
-      if (!response.ok) throw new Error("Failed to fetch inventory");
+      if (!response.ok) throw new Error("Échec de la récupération de l'inventaire");
       return response.json();
     },
   });
@@ -51,7 +51,7 @@ export function InventoryManagement() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
-      if (!response.ok) throw new Error("Failed to create inventory item");
+      if (!response.ok) throw new Error("Échec de la création de l'article d'inventaire");
       return response.json();
     },
     onSuccess: () => {
@@ -59,10 +59,10 @@ export function InventoryManagement() {
       setIsCreateDialogOpen(false);
       toast({ title: "Article d'inventaire créé avec succès" });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
-        title: "Erreur",
-        description: error.message,
+        title: "Erreur de Création",
+        description: error.message || "Une erreur est survenue lors de la création de l'article.",
         variant: "destructive",
       });
     },
@@ -75,7 +75,10 @@ export function InventoryManagement() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
-      if (!response.ok) throw new Error("Failed to update inventory item");
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: "Échec de la mise à jour de l'article d'inventaire" }));
+        throw new Error(errorData.message || "Échec de la mise à jour de l'article d'inventaire");
+      }
       return response.json();
     },
     onSuccess: () => {
@@ -83,10 +86,10 @@ export function InventoryManagement() {
       setEditingItem(null);
       toast({ title: "Article d'inventaire mis à jour avec succès" });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
-        title: "Erreur",
-        description: error.message,
+        title: "Erreur de Modification",
+        description: error.message || "Une erreur est survenue lors de la modification de l'article.",
         variant: "destructive",
       });
     },
@@ -97,17 +100,20 @@ export function InventoryManagement() {
       const response = await fetch(`/api/admin/inventory/${id}`, {
         method: "DELETE",
       });
-      if (!response.ok) throw new Error("Failed to delete inventory item");
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: "Échec de la suppression de l'article d'inventaire" }));
+        throw new Error(errorData.message || "Échec de la suppression de l'article d'inventaire");
+      }
       return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["inventory"] });
       toast({ title: "Article d'inventaire supprimé avec succès" });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
-        title: "Erreur",
-        description: error.message,
+        title: "Erreur de Suppression",
+        description: error.message || "Une erreur est survenue lors de la suppression de l'article.",
         variant: "destructive",
       });
     },
@@ -422,11 +428,11 @@ export function InventoryManagement() {
                   <div className="grid grid-cols-2 gap-2 text-sm">
                     <div>
                       <p className="font-medium text-muted-foreground">Coût/unité</p>
-                      <p>${item.costPerUnit}</p>
+                      <p>{item.costPerUnit} $CA</p>
                     </div>
                     <div>
                       <p className="font-medium text-muted-foreground">Valeur totale</p>
-                      <p>${(parseFloat(item.costPerUnit) * item.currentStock).toFixed(2)}</p>
+                      <p>{(parseFloat(item.costPerUnit) * item.currentStock).toFixed(2)} $CA</p>
                     </div>
                   </div>
 

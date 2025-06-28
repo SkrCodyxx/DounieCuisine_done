@@ -66,14 +66,14 @@ export default function Register() {
     onSuccess: () => {
       setStep(3);
       toast({
-        title: "Kont yo kreye! • Compte créé!",
-        description: "Ou kapab konekte kounye a • Vous pouvez vous connecter maintenant"
+        title: "Compte créé avec succès !",
+        description: "Vous pouvez maintenant vous connecter avec vos identifiants."
       });
     },
     onError: (error: any) => {
       toast({
-        title: "Erè nan kreyasyon kont lan • Erreur création compte",
-        description: error.message || "Yon pwoblèm rive • Un problème est survenu",
+        title: "Erreur lors de la création du compte",
+        description: error.message || "Un problème est survenu. Veuillez réessayer.",
         variant: "destructive"
       });
     }
@@ -85,207 +85,122 @@ export default function Register() {
 
   if (step === 3) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 via-yellow-50 to-blue-50 flex items-center justify-center px-6">
-        <Card className="w-full max-w-md border-green-200 shadow-xl">
-          <CardContent className="p-8 text-center">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <Check className="h-10 w-10 text-green-600" />
-            </div>
-            <h2 className="text-2xl font-bold text-green-800 mb-4">
-              Kont yo kreye! • Compte créé!
-            </h2>
-            <p className="text-gray-600 mb-6">
-              Byenveni nan fanmi Dounie Cuisine! Ou kapab konekte kounye a.<br />
-              <strong>Bienvenue dans la famille Dounie Cuisine! Vous pouvez vous connecter maintenant.</strong>
-            </p>
-            <div className="flex flex-col gap-3">
-              <Link href="/login">
-                <Button className="w-full bg-red-600 hover:bg-red-700">
-                  Konekte • Se Connecter
-                </Button>
-              </Link>
-              <Link href="/">
-                <Button variant="outline" className="w-full">
-                  Retounen Lakay • Retour Accueil
-                </Button>
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <PublicLayout>
+        <div className="flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8 min-h-[calc(100vh-var(--header-height,8rem))]">
+          <Card className="w-full max-w-md shadow-2xl border-green-500 bg-green-50/50 rounded-xl">
+            <CardContent className="p-8 text-center">
+              <div className="w-20 h-20 bg-green-600 text-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+                <Check className="h-12 w-12" />
+              </div>
+              <h2 className="text-3xl font-bold text-green-700 mb-4">
+                Compte Créé avec Succès !
+              </h2>
+              <p className="text-muted-foreground mb-8 text-lg">
+                Bienvenue dans la famille Dounie Cuisine ! Vous pouvez maintenant vous connecter avec vos nouveaux identifiants.
+              </p>
+              <div className="flex flex-col gap-4">
+                <Link href="/login">
+                  <Button size="lg" className="w-full bg-primary hover:bg-primary/90 text-lg py-3">
+                    Se Connecter
+                  </Button>
+                </Link>
+                <Link href="/">
+                  <Button size="lg" variant="outline" className="w-full text-lg py-3">
+                    Retour à l'Accueil
+                  </Button>
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </PublicLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-50 via-yellow-50 to-blue-50">
-      {/* Navigation */}
-      <nav className="p-6">
-        <div className="flex items-center justify-between">
-          <Link href="/">
-            <Button variant="ghost" className="text-gray-600 hover:text-gray-800">
-              <ArrowLeft className="h-5 w-5 mr-2" />
-              Retour Accueil
-            </Button>
-          </Link>
-          <Link href="/login">
-            <Button variant="outline" className="border-blue-500 text-blue-600 hover:bg-blue-50">
-              Déjà un compte? • Se connecter
-            </Button>
-          </Link>
-        </div>
-      </nav>
-
-      <div className="flex items-center justify-center min-h-[80vh]">
-        <Card className="w-full max-w-lg mx-4 border-red-200 shadow-xl">
-          <CardHeader className="space-y-4 bg-gradient-to-r from-red-50 to-blue-50">
-            <div className="text-center">
-              <div className="flex items-center justify-center gap-2 mb-4">
-                <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-              </div>
-              <h1 className="text-2xl font-bold text-red-600">Dounie Cuisine</h1>
-              <p className="text-blue-600">Kreye Kont • Créer un Compte</p>
-            </div>
-
-            {/* Indicateur de progression */}
-            <div className="flex items-center justify-center gap-2">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm ${step >= 1 ? 'bg-red-600 text-white' : 'bg-gray-200 text-gray-500'}`}>
-                1
-              </div>
-              <div className={`w-12 h-1 ${step >= 2 ? 'bg-red-600' : 'bg-gray-200'}`}></div>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm ${step >= 2 ? 'bg-red-600 text-white' : 'bg-gray-200 text-gray-500'}`}>
-                2
-              </div>
-              <div className={`w-12 h-1 ${step >= 3 ? 'bg-green-600' : 'bg-gray-200'}`}></div>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm ${step >= 3 ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-500'}`}>
-                ✓
-              </div>
-            </div>
-
-            <CardTitle className="text-xl font-bold text-center text-gray-800">
-              {step === 1 ? "Enfòmasyon Pèsonèl • Informations Personnelles" : "Enfòmasyon Koneksyon • Informations de Connexion"}
-            </CardTitle>
-            <CardDescription className="text-center text-gray-600">
-              {step === 1 
-                ? "Kòmanse ak enfòmasyon yo • Commencez par vos informations" 
-                : "Kreye kòd koneksyon ou • Créez vos identifiants de connexion"
-              }
+    <PublicLayout>
+      <div className="flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8 min-h-[calc(100vh-var(--header-height,8rem))]">
+        <Card className="w-full max-w-lg shadow-2xl border-border rounded-xl">
+          <CardHeader className="space-y-3 text-center bg-muted/30 p-6 md:p-8 rounded-t-xl">
+             <UserPlus className="h-16 w-16 mx-auto text-primary" />
+            <CardTitle className="text-3xl font-bold text-foreground">Créer Votre Compte</CardTitle>
+            <CardDescription className="text-muted-foreground text-base">
+              Rejoignez Dounie Cuisine pour une expérience culinaire unique.
             </CardDescription>
+            <div className="flex items-center justify-center pt-4 space-x-2 sm:space-x-4">
+              {[
+                { num: 1, label: "Infos Perso." },
+                { num: 2, label: "Identifiants" },
+                { num: 3, label: "Terminé" }
+              ].map((s, index, arr) => (
+                <React.Fragment key={s.num}>
+                  <div className="flex flex-col items-center">
+                    <div className={cn(
+                      "w-10 h-10 rounded-full flex items-center justify-center font-bold border-2 transition-all duration-300",
+                      step >= s.num ? "bg-primary text-primary-foreground border-primary" : "bg-card text-muted-foreground border-border"
+                    )}>
+                      {step > s.num ? <Check className="w-5 h-5" /> : s.num}
+                    </div>
+                    <span className={cn(
+                      "text-xs mt-1.5",
+                      step >= s.num ? "text-primary font-semibold" : "text-muted-foreground"
+                    )}>{s.label}</span>
+                  </div>
+                  {index < arr.length - 1 && (
+                    <div className={cn(
+                      "h-1 flex-1 transition-all duration-300 mt-[-1.25rem]", // Ajustement pour aligner avec le centre des cercles
+                      step > s.num ? "bg-primary" : "bg-border"
+                    )}></div>
+                  )}
+                </React.Fragment>
+              ))}
+            </div>
           </CardHeader>
 
-          <CardContent className="p-8">
+          <CardContent className="p-6 md:p-8">
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+              <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
                 {step === 1 && (
                   <>
-                    <div className="grid grid-cols-2 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="firstName"
-                        render={({ field }) => (
+                    <section className="space-y-6">
+                       <h3 className="text-xl font-semibold text-foreground flex items-center gap-2 border-b pb-3 mb-6">
+                        <User className="h-5 w-5 text-primary" />
+                        Informations Personnelles
+                      </h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <FormField control={form.control} name="firstName" render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-gray-700">Prenon • Prénom *</FormLabel>
-                            <FormControl>
-                              <Input 
-                                placeholder="Jan"
-                                className="border-red-200 focus:border-red-500"
-                                {...field} 
-                              />
-                            </FormControl>
+                            <FormLabel className="text-base">Prénom *</FormLabel>
+                            <FormControl><Input placeholder="Ex: Jean" {...field} className="py-3 px-4 text-base rounded-md border-border focus:ring-2 focus:ring-primary"/></FormControl>
                             <FormMessage />
                           </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="lastName"
-                        render={({ field }) => (
+                        )}/>
+                        <FormField control={form.control} name="lastName" render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-gray-700">Non Fanmi • Nom *</FormLabel>
-                            <FormControl>
-                              <Input 
-                                placeholder="Durand"
-                                className="border-red-200 focus:border-red-500"
-                                {...field} 
-                              />
-                            </FormControl>
+                            <FormLabel className="text-base">Nom *</FormLabel>
+                            <FormControl><Input placeholder="Ex: Dupont" {...field} className="py-3 px-4 text-base rounded-md border-border focus:ring-2 focus:ring-primary"/></FormControl>
                             <FormMessage />
                           </FormItem>
-                        )}
-                      />
-                    </div>
-
-                    <FormField
-                      control={form.control}
-                      name="email"
-                      render={({ field }) => (
+                        )}/>
+                      </div>
+                      <FormField control={form.control} name="email" render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-gray-700">Email *</FormLabel>
-                          <FormControl>
-                            <Input 
-                              type="email"
-                              placeholder="jan.durand@email.com"
-                              className="border-red-200 focus:border-red-500"
-                              {...field} 
-                            />
-                          </FormControl>
+                          <FormLabel className="text-base">Adresse e-mail *</FormLabel>
+                          <FormControl><Input type="email" placeholder="Ex: jean.dupont@exemple.com" {...field} className="py-3 px-4 text-base rounded-md border-border focus:ring-2 focus:ring-primary"/></FormControl>
                           <FormMessage />
                         </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="phoneNumber"
-                      render={({ field }) => (
+                      )}/>
+                      <FormField control={form.control} name="phoneNumber" render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-gray-700">Telefòn • Téléphone</FormLabel>
-                          <FormControl>
-                            <Input 
-                              placeholder="(514) 555-0000"
-                              className="border-red-200 focus:border-red-500"
-                              {...field} 
-                            />
-                          </FormControl>
+                          <FormLabel className="text-base">Téléphone (Optionnel)</FormLabel>
+                          <FormControl><Input placeholder="Ex: (514) 123-4567" {...field} className="py-3 px-4 text-base rounded-md border-border focus:ring-2 focus:ring-primary"/></FormControl>
                           <FormMessage />
                         </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="role"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-gray-700">Tip Kont • Type de Compte</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                              <SelectTrigger className="border-red-200 focus:border-red-500">
-                                <SelectValue placeholder="Chwazi tip kont ou" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="client">
-                                <div className="flex items-center gap-2">
-                                  <User className="h-4 w-4" />
-                                  <span>Kliyen • Client</span>
-                                </div>
-                              </SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <Button 
-                      type="button" 
-                      onClick={() => setStep(2)} 
-                      className="w-full bg-red-600 hover:bg-red-700 py-3"
-                    >
-                      Kontinye • Continuer
+                      )}/>
+                       {/* Le rôle est client par défaut, donc pas besoin de le montrer ici pour l'inscription publique simple */}
+                    </section>
+                    <Button type="button" onClick={() => setStep(2)} size="lg" className="w-full bg-primary hover:bg-primary/90 text-lg py-3 mt-8 rounded-md">
+                      Continuer
                       <ArrowLeft className="ml-2 h-5 w-5 rotate-180" />
                     </Button>
                   </>
@@ -293,90 +208,49 @@ export default function Register() {
 
                 {step === 2 && (
                   <>
-                    <FormField
-                      control={form.control}
-                      name="username"
-                      render={({ field }) => (
+                    <section className="space-y-6">
+                      <h3 className="text-xl font-semibold text-foreground flex items-center gap-2 border-b pb-3 mb-6">
+                        <Lock className="h-5 w-5 text-primary" />
+                        Informations de Connexion
+                      </h3>
+                      <FormField control={form.control} name="username" render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-gray-700">Non Itilizatè • Nom d'utilisateur *</FormLabel>
-                          <FormControl>
-                            <Input 
-                              placeholder="jandurand123"
-                              className="border-red-200 focus:border-red-500"
-                              {...field} 
-                            />
-                          </FormControl>
-                          <p className="text-xs text-gray-500">Au moins 3 caractères, uniquement lettres et chiffres</p>
+                          <FormLabel className="text-base">Nom d'utilisateur *</FormLabel>
+                          <FormControl><Input placeholder="Ex: jeandupont123" {...field} className="py-3 px-4 text-base rounded-md border-border focus:ring-2 focus:ring-primary"/></FormControl>
+                          <FormMessage />
+                          <p className="text-xs text-muted-foreground mt-1">Au moins 3 caractères.</p>
+                        </FormItem>
+                      )}/>
+                      <FormField control={form.control} name="password" render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-base">Mot de passe *</FormLabel>
+                          <FormControl><Input type="password" placeholder="••••••••" {...field} className="py-3 px-4 text-base rounded-md border-border focus:ring-2 focus:ring-primary"/></FormControl>
+                           <FormMessage />
+                          <p className="text-xs text-muted-foreground mt-1">Au moins 6 caractères.</p>
+                        </FormItem>
+                      )}/>
+                      <FormField control={form.control} name="confirmPassword" render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-base">Confirmer le mot de passe *</FormLabel>
+                          <FormControl><Input type="password" placeholder="••••••••" {...field} className="py-3 px-4 text-base rounded-md border-border focus:ring-2 focus:ring-primary"/></FormControl>
                           <FormMessage />
                         </FormItem>
-                      )}
-                    />
+                      )}/>
+                    </section>
 
-                    <FormField
-                      control={form.control}
-                      name="password"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-gray-700">Mo de Pas • Mot de passe *</FormLabel>
-                          <FormControl>
-                            <Input 
-                              type="password"
-                              placeholder="••••••••"
-                              className="border-red-200 focus:border-red-500"
-                              {...field} 
-                            />
-                          </FormControl>
-                          <p className="text-xs text-gray-500">Au moins 6 caractères</p>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="confirmPassword"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-gray-700">Konfime Mo de Pas • Confirmer le mot de passe *</FormLabel>
-                          <FormControl>
-                            <Input 
-                              type="password"
-                              placeholder="••••••••"
-                              className="border-red-200 focus:border-red-500"
-                              {...field} 
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    {/* Résumé */}
-                    <div className="border-t pt-4">
-                      <h4 className="font-semibold text-gray-800 mb-2">Rezime • Résumé</h4>
-                      <div className="bg-gray-50 p-3 rounded-lg text-sm space-y-1">
-                        <p><strong>Non:</strong> {form.getValues('firstName')} {form.getValues('lastName')}</p>
-                        <p><strong>Email:</strong> {form.getValues('email')}</p>
-                        <p><strong>Tip:</strong> {form.getValues('role')}</p>
-                      </div>
+                    <div className="mt-8 space-y-2 bg-muted/30 p-4 rounded-lg border border-border">
+                      <h4 className="font-semibold text-foreground text-sm">Récapitulatif :</h4>
+                      <p className="text-sm text-muted-foreground"><strong>Nom :</strong> {form.getValues('firstName')} {form.getValues('lastName')}</p>
+                      <p className="text-sm text-muted-foreground"><strong>E-mail :</strong> {form.getValues('email')}</p>
                     </div>
 
-                    <div className="flex gap-4">
-                      <Button 
-                        type="button" 
-                        variant="outline" 
-                        onClick={() => setStep(1)}
-                        className="flex-1"
-                      >
-                        <ArrowLeft className="mr-2 h-4 w-4" />
-                        Retounen • Retour
+                    <div className="flex flex-col sm:flex-row gap-4 mt-8">
+                      <Button type="button" variant="outline" onClick={() => setStep(1)} size="lg" className="flex-1 py-3 text-lg rounded-md">
+                        <ArrowLeft className="mr-2 h-5 w-5" />
+                        Précédent
                       </Button>
-                      <Button 
-                        type="submit" 
-                        className="flex-1 bg-green-600 hover:bg-green-700"
-                        disabled={registerMutation.isPending}
-                      >
-                        {registerMutation.isPending ? "Ap kreye..." : "Kreye Kont • Créer le Compte"}
+                      <Button type="submit" size="lg" className="flex-1 bg-green-600 hover:bg-green-700 text-lg py-3 rounded-md" disabled={registerMutation.isPending}>
+                        {registerMutation.isPending ? "Création en cours..." : "Créer le Compte"}
                         <Check className="ml-2 h-5 w-5" />
                       </Button>
                     </div>
@@ -385,27 +259,24 @@ export default function Register() {
               </form>
             </Form>
 
-            {/* Aide */}
-            <div className="mt-6 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
-              <h4 className="font-semibold text-yellow-800 mb-2">Èd • Aide</h4>
-              <div className="text-sm text-yellow-700 space-y-1">
-                <p><strong>Kliyen:</strong> Aksè rezèvasyon ak pwofil • Accès réservations et profil</p>
-                <p><strong>Travayè:</strong> Aksè pa sistèm lan • Accès partiel au système</p>
-                <p><strong>Jeran:</strong> Aksè konplè • Accès complet</p>
-              </div>
-            </div>
-
-            <div className="text-center mt-4">
-              <p className="text-sm text-gray-600">
-                Deja gen kont? • Déjà un compte?{" "}
-                <Link href="/login" className="text-red-600 hover:text-red-700 font-medium">
-                  Konekte • Se connecter
+            <div className="mt-8 text-center">
+              <p className="text-base text-muted-foreground">
+                Déjà un compte ?{" "}
+                <Link href="/login" className="font-semibold text-primary hover:underline">
+                  Se connecter
                 </Link>
               </p>
             </div>
+             {/* Section d'aide commentée car moins pertinente pour l'inscription client publique */}
+            {/* <div className="mt-6 p-4 bg-muted/30 rounded-lg border border-border">
+              <h4 className="font-semibold text-foreground mb-2">Information sur les types de compte</h4>
+              <div className="text-sm text-muted-foreground space-y-1">
+                <p><strong>Client :</strong> Accès aux réservations, commandes et à votre profil personnel.</p>
+              </div>
+            </div> */}
           </CardContent>
         </Card>
       </div>
-    </div>
+    </PublicLayout>
   );
 }

@@ -38,7 +38,7 @@ export function OrderManagement() {
     queryKey: ["orders"],
     queryFn: async () => {
       const response = await fetch("/api/admin/orders");
-      if (!response.ok) throw new Error("Failed to fetch orders");
+      if (!response.ok) throw new Error("Échec de la récupération des commandes");
       return response.json();
     },
   });
@@ -50,17 +50,17 @@ export function OrderManagement() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status }),
       });
-      if (!response.ok) throw new Error("Failed to update order status");
+      if (!response.ok) throw new Error("Échec de la mise à jour du statut de la commande");
       return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["orders"] });
       toast({ title: "Statut de la commande mis à jour" });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
-        title: "Erreur",
-        description: error.message,
+        title: "Erreur de Mise à Jour",
+        description: error.message || "Une erreur est survenue lors de la mise à jour du statut.",
         variant: "destructive",
       });
     },
@@ -169,7 +169,7 @@ export function OrderManagement() {
                     <div className="text-right">
                       <p className="text-lg font-bold flex items-center">
                         <DollarSign className="w-4 h-4" />
-                        {order.totalAmount}
+                        {order.totalAmount} $CA
                       </p>
                       <p className="text-sm text-muted-foreground">
                         {order.items.length} article{order.items.length > 1 ? 's' : ''}
@@ -239,7 +239,7 @@ export function OrderManagement() {
                               {order.items.map((item: any, index: number) => (
                                 <div key={index} className="flex justify-between items-center p-2 bg-muted rounded">
                                   <span>{item.quantity}x {item.name || `Article ${item.menuItemId}`}</span>
-                                  <span>${item.price}</span>
+                                  <span>{item.price} $CA</span>
                                 </div>
                               ))}
                             </div>
@@ -249,19 +249,19 @@ export function OrderManagement() {
                             <div className="space-y-1">
                               <div className="flex justify-between">
                                 <span>Sous-total:</span>
-                                <span>${(parseFloat(order.totalAmount) - parseFloat(order.gstAmount) - parseFloat(order.qstAmount)).toFixed(2)}</span>
+                                <span>{(parseFloat(order.totalAmount) - parseFloat(order.gstAmount) - parseFloat(order.qstAmount)).toFixed(2)} $CA</span>
                               </div>
                               <div className="flex justify-between text-sm text-muted-foreground">
-                                <span>GST:</span>
-                                <span>${order.gstAmount}</span>
+                                <span>TPS:</span>
+                                <span>{order.gstAmount} $CA</span>
                               </div>
                               <div className="flex justify-between text-sm text-muted-foreground">
-                                <span>QST:</span>
-                                <span>${order.qstAmount}</span>
+                                <span>TVQ:</span>
+                                <span>{order.qstAmount} $CA</span>
                               </div>
                               <div className="flex justify-between font-bold text-lg border-t pt-2">
                                 <span>Total:</span>
-                                <span>${order.totalAmount}</span>
+                                <span>{order.totalAmount} $CA</span>
                               </div>
                             </div>
                           </div>

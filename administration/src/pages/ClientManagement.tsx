@@ -80,7 +80,7 @@ export function ClientManagement() {
         : '/api/clients';
       const response = await fetch(url);
       if (!response.ok) {
-        throw new Error('Erreur lors du chargement des clients');
+        throw new Error('Échec du chargement des clients');
       }
       return response.json();
     },
@@ -92,7 +92,7 @@ export function ClientManagement() {
     queryFn: async () => {
       if (!selectedClient?.id) return [];
       const response = await fetch(`/api/quotes?clientId=${selectedClient.id}`);
-      if (!response.ok) return [];
+      if (!response.ok) throw new Error('Échec du chargement des devis du client');
       return response.json();
     },
     enabled: !!selectedClient?.id,
@@ -107,7 +107,7 @@ export function ClientManagement() {
         body: JSON.stringify(clientData),
       });
       if (!response.ok) {
-        throw new Error('Erreur lors de la création du client');
+        throw new Error('Échec de la création du client');
       }
       return response.json();
     },
@@ -120,10 +120,10 @@ export function ClientManagement() {
       setIsCreateDialogOpen(false);
       resetForm();
     },
-    onError: () => {
+    onError: (error: Error) => {
       toast({
-        title: "Erreur",
-        description: "Erreur lors de la création du client",
+        title: "Erreur de Création",
+        description: error.message || "Une erreur est survenue lors de la création du client.",
         variant: "destructive",
       });
     },
@@ -138,7 +138,8 @@ export function ClientManagement() {
         body: JSON.stringify(data),
       });
       if (!response.ok) {
-        throw new Error('Erreur lors de la modification du client');
+        const errorData = await response.json().catch(() => ({ message: 'Échec de la modification du client' }));
+        throw new Error(errorData.message || 'Échec de la modification du client');
       }
       return response.json();
     },
@@ -151,10 +152,10 @@ export function ClientManagement() {
       setIsEditDialogOpen(false);
       resetForm();
     },
-    onError: () => {
+    onError: (error: Error) => {
       toast({
-        title: "Erreur",
-        description: "Erreur lors de la modification du client",
+        title: "Erreur de Modification",
+        description: error.message || "Une erreur est survenue lors de la modification du client.",
         variant: "destructive",
       });
     },
@@ -167,7 +168,8 @@ export function ClientManagement() {
         method: 'DELETE',
       });
       if (!response.ok) {
-        throw new Error('Erreur lors de la suppression du client');
+        const errorData = await response.json().catch(() => ({ message: 'Échec de la suppression du client' }));
+        throw new Error(errorData.message || 'Échec de la suppression du client');
       }
       return response.json();
     },
@@ -178,10 +180,10 @@ export function ClientManagement() {
       });
       queryClient.invalidateQueries({ queryKey: ["clients"] });
     },
-    onError: () => {
+    onError: (error: Error) => {
       toast({
-        title: "Erreur",
-        description: "Erreur lors de la suppression du client",
+        title: "Erreur de Suppression",
+        description: error.message || "Une erreur est survenue lors de la suppression du client.",
         variant: "destructive",
       });
     },
@@ -558,7 +560,7 @@ export function ClientManagement() {
                             </div>
                           </div>
                           <div className="text-right">
-                            <div className="font-medium">{quote.totalTTC}€</div>
+                            <div className="font-medium">{quote.totalTTC} $CA</div>
                             <Badge variant={
                               quote.status === 'accepted' ? 'default' :
                               quote.status === 'sent' ? 'secondary' :

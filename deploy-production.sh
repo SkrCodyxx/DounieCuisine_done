@@ -121,15 +121,15 @@ CHECKPOINTS=(
     "manage_sources"
     "prepare_system"
     "install_nodejs"
-    "install_python"
-    "install_databases"
-    "install_webserver"
-    "configure_databases"
+    "install_python" # Maintenu au cas où pour d'autres outils, mais les dépendances FastAPI seront supprimées
+    "install_postgresql"
+    "install_nginx_supervisor"
+    "configure_postgresql"
     "setup_environment_variables"
-    "install_dependencies"
+    "install_node_dependencies" # Focalisé sur Node.js
     "build_applications"
     "configure_nginx"
-    "configure_services"
+    "configure_services" # Supervisor
     "setup_monitoring"
     "setup_backups"
     "configure_firewall"
@@ -236,30 +236,28 @@ install_python() {
     # Corriger le probleme externally-managed
     python3 -m pip install --break-system-packages --upgrade pip virtualenv
     
-    # Installer les packages Python via apt quand possible
-    apt-get install -y \
-        python3-fastapi \
-        python3-uvicorn \
-        python3-pymongo \
-        python3-bcrypt \
-        python3-passlib \
-        python3-python-multipart || {
-        log_warning "Installation apt echouee, utilisation de pip..."
-        python3 -m pip install --break-system-packages \
-            fastapi uvicorn pymongo bcrypt passlib python-multipart
-    }
-    
-    log_success "Python $(python3 --version) installe"
-    save_checkpoint "install_databases"
+    # Installer les packages Python essentiels (si d'autres scripts Python sont utilisés)
+    # Les dépendances spécifiques à FastAPI comme python3-fastapi, python3-uvicorn, python3-pymongo sont retirées
+    # python3-bcrypt, python3-passlib, python3-python-multipart pourraient être utiles ailleurs.
+    # Pour l'instant, on commente leur installation pour minimiser, à réactiver si besoin.
+    # apt-get install -y \
+    #     python3-bcrypt \
+    #     python3-passlib \
+    #     python3-python-multipart || {
+    #     log_warning "Installation apt de packages Python optionnels echouee, utilisation de pip si necessaire..."
+    #     python3 -m pip install --break-system-packages \
+    #         bcrypt passlib python-multipart
+    # }
+
+    log_success "Python $(python3 --version) installe (sans les dépendances FastAPI)"
+    save_checkpoint "install_postgresql"
 }
 
-install_databases() {
-    log_info " Installation des bases de donnees..."
+install_postgresql() {
+    log_info " Installation de PostgreSQL..."
     
-    # PostgreSQL
     apt-get install -y postgresql postgresql-contrib
     
-    # Creer l'utilisateur postgres si necessaire
     if ! id "postgres" &>/dev/null; then
         adduser --system --group --home /var/lib/postgresql --shell /bin/bash postgres
     fi
@@ -267,27 +265,11 @@ install_databases() {
     systemctl start postgresql
     systemctl enable postgresql
     
-    # MongoDB
-    log_info "Installation de MongoDB..."
-    
-    # Methode moderne pour MongoDB
-    curl -fsSL https://pgp.mongodb.com/server-6.0.asc | gpg --dearmor -o /usr/share/keyrings/mongodb-server-6.0.gpg
-    echo "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-6.0.gpg ] https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/6.0 multiverse" | tee /etc/apt/sources.list.d/mongodb-org-6.0.list
-    
-    apt-get update
-    apt-get install -y mongodb-org || {
-        log_warning "Installation MongoDB officielle echouee, utilisation du package Debian..."
-        apt-get install -y mongodb
-    }
-    
-    systemctl start mongod || systemctl start mongodb
-    systemctl enable mongod || systemctl enable mongodb
-    
-    log_success "Bases de donnees installees"
-    save_checkpoint "install_webserver"
+    log_success "PostgreSQL installe et active"
+    save_checkpoint "install_nginx_supervisor"
 }
 
-install_webserver() {
+install_nginx_supervisor() {
     log_info " Configuration de Nginx..."
     
     systemctl start nginx
@@ -301,22 +283,22 @@ install_webserver() {
     systemctl enable supervisor
     
     log_success "Serveur web configure"
-    save_checkpoint "configure_databases"
+    save_checkpoint "configure_postgresql"
 }
 
-configure_databases() {
-    log_info " Configuration des bases de donnees..."
+configure_postgresql() {
+    log_info " Configuration de PostgreSQL..."
     
     # Generer des mots de passe securises
     local PG_PASSWORD="dounie_pg_$(openssl rand -hex 16 2>/dev/null || echo "secure$(date +%s)")"
-    local MONGO_PASSWORD="dounie_mongo_$(openssl rand -hex 16 2>/dev/null || echo "secure$(date +%s)")"
+    # local MONGO_PASSWORD="dounie_mongo_$(openssl rand -hex 16 2>/dev/null || echo "secure$(date +%s)")" # Supprimé
     local SESSION_SECRET="dounie-session-$(openssl rand -hex 32 2>/dev/null || echo "supersecure$(date +%s)")"
     
     # Attendre que PostgreSQL soit pret
     sleep 5
     
     # Configuration PostgreSQL
-    log_info "Configuration de PostgreSQL..."
+    # log_info "Configuration de PostgreSQL..." # Déjà loggué au début de la fonction
     if ! sudo -u postgres psql << EOF
 DO \$\$
 BEGIN
@@ -342,42 +324,17 @@ EOF
         sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE dounie_cuisine TO dounie_user;" 2>/dev/null || true
     fi
     
-    # Configuration MongoDB
-    log_info "Configuration de MongoDB..."
-    sleep 5
-    
-    if ! mongosh << EOF
-use admin
-try {
-    db.createUser({
-      user: "admin",
-      pwd: "$MONGO_PASSWORD",
-      roles: ["userAdminAnyDatabase", "dbAdminAnyDatabase", "readWriteAnyDatabase"]
-    })
-} catch(e) { print("Admin existe dej") }
-
-use dounie_cuisine
-try {
-    db.createUser({
-      user: "dounie_user",
-      pwd: "$MONGO_PASSWORD",
-      roles: ["readWrite"]
-    })
-} catch(e) { print("Utilisateur existe dej") }
-EOF
-    then
-        log_warning "Configuration MongoDB avancee echouee, mais on continue..."
-    fi
+    # Configuration MongoDB - Supprimée
+    # log_info "Configuration de MongoDB..."
     
     # Sauvegarder les identifiants
     cat > /root/.dounie-credentials << EOF
 PG_PASSWORD=$PG_PASSWORD
-MONGO_PASSWORD=$MONGO_PASSWORD
 SESSION_SECRET=$SESSION_SECRET
 EOF
     
     chmod 600 /root/.dounie-credentials
-    log_success "Bases de donnees configurees"
+    log_success "Base de données PostgreSQL configurée et identifiants sauvegardés"
     save_checkpoint "setup_environment_variables"
 }
 
@@ -392,29 +349,25 @@ DATABASE_URL=postgresql://dounie_user:$PG_PASSWORD@localhost:5432/dounie_cuisine
 NODE_ENV=production
 SESSION_SECRET=$SESSION_SECRET
 API_PORT=5000
-PUBLIC_PORT=3000
-ADMIN_PORT=3001
+PUBLIC_PORT=3000 # Port de dev pour l'app publique, Nginx sert sur 80
+ADMIN_PORT=3001 # Port de dev pour l'app admin, Nginx sert sur /admin
 BCRYPT_ROUNDS=12
 MESSAGING_ENABLED=true
 REAL_TIME_NOTIFICATIONS=true
 MONITORING_ENABLED=true
 EOF
     
-    # Backend FastAPI
-    cat > "$PROJECT_PATH/backend/.env" << EOF
-MONGO_URL=mongodb://dounie_user:$MONGO_PASSWORD@localhost:27017/dounie_cuisine?authSource=dounie_cuisine
-ENVIRONMENT=production
-SECRET_KEY=$SESSION_SECRET
-BACKEND_PORT=8001
-BCRYPT_ROUNDS=12
+    # Frontend React (dossier frontend/ - sera probablement supprimé)
+    if [ -d "$PROJECT_PATH/frontend" ]; then
+      cat > "$PROJECT_PATH/frontend/.env" << EOF
+REACT_APP_BACKEND_URL=http://localhost:5000/api
+GENERATE_SOURCEMAP=false
 EOF
+    fi
     
-    # Frontend React
-    cat > "$PROJECT_PATH/frontend/.env" << EOF
-REACT_APP_BACKEND_URL=http://localhost:8001/api
-EOF
-    
-    # Applications publique et admin
+    # Applications publique et admin (utilisent Vite et VITE_API_URL)
+    # Assurer que les fichiers .env existent même s'ils sont potentiellement déjà corrects
+    # pour éviter des erreurs si le script est relancé et que les fichiers ont été modifiés/supprimés.
     cat > "$PROJECT_PATH/public/.env" << EOF
 VITE_API_URL=http://localhost:5000/api
 EOF
@@ -424,11 +377,11 @@ VITE_API_URL=http://localhost:5000/api
 EOF
     
     log_success "Variables d'environnement configurees"
-    save_checkpoint "install_dependencies"
+    save_checkpoint "install_node_dependencies" # Point vers la nouvelle étape
 }
 
-install_dependencies() {
-    log_info " Installation des dependances..."
+install_node_dependencies() {
+    log_info " Installation des dependances Node.js..."
     
     cd "$PROJECT_PATH"
     
@@ -437,26 +390,20 @@ install_dependencies() {
     cd api && npm install --production && cd ..
     
     # Application publique
-    log_info " Dependances application publique..."
+    log_info " Dependances application publique (public/)..."
     cd public && npm install && cd ..
     
     # Administration
     log_info " Dependances administration..."
     cd administration && npm install && cd ..
+
+    # Frontend React (si le dossier existe encore et qu'on décide de le garder temporairement)
+    if [ -d "$PROJECT_PATH/frontend" ]; then
+        log_info " Dependances Frontend React (frontend/)..."
+        cd frontend && yarn install && cd ..
+    fi
     
-    # Backend FastAPI
-    log_info " Dependances Backend FastAPI..."
-    cd backend
-    python3 -m pip install --break-system-packages -r requirements.txt || {
-        log_warning "Installation pip echouee, packages dej installes via apt"
-    }
-    cd ..
-    
-    # Frontend React
-    log_info " Dependances Frontend React..."
-    cd frontend && yarn install && cd ..
-    
-    log_success "Toutes les dependances installees"
+    log_success "Dependances Node.js installees"
     save_checkpoint "build_applications"
 }
 
@@ -554,12 +501,12 @@ server {
         proxy_read_timeout 60s;
     }
     
-    # API FastAPI Backend alternatif
-    location /api/v2 {
-        rewrite ^/api/v2/(.*) /api/$1 break;
-        proxy_pass http://localhost:8001;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
+    # API FastAPI Backend alternatif - Supprimé
+    # location /api/v2 {
+    #     rewrite ^/api/v2/(.*) /api/$1 break;
+    #     proxy_pass http://localhost:8001;
+    #     proxy_http_version 1.1;
+    #     proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection 'upgrade';
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
@@ -600,7 +547,9 @@ configure_services() {
     
     cat > /etc/supervisor/conf.d/dounie-cuisine.conf << EOF
 [group:dounie-cuisine]
-programs=dounie-api,dounie-backend,dounie-frontend
+programs=dounie-api # Supprimé: dounie-backend, dounie-frontend (si frontend/ est supprimé)
+# Si frontend/ est conservé et doit être servi par `serve`, ajoutez-le ici.
+# Pour l'instant, on suppose que Nginx sert tous les frontends statiques.
 
 [program:dounie-api]
 command=node dist/index.js
@@ -612,24 +561,24 @@ stderr_logfile=/var/log/dounie-cuisine/api.err.log
 stdout_logfile=/var/log/dounie-cuisine/api.out.log
 environment=NODE_ENV=production,PORT=5000
 
-[program:dounie-backend]
-command=python3 server.py
-directory=/var/www/html/dounie-cuisine/backend
-user=root
-autostart=true
-autorestart=true
-stderr_logfile=/var/log/dounie-cuisine/backend.err.log
-stdout_logfile=/var/log/dounie-cuisine/backend.out.log
-environment=PORT=8001
+# [program:dounie-backend] - Supprimé
+# command=python3 server.py
+# directory=/var/www/html/dounie-cuisine/backend
+# user=root
+# autostart=true
+# autorestart=true
+# stderr_logfile=/var/log/dounie-cuisine/backend.err.log
+# stdout_logfile=/var/log/dounie-cuisine/backend.out.log
+# environment=PORT=8001
 
-[program:dounie-frontend]
-command=serve -s build -l 3000
-directory=/var/www/html/dounie-cuisine/frontend
-user=root
-autostart=true
-autorestart=true
-stderr_logfile=/var/log/dounie-cuisine/frontend.err.log
-stdout_logfile=/var/log/dounie-cuisine/frontend.out.log
+# [program:dounie-frontend] - Supprimé (ou ajusté si frontend/ est gardé)
+# command=serve -s build -l 3000
+# directory=/var/www/html/dounie-cuisine/frontend
+# user=root
+# autostart=true
+# autorestart=true
+# stderr_logfile=/var/log/dounie-cuisine/frontend.err.log
+# stdout_logfile=/var/log/dounie-cuisine/frontend.out.log
 EOF
     
     supervisorctl reread
@@ -652,11 +601,13 @@ DATE=$(date '+%Y-%m-%d %H:%M:%S')
 mkdir -p /var/log/dounie-cuisine
 
 api_status="FAIL"
-backend_status="FAIL"
-frontend_status="FAIL"
+# backend_status="FAIL" # Supprimé
+public_app_status="FAIL" # Pour public/ via Nginx
+admin_app_status="FAIL" # Pour administration/ via Nginx
+# frontend_status="FAIL" # Supprimé ou renommé si frontend/ est gardé
 nginx_status="FAIL"
 pg_status="FAIL"
-mongo_status="FAIL"
+# mongo_status="FAIL" # Supprimé
 
 if timeout 5 curl -f -s http://localhost:5000/api/health > /dev/null 2>&1; then
     api_status="OK"
@@ -664,17 +615,19 @@ else
     supervisorctl restart dounie-cuisine:dounie-api > /dev/null 2>&1
 fi
 
-if timeout 5 curl -f -s http://localhost:8001/api/health > /dev/null 2>&1; then
-    backend_status="OK"
-else
-    supervisorctl restart dounie-cuisine:dounie-backend > /dev/null 2>&1
+# Test Nginx pour les applications frontales
+if timeout 5 curl -f -s http://localhost/ > /dev/null 2>&1; then
+    public_app_status="OK"
 fi
+if timeout 5 curl -f -s http://localhost/admin > /dev/null 2>&1; then
+    admin_app_status="OK"
+fi
+# if [ -d "$PROJECT_PATH/frontend" ]; then # Si frontend/ est conservé et servi par Nginx
+#   if timeout 5 curl -f -s http://localhost/app > /dev/null 2>&1; then
+#       frontend_status="OK"
+#   fi
+# fi
 
-if timeout 5 curl -f -s http://localhost:3000 > /dev/null 2>&1; then
-    frontend_status="OK"
-else
-    supervisorctl restart dounie-cuisine:dounie-frontend > /dev/null 2>&1
-fi
 
 if systemctl is-active --quiet nginx; then
     nginx_status="OK"
@@ -684,20 +637,17 @@ if systemctl is-active --quiet postgresql; then
     pg_status="OK"
 fi
 
-if systemctl is-active --quiet mongod || systemctl is-active --quiet mongodb; then
-    mongo_status="OK"
-fi
+# mongo_status Check Supprimé
 
 cat > $STATUS_FILE << EOJ
 {
     "timestamp": "$DATE",
     "services": {
         "api_express": "$api_status",
-        "backend_fastapi": "$backend_status", 
-        "frontend_react": "$frontend_status",
+        "public_app": "$public_app_status",
+        "admin_app": "$admin_app_status",
         "nginx": "$nginx_status",
-        "postgresql": "$pg_status",
-        "mongodb": "$mongo_status"
+        "postgresql": "$pg_status"
     },
     "system": {
         "uptime": "$(uptime -p)",
@@ -707,7 +657,7 @@ cat > $STATUS_FILE << EOJ
 }
 EOJ
 
-echo "[$DATE] API:$api_status Backend:$backend_status Frontend:$frontend_status Nginx:$nginx_status PG:$pg_status Mongo:$mongo_status" >> $LOG_FILE
+echo "[$DATE] API Express:$api_status PublicApp:$public_app_status AdminApp:$admin_app_status Nginx:$nginx_status PG:$pg_status" >> $LOG_FILE
 EOF
     
     chmod +x /usr/local/bin/dounie-monitor
@@ -735,11 +685,11 @@ mkdir -p $BACKUP_DIR/{db,app,configs}
 # Sauvegarde PostgreSQL
 sudo -u postgres pg_dump dounie_cuisine > $BACKUP_DIR/db/postgresql_$DATE.sql 2>/dev/null || echo "Erreur PostgreSQL backup"
 
-# Sauvegarde MongoDB
-mongodump --db dounie_cuisine --out $BACKUP_DIR/db/mongodb_$DATE 2>/dev/null || echo "Erreur MongoDB backup"
+# Sauvegarde MongoDB - Supprimée
+# mongodump --db dounie_cuisine --out $BACKUP_DIR/db/mongodb_$DATE 2>/dev/null || echo "Erreur MongoDB backup"
 
 # Sauvegarde application
-tar -czf $BACKUP_DIR/app/app_$DATE.tar.gz /var/www/html/dounie-cuisine 2>/dev/null
+tar -czf $BACKUP_DIR/app/app_$DATE.tar.gz /var/www/html/dounie-cuisine --exclude=dounie-cuisine/backend --exclude=dounie-cuisine/frontend 2>/dev/null
 
 # Sauvegarde configurations
 tar -czf $BACKUP_DIR/configs/config_$DATE.tar.gz \
@@ -748,9 +698,10 @@ tar -czf $BACKUP_DIR/configs/config_$DATE.tar.gz \
     /root/.dounie-credentials 2>/dev/null
 
 # Nettoyage (30 jours)
-find $BACKUP_DIR -name "*.sql" -mtime +30 -delete 2>/dev/null
-find $BACKUP_DIR -name "*.tar.gz" -mtime +30 -delete 2>/dev/null
-find $BACKUP_DIR -type d -name "mongodb_*" -mtime +30 -exec rm -rf {} + 2>/dev/null
+find $BACKUP_DIR/db -name "*.sql" -mtime +30 -delete 2>/dev/null # Préciser le chemin pour .sql
+find $BACKUP_DIR/app -name "*.tar.gz" -mtime +30 -delete 2>/dev/null # Préciser le chemin pour app tarballs
+find $BACKUP_DIR/configs -name "*.tar.gz" -mtime +30 -delete 2>/dev/null # Préciser le chemin pour configs tarballs
+# find $BACKUP_DIR -type d -name "mongodb_*" -mtime +30 -exec rm -rf {} + 2>/dev/null # Supprimé
 
 echo "Sauvegarde terminee: $DATE"
 EOF
@@ -767,11 +718,12 @@ configure_firewall() {
     ufw --force reset
     ufw default deny incoming
     ufw default allow outgoing
-    ufw allow ssh
-    ufw allow 'Nginx Full'
-    ufw allow 5000/tcp
-    ufw allow 8001/tcp
-    ufw allow 3000/tcp
+    ufw allow ssh # Port 22
+    ufw allow http # Port 80
+    ufw allow https # Port 443
+    # ufw allow 5000/tcp # L'API Node.js est maintenant derrière Nginx, plus besoin d'ouvrir ce port directement
+    # ufw allow 8001/tcp # Supprimé
+    # ufw allow 3000/tcp # Le frontend de dev ne devrait pas être exposé en production
     ufw --force enable
     
     systemctl start fail2ban
@@ -784,60 +736,59 @@ configure_firewall() {
 run_final_tests() {
     log_info " Tests finaux du systeme..."
     
-    sleep 30
+    sleep 30 # Laisser le temps aux services de démarrer
     
     local tests_passed=0
-    local total_tests=7
+    # Ajuster le nombre total de tests après suppression de FastAPI et MongoDB, et potentiellement frontend/
+    # Tests actuels: API Express, App Publique (Nginx), App Admin (Nginx), PostgreSQL
+    local total_tests=4
+    # Si frontend/ est gardé et servi par Nginx via /app, total_tests=5
     
     # Tests des services
     if timeout 10 curl -f -s http://localhost:5000/api/health > /dev/null 2>&1; then
-        log_success " API Express.js - OK"
+        log_success " API Express.js (Port 5000) - OK"
         ((tests_passed++))
     else
-        log_error " API Express.js - CHEC"
+        log_error " API Express.js (Port 5000) - ÉCHEC"
     fi
     
-    if timeout 10 curl -f -s http://localhost:8001/api/health > /dev/null 2>&1; then
-        log_success " Backend FastAPI - OK"
-        ((tests_passed++))
-    else
-        log_error " Backend FastAPI - CHEC"
-    fi
+    # Le backend FastAPI (port 8001) est supprimé
     
-    if timeout 10 curl -f -s http://localhost:3000 > /dev/null 2>&1; then
-        log_success " Frontend React - OK"
-        ((tests_passed++))
-    else
-        log_error " Frontend React - CHEC"
-    fi
+    # Le frontend React (port 3000 via serve) est supprimé de la gestion par supervisor.
+    # Les tests suivants vérifient l'accès via Nginx.
     
     if timeout 10 curl -f -s http://localhost/ > /dev/null 2>&1; then
-        log_success " Application publique - OK"
+        log_success " Application publique (via Nginx) - OK"
         ((tests_passed++))
     else
-        log_error " Application publique - CHEC"
+        log_error " Application publique (via Nginx) - ÉCHEC"
     fi
     
     if timeout 10 curl -f -s http://localhost/admin > /dev/null 2>&1; then
-        log_success " Interface admin - OK"
+        log_success " Interface admin (via Nginx) - OK"
         ((tests_passed++))
     else
-        log_error " Interface admin - CHEC"
+        log_error " Interface admin (via Nginx) - ÉCHEC"
     fi
+
+    # if [ -d "$PROJECT_PATH/frontend" ]; then # Si frontend/ est conservé
+    #    total_tests=$((total_tests + 1))
+    #    if timeout 10 curl -f -s http://localhost/app > /dev/null 2>&1; then
+    #        log_success " Frontend App (frontend/) (via Nginx) - OK"
+    #        ((tests_passed++))
+    #    else
+    #        log_error " Frontend App (frontend/) (via Nginx) - ÉCHEC"
+    #    fi
+    # fi
     
     if systemctl is-active --quiet postgresql; then
         log_success " PostgreSQL - OK"
         ((tests_passed++))
     else
-        log_error " PostgreSQL - CHEC"
+        log_error " PostgreSQL - ÉCHEC"
     fi
     
-    if systemctl is-active --quiet mongod || systemctl is-active --quiet mongodb; then
-        log_success " MongoDB - OK"
-        ((tests_passed++))
-    else
-        log_error " MongoDB - CHEC"
-    fi
+    # MongoDB test supprimé
     
     # Executer le monitoring
     /usr/local/bin/dounie-monitor
@@ -871,32 +822,29 @@ finalize_deployment() {
 show_final_summary() {
     echo ""
     echo "============================================================"
-    log_success "   DPLOIEMENT DOUNIE CUISINE TERMIN!"
-    echo "   Architecture Double Backend Deployee avec Succes"
+    log_success "   DÉPLOIEMENT DOUNIE CUISINE TERMINÉ !"
+    echo "   Architecture Backend Node.js Unifiée Déployée avec Succès"
     echo "=============================================================="
     echo ""
     
     local server_ip=$(hostname -I | awk '{print $1}')
     
-    log_info " URLS D'ACCS:"
-    echo "    Site Public:         http://$server_ip"
-    echo "     Administration:      http://$server_ip/admin"
-    echo "    App React:           http://$server_ip/app"
+    log_info " URLS D'ACCÈS:"
+    echo "    Site Public:         http://$server_ip/"
+    echo "    Administration:      http://$server_ip/admin"
+    # echo "    App React (frontend/): http://$server_ip/app" # Si conservé
     echo "    API Express:         http://$server_ip/api"
-    echo "    API FastAPI:         http://$server_ip/api/v2"
     echo "    WebSocket:           ws://$server_ip/ws"
     echo ""
     
-    log_info " SERVICES ACTIFS:"
-    echo "    API Express.js:      Port 5000"
-    echo "    Backend FastAPI:     Port 8001"
-    echo "     Frontend React:      Port 3000"
-    echo "    Nginx Proxy:         Port 80"
-    echo "     PostgreSQL:         Port 5432"
-    echo "    MongoDB:             Port 27017"
+    log_info " SERVICES ACTIFS (via Supervisor et Nginx):"
+    echo "    API Express.js:      (géré par Supervisor, proxy via Nginx)"
+    # echo "     Frontend React (frontend/): (servi par Nginx si conservé, ou via Supervisor si 'serve' est utilisé)"
+    echo "    Nginx Proxy:         Port 80 (et 443 si SSL configuré)"
+    echo "    PostgreSQL:          Port 5432"
     echo ""
     
-    log_info " COMPTES PAR DFAUT:"
+    log_info " COMPTES PAR DÉFAUT:"
     echo "    Admin:    admin / admin123"
     echo "    Manager:  lucie.manager / staff123"
     echo "    Staff:    marc.staff / staff123"
@@ -921,13 +869,13 @@ show_final_summary() {
     log_info " FONCTIONNALITS ACTIVES:"
     echo "    Messagerie temps reel"
     echo "    Monitoring automatique (1 min)"
-    echo "    Sauvegardes quotidiennes"
-    echo "    Auto-redemarrage des services"
-    echo "     Firewall UFW + Fail2ban"
-    echo "    Architecture double backend"
+    echo "    Sauvegardes quotidiennes (PostgreSQL et fichiers applicatifs)"
+    echo "    Auto-redemarrage des services (API Node.js)"
+    echo "    Firewall UFW + Fail2ban"
+    echo "    Architecture Backend Node.js Unifiée"
     echo ""
     
-    log_info " PROCHAINES TAPES:"
+    log_info " PROCHAINES ÉTAPES:"
     echo "   1.  Tester toutes les URLs ci-dessus"
     echo "   2.  Changer les mots de passe par defaut"
     echo "   3.  Configurer SSL: certbot --nginx -d votre-domaine.com"
@@ -948,9 +896,9 @@ main() {
     trap 'log_error "Erreur ligne $LINENO"; exit 1' ERR
     
     echo "============================================================"
-    echo "   DPLOIEMENT PRODUCTION DOUNIE CUISINE"
-    echo "   Debian/Ubuntu - Architecture Double Backend"
-    echo "   Express.js + FastAPI + React + PostgreSQL + MongoDB"
+    echo "   DÉPLOIEMENT PRODUCTION DOUNIE CUISINE"
+    echo "   Debian/Ubuntu - Architecture Backend Node.js Unifiée"
+    echo "   Express.js + React + PostgreSQL"
     echo "=============================================================="
     echo ""
     

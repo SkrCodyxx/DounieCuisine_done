@@ -79,7 +79,7 @@ export function ContentManagement() {
     queryFn: async () => {
       const response = await fetch('/api/content-pages');
       if (!response.ok) {
-        throw new Error('Erreur lors du chargement des pages');
+        throw new Error('Échec du chargement des pages de contenu');
       }
       return response.json();
     },
@@ -94,7 +94,7 @@ export function ContentManagement() {
         body: JSON.stringify(pageData),
       });
       if (!response.ok) {
-        throw new Error('Erreur lors de la création de la page');
+        throw new Error('Échec de la création de la page de contenu');
       }
       return response.json();
     },
@@ -107,10 +107,10 @@ export function ContentManagement() {
       setIsDialogOpen(false);
       resetForm();
     },
-    onError: () => {
+    onError: (error: Error) => {
       toast({
-        title: "Erreur",
-        description: "Erreur lors de la création de la page",
+        title: "Erreur de Création",
+        description: error.message || "Une erreur est survenue lors de la création de la page.",
         variant: "destructive",
       });
     },
@@ -125,7 +125,8 @@ export function ContentManagement() {
         body: JSON.stringify(data),
       });
       if (!response.ok) {
-        throw new Error('Erreur lors de la modification de la page');
+        const errorData = await response.json().catch(() => ({ message: "Échec de la modification de la page de contenu" }));
+        throw new Error(errorData.message || "Échec de la modification de la page de contenu");
       }
       return response.json();
     },
@@ -138,10 +139,10 @@ export function ContentManagement() {
       setIsDialogOpen(false);
       resetForm();
     },
-    onError: () => {
+    onError: (error: Error) => {
       toast({
-        title: "Erreur",
-        description: "Erreur lors de la modification de la page",
+        title: "Erreur de Modification",
+        description: error.message || "Une erreur est survenue lors de la modification de la page.",
         variant: "destructive",
       });
     },
@@ -154,7 +155,8 @@ export function ContentManagement() {
         method: 'DELETE',
       });
       if (!response.ok) {
-        throw new Error('Erreur lors de la suppression de la page');
+        const errorData = await response.json().catch(() => ({ message: "Échec de la suppression de la page de contenu" }));
+        throw new Error(errorData.message || "Échec de la suppression de la page de contenu");
       }
       return response.json();
     },
@@ -165,10 +167,10 @@ export function ContentManagement() {
       });
       queryClient.invalidateQueries({ queryKey: ["content-pages"] });
     },
-    onError: () => {
+    onError: (error: Error) => {
       toast({
-        title: "Erreur",
-        description: "Erreur lors de la suppression de la page",
+        title: "Erreur de Suppression",
+        description: error.message || "Une erreur est survenue lors de la suppression de la page.",
         variant: "destructive",
       });
     },

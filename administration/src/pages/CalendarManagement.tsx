@@ -42,7 +42,7 @@ export function CalendarManagement() {
     queryKey: ["calendar-events", selectedDate, selectedType],
     queryFn: async () => {
       const response = await fetch(`/api/admin/calendar/events?date=${selectedDate}&type=${selectedType}`);
-      if (!response.ok) throw new Error("Failed to fetch events");
+      if (!response.ok) throw new Error("Échec de la récupération des événements");
       return response.json();
     },
   });
@@ -51,7 +51,7 @@ export function CalendarManagement() {
     queryKey: ["employees-list"],
     queryFn: async () => {
       const response = await fetch("/api/admin/employees");
-      if (!response.ok) throw new Error("Failed to fetch employees");
+      if (!response.ok) throw new Error("Échec de la récupération des employés");
       return response.json();
     },
   });
@@ -63,7 +63,7 @@ export function CalendarManagement() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
-      if (!response.ok) throw new Error("Failed to create event");
+      if (!response.ok) throw new Error("Échec de la création de l'événement");
       return response.json();
     },
     onSuccess: () => {
@@ -71,10 +71,10 @@ export function CalendarManagement() {
       setIsCreateDialogOpen(false);
       toast({ title: "Événement créé avec succès" });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
-        title: "Erreur",
-        description: error.message,
+        title: "Erreur de Création",
+        description: error.message || "Une erreur est survenue lors de la création de l'événement.",
         variant: "destructive",
       });
     },
@@ -87,7 +87,10 @@ export function CalendarManagement() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
-      if (!response.ok) throw new Error("Failed to update event");
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: "Échec de la mise à jour de l'événement" }));
+        throw new Error(errorData.message || "Échec de la mise à jour de l'événement");
+      }
       return response.json();
     },
     onSuccess: () => {
@@ -95,10 +98,10 @@ export function CalendarManagement() {
       setEditingEvent(null);
       toast({ title: "Événement mis à jour avec succès" });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
-        title: "Erreur",
-        description: error.message,
+        title: "Erreur de Modification",
+        description: error.message || "Une erreur est survenue lors de la modification de l'événement.",
         variant: "destructive",
       });
     },
@@ -109,17 +112,20 @@ export function CalendarManagement() {
       const response = await fetch(`/api/admin/calendar/events/${id}`, {
         method: "DELETE",
       });
-      if (!response.ok) throw new Error("Failed to delete event");
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: "Échec de la suppression de l'événement" }));
+        throw new Error(errorData.message || "Échec de la suppression de l'événement");
+      }
       return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["calendar-events"] });
       toast({ title: "Événement supprimé avec succès" });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
-        title: "Erreur",
-        description: error.message,
+        title: "Erreur de Suppression",
+        description: error.message || "Une erreur est survenue lors de la suppression de l'événement.",
         variant: "destructive",
       });
     },

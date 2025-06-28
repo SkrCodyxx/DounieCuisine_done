@@ -39,7 +39,7 @@ export function FinancialManagement() {
     queryKey: ["financial-transactions", selectedPeriod, selectedType],
     queryFn: async () => {
       const response = await fetch(`/api/admin/finances/transactions?period=${selectedPeriod}&type=${selectedType}`);
-      if (!response.ok) throw new Error("Failed to fetch transactions");
+      if (!response.ok) throw new Error("Échec de la récupération des transactions financières");
       return response.json();
     },
   });
@@ -48,7 +48,7 @@ export function FinancialManagement() {
     queryKey: ["financial-summary", selectedPeriod],
     queryFn: async () => {
       const response = await fetch(`/api/admin/finances/summary?period=${selectedPeriod}`);
-      if (!response.ok) throw new Error("Failed to fetch financial summary");
+      if (!response.ok) throw new Error("Échec de la récupération du résumé financier");
       return response.json();
     },
   });
@@ -60,7 +60,7 @@ export function FinancialManagement() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
-      if (!response.ok) throw new Error("Failed to create transaction");
+      if (!response.ok) throw new Error("Échec de la création de la transaction financière");
       return response.json();
     },
     onSuccess: () => {
@@ -69,10 +69,10 @@ export function FinancialManagement() {
       setIsCreateDialogOpen(false);
       toast({ title: "Transaction créée avec succès" });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
-        title: "Erreur",
-        description: error.message,
+        title: "Erreur de Création",
+        description: error.message || "Une erreur est survenue lors de la création de la transaction.",
         variant: "destructive",
       });
     },
@@ -292,7 +292,7 @@ export function FinancialManagement() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-green-600">
-                ${financialSummary?.totalIncome || 0}
+                {financialSummary?.totalIncome || 0} $CA
               </div>
               <p className="text-xs text-muted-foreground">
                 +{financialSummary?.incomeChange || 0}% ce {selectedPeriod === "month" ? "mois" : "trimestre"}
@@ -306,7 +306,7 @@ export function FinancialManagement() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-red-600">
-                ${financialSummary?.totalExpenses || 0}
+                {financialSummary?.totalExpenses || 0} $CA
               </div>
               <p className="text-xs text-muted-foreground">
                 +{financialSummary?.expenseChange || 0}% ce {selectedPeriod === "month" ? "mois" : "trimestre"}
@@ -320,7 +320,7 @@ export function FinancialManagement() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-blue-600">
-                ${financialSummary?.netProfit || 0}
+                {financialSummary?.netProfit || 0} $CA
               </div>
               <p className="text-xs text-muted-foreground">
                 Marge: {financialSummary?.profitMargin || 0}%
@@ -334,7 +334,7 @@ export function FinancialManagement() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-purple-600">
-                ${financialSummary?.totalTaxes || 0}
+                {financialSummary?.totalTaxes || 0} $CA
               </div>
               <p className="text-xs text-muted-foreground">
                 TPS/TVQ payables
@@ -444,7 +444,7 @@ export function FinancialManagement() {
                     <p className={`text-lg font-bold ${
                       transaction.type === "income" ? "text-green-600" : "text-red-600"
                     }`}>
-                      {transaction.type === "income" ? "+" : "-"}${transaction.amount}
+                      {transaction.type === "income" ? "+" : "-"}{transaction.amount} $CA
                     </p>
                     {transaction.paymentMethod && (
                       <p className="text-xs text-muted-foreground capitalize">

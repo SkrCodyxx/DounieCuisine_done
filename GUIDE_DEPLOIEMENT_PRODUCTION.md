@@ -2,25 +2,22 @@
 
 ## 📋 Introduction
 
-**Dounie Cuisine** est un système complet de gestion de restaurant haïtien avec une architecture double backend sécurisée. Ce guide vous permet de déployer le système en production sur n'importe quel serveur Debian/Ubuntu en une seule commande.
+**Dounie Cuisine** est un système complet de gestion de restaurant haïtien avec une architecture backend Node.js sécurisée. Ce guide vous permet de déployer le système en production sur n'importe quel serveur Debian/Ubuntu.
 
 ### 🏗️ Architecture Déployée
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                    DOUNIE CUISINE v2.0                     │
-│                Architecture Double Backend                  │
+│                 Architecture Backend Node.js                │
 ├─────────────────────────────────────────────────────────────┤
 │  🌐 Nginx (Reverse Proxy + SSL Ready)                      │
 │     ├── 📱 App Publique (React + Vite) → /                │
-│     ├── ⚙️  Interface Admin (React) → /admin               │
-│     ├── 📱 Frontend Alt (React) → /app                     │
-│     ├── 🔵 API Express.js → /api (Port 5000)              │
-│     └── 🟠 API FastAPI → /api/v2 (Port 8001)              │
+│     ├── ⚙️  Interface Admin (React + Vite) → /admin        │
+│     └── 🔵 API Express.js → /api (Port 5000)              │
 ├─────────────────────────────────────────────────────────────┤
-│  🗄️ Bases de Données Doubles                               │
-│     ├── PostgreSQL 15 (API Express.js)                    │
-│     └── MongoDB 6.0 (Backend FastAPI)                     │
+│  🗄️ Base de Données                                        │
+│     └── PostgreSQL 15 (API Express.js)                    │
 ├─────────────────────────────────────────────────────────────┤
 │  ⚙️ Services et Monitoring                                  │
 │     ├── Supervisor (Gestion des processus)                │
@@ -83,10 +80,8 @@ Une fois le déploiement terminé :
 |---------|-----|-------------|
 | **🌍 Site Public** | `http://votre-ip` | Application principale pour clients |
 | **⚙️ Administration** | `http://votre-ip/admin` | Interface de gestion |
-| **📱 App Mobile** | `http://votre-ip/app` | Version alternative |
 | **🔵 API Express** | `http://votre-ip/api` | API principal (TypeScript) |
-| **🟠 API FastAPI** | `http://votre-ip/api/v2` | API alternatif (Python) |
-| **💬 WebSocket** | `ws://votre-ip/ws` | Messagerie temps réel |
+| **💬 WebSocket** | `ws://votre-ip/ws` | Messagerie temps réel (via API Express) |
 
 ## 👥 Comptes par Défaut
 
@@ -114,14 +109,13 @@ supervisorctl status dounie-cuisine:*
 
 # Redémarrer un service spécifique
 supervisorctl restart dounie-cuisine:dounie-api       # API Express
-supervisorctl restart dounie-cuisine:dounie-backend   # Backend FastAPI
-supervisorctl restart dounie-cuisine:dounie-frontend  # Frontend React
+# supervisorctl restart dounie-cuisine:dounie-frontend # Si frontend/ est utilisé et géré par supervisor
 
-# Redémarrer tous les services
+# Redémarrer tous les services applicatifs Dounie
 supervisorctl restart dounie-cuisine:*
 
 # Statut des services système
-systemctl status nginx postgresql mongod
+systemctl status nginx postgresql
 ```
 
 ### Logs et Monitoring
@@ -129,13 +123,11 @@ systemctl status nginx postgresql mongod
 ```bash
 # Voir les logs en temps réel
 tail -f /var/log/dounie-cuisine/api.out.log      # API Express
-tail -f /var/log/dounie-cuisine/backend.out.log  # Backend FastAPI
-tail -f /var/log/dounie-cuisine/frontend.out.log # Frontend React
+# tail -f /var/log/dounie-cuisine/frontend.out.log # Si frontend/ est utilisé
 
 # Voir les erreurs
 tail -f /var/log/dounie-cuisine/api.err.log
-tail -f /var/log/dounie-cuisine/backend.err.log
-tail -f /var/log/dounie-cuisine/frontend.err.log
+# tail -f /var/log/dounie-cuisine/frontend.err.log # Si frontend/ est utilisé
 
 # Status système JSON
 cat /var/log/dounie-cuisine/status.json
@@ -148,9 +140,9 @@ tail -f /var/log/nginx/dounie-cuisine.error.log
 ### Monitoring Automatique
 
 Le système inclut un monitoring automatique qui vérifie toutes les minutes :
-- ✅ Santé des APIs (Express + FastAPI)
-- ✅ Fonctionnement du frontend
-- ✅ Status des bases de données
+- ✅ Santé de l'API Express
+- ✅ Fonctionnement des frontends (public et administration)
+- ✅ Statut de la base de données PostgreSQL
 - ✅ Auto-redémarrage en cas de panne
 
 ```bash
@@ -168,17 +160,15 @@ tail -f /var/log/dounie-cuisine/monitor.log
 Le système effectue automatiquement :
 - 📅 **Quotidiennes** à 3h du matin
 - 🗄️ **PostgreSQL** : export SQL complet
-- 📊 **MongoDB** : dump complet
-- 📁 **Application** : archive tar.gz
-- ⚙️ **Configurations** : sauvegarde des configs
+- 📁 **Application** : archive tar.gz (contenant les builds des frontends et l'API)
+- ⚙️ **Configurations** : sauvegarde des configs Nginx et Supervisor
 
 ### Emplacements des Sauvegardes
 
 ```bash
 /backup/dounie-cuisine/
-├── db/           # Sauvegardes bases de données
-│   ├── postgresql_YYYYMMDD_HHMMSS.sql
-│   └── mongodb_YYYYMMDD_HHMMSS/
+├── db/           # Sauvegardes base de données
+│   └── postgresql_YYYYMMDD_HHMMSS.sql
 ├── app/          # Sauvegardes application
 │   └── app_YYYYMMDD_HHMMSS.tar.gz
 └── configs/      # Sauvegardes configurations
@@ -191,11 +181,8 @@ Le système effectue automatiquement :
 # Restaurer PostgreSQL
 sudo -u postgres psql -d dounie_cuisine < /backup/dounie-cuisine/db/postgresql_YYYYMMDD_HHMMSS.sql
 
-# Restaurer MongoDB
-mongorestore --db dounie_cuisine /backup/dounie-cuisine/db/mongodb_YYYYMMDD_HHMMSS/dounie_cuisine/
-
 # Restaurer l'application
-tar -xzf /backup/dounie-cuisine/app/app_YYYYMMDD_HHMMSS.tar.gz -C /
+tar -xzf /backup/dounie-cuisine/app/app_YYYYMMDD_HHMMSS.tar.gz -C /var/www/html/dounie-cuisine # Adapter le chemin de restauration
 supervisorctl restart dounie-cuisine:*
 ```
 
@@ -306,54 +293,49 @@ supervisorctl restart dounie-cuisine:dounie-api
 tail -f /var/log/dounie-cuisine/backend.err.log
 
 # Vérifier les dépendances Python
-cd /var/www/html/dounie-cuisine/backend
-pip3 install --break-system-packages -r requirements.txt
+# cd /var/www/html/dounie-cuisine/backend # Supprimé
+# pip3 install --break-system-packages -r requirements.txt # Supprimé
 
 # Redémarrer
-supervisorctl restart dounie-cuisine:dounie-backend
+# supervisorctl restart dounie-cuisine:dounie-backend # Supprimé
 ```
 
-#### Frontend ne se charge pas
+#### Frontends ne se chargent pas (public ou admin)
 ```bash
-# Vérifier le build
-cd /var/www/html/dounie-cuisine/frontend
-yarn build
+# Vérifier les builds
+cd /var/www/html/dounie-cuisine/public && npm run build
+cd /var/www/html/dounie-cuisine/administration && npm run build
+# cd /var/www/html/dounie-cuisine/frontend && yarn build # Supprimé si frontend/ est supprimé
 
 # Vérifier Nginx
 nginx -t
 systemctl reload nginx
 
-# Redémarrer le frontend
-supervisorctl restart dounie-cuisine:dounie-frontend
+# Redémarrer les services applicatifs si nécessaire (gérés par Nginx pour servir les statiques)
+# supervisorctl restart dounie-cuisine:dounie-frontend # Supprimé si frontend/ est géré par Nginx
 ```
 
-#### Base de données inaccessible
+#### Base de données PostgreSQL inaccessible
 ```bash
 # PostgreSQL
 systemctl status postgresql
 systemctl restart postgresql
 
-# MongoDB
-systemctl status mongod
-systemctl restart mongod
-
 # Vérifier les connexions
 sudo -u postgres psql -c "SELECT version();"
-mongosh --eval "db.version()"
 ```
 
 ### Diagnostic Complet
 
 ```bash
 # Vérifier tous les services
-supervisorctl status dounie-cuisine:*
-systemctl status nginx postgresql mongod
+supervisorctl status dounie-cuisine:dounie-api # Ajusté pour refléter les services restants
+systemctl status nginx postgresql
 
 # Tester la connectivité
 curl http://localhost:5000/api/health
-curl http://localhost:8001/api/health
-curl http://localhost:3000
-curl http://localhost/
+curl http://localhost/ # Teste Nginx et l'app publique
+curl http://localhost/admin # Teste Nginx et l'app admin
 
 # Vérifier l'utilisation des ressources
 htop
@@ -481,10 +463,8 @@ lsb_release -a
 
 # Versions des services
 node --version
-python3 --version
 nginx -v
 psql --version
-mongod --version
 ```
 
 ---
@@ -494,7 +474,7 @@ mongod --version
 Si vous avez suivi ce guide, vous avez maintenant :
 
 ✅ **Un système de restaurant complet** opérationnel  
-✅ **Architecture double backend** sécurisée  
+✅ **Architecture backend Node.js** sécurisée
 ✅ **Monitoring et sauvegardes** automatiques  
 ✅ **Haute disponibilité** avec auto-redémarrage  
 ✅ **Sécurité renforcée** avec firewall  

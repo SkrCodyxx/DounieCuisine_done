@@ -59,7 +59,7 @@ const MessagingPanel: React.FC = () => {
     const websocket = new WebSocket(`ws://localhost:5000/ws?userId=${currentUser.id}`);
     
     websocket.onopen = () => {
-      console.log('Connexion WebSocket établie');
+      console.log('Connexion WebSocket établie.'); // Traduit
       setWs(websocket);
     };
 
@@ -69,15 +69,15 @@ const MessagingPanel: React.FC = () => {
     };
 
     websocket.onclose = () => {
-      console.log('Connexion WebSocket fermée');
+      console.log('Connexion WebSocket fermée. Tentative de reconnexion...'); // Traduit
       // Reconnexion automatique après 5 secondes
       setTimeout(() => {
-        window.location.reload();
+        window.location.reload(); // Peut-être une meilleure stratégie de reconnexion ici
       }, 5000);
     };
 
     websocket.onerror = (error) => {
-      console.error('Erreur WebSocket:', error);
+      console.error('Erreur WebSocket :', error); // Traduit
     };
 
     return () => {

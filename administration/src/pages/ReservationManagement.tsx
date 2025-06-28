@@ -40,7 +40,7 @@ export function ReservationManagement() {
     queryKey: ["reservations", selectedDate],
     queryFn: async () => {
       const response = await fetch(`/api/admin/reservations?date=${selectedDate}`);
-      if (!response.ok) throw new Error("Failed to fetch reservations");
+      if (!response.ok) throw new Error("Échec de la récupération des réservations");
       return response.json();
     },
   });
@@ -52,7 +52,7 @@ export function ReservationManagement() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
-      if (!response.ok) throw new Error("Failed to create reservation");
+      if (!response.ok) throw new Error("Échec de la création de la réservation");
       return response.json();
     },
     onSuccess: () => {
@@ -60,10 +60,10 @@ export function ReservationManagement() {
       setIsCreateDialogOpen(false);
       toast({ title: "Réservation créée avec succès" });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
-        title: "Erreur",
-        description: error.message,
+        title: "Erreur de Création",
+        description: error.message || "Une erreur est survenue lors de la création de la réservation.",
         variant: "destructive",
       });
     },
@@ -76,7 +76,10 @@ export function ReservationManagement() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
-      if (!response.ok) throw new Error("Failed to update reservation");
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: "Échec de la mise à jour de la réservation" }));
+        throw new Error(errorData.message || "Échec de la mise à jour de la réservation");
+      }
       return response.json();
     },
     onSuccess: () => {
@@ -84,10 +87,10 @@ export function ReservationManagement() {
       setEditingReservation(null);
       toast({ title: "Réservation mise à jour avec succès" });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
-        title: "Erreur",
-        description: error.message,
+        title: "Erreur de Modification",
+        description: error.message || "Une erreur est survenue lors de la modification de la réservation.",
         variant: "destructive",
       });
     },
@@ -100,17 +103,20 @@ export function ReservationManagement() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status }),
       });
-      if (!response.ok) throw new Error("Failed to update reservation status");
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: "Échec de la mise à jour du statut de la réservation" }));
+        throw new Error(errorData.message || "Échec de la mise à jour du statut de la réservation");
+      }
       return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["reservations"] });
       toast({ title: "Statut de la réservation mis à jour" });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
-        title: "Erreur",
-        description: error.message,
+        title: "Erreur de Mise à Jour du Statut",
+        description: error.message || "Une erreur est survenue lors de la mise à jour du statut.",
         variant: "destructive",
       });
     },

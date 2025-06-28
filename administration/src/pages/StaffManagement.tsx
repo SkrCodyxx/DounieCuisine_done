@@ -38,7 +38,7 @@ export function StaffManagement() {
     queryKey: ["employees"],
     queryFn: async () => {
       const response = await fetch("/api/admin/employees");
-      if (!response.ok) throw new Error("Failed to fetch employees");
+      if (!response.ok) throw new Error("Échec de la récupération des employés");
       return response.json();
     },
   });
@@ -50,7 +50,7 @@ export function StaffManagement() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
-      if (!response.ok) throw new Error("Failed to create employee");
+      if (!response.ok) throw new Error("Échec de la création de l'employé");
       return response.json();
     },
     onSuccess: () => {
@@ -58,10 +58,10 @@ export function StaffManagement() {
       setIsCreateDialogOpen(false);
       toast({ title: "Employé créé avec succès" });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
-        title: "Erreur",
-        description: error.message,
+        title: "Erreur de Création",
+        description: error.message || "Une erreur est survenue lors de la création de l'employé.",
         variant: "destructive",
       });
     },
@@ -74,7 +74,10 @@ export function StaffManagement() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
-      if (!response.ok) throw new Error("Failed to update employee");
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: "Échec de la mise à jour de l'employé" }));
+        throw new Error(errorData.message || "Échec de la mise à jour de l'employé");
+      }
       return response.json();
     },
     onSuccess: () => {
@@ -82,10 +85,10 @@ export function StaffManagement() {
       setEditingEmployee(null);
       toast({ title: "Employé mis à jour avec succès" });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
-        title: "Erreur",
-        description: error.message,
+        title: "Erreur de Modification",
+        description: error.message || "Une erreur est survenue lors de la modification de l'employé.",
         variant: "destructive",
       });
     },
@@ -96,17 +99,20 @@ export function StaffManagement() {
       const response = await fetch(`/api/admin/employees/${id}`, {
         method: "DELETE",
       });
-      if (!response.ok) throw new Error("Failed to delete employee");
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: "Échec de la suppression de l'employé" }));
+        throw new Error(errorData.message || "Échec de la suppression de l'employé");
+      }
       return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["employees"] });
       toast({ title: "Employé supprimé avec succès" });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
-        title: "Erreur",
-        description: error.message,
+        title: "Erreur de Suppression",
+        description: error.message || "Une erreur est survenue lors de la suppression de l'employé.",
         variant: "destructive",
       });
     },
@@ -217,7 +223,7 @@ export function StaffManagement() {
             <Label htmlFor="department">Département</Label>
             <Select value={formData.department} onValueChange={(value) => setFormData({ ...formData, department: value })}>
               <SelectTrigger>
-                <SelectValue />
+                <SelectValue placeholder="Choisir un département"/>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="cuisine">Cuisine</SelectItem>
@@ -228,7 +234,7 @@ export function StaffManagement() {
             </Select>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="hourlyRate">Salaire horaire ($)</Label>
+            <Label htmlFor="hourlyRate">Salaire horaire ($CA)</Label>
             <Input
               id="hourlyRate"
               type="number"
@@ -336,7 +342,7 @@ export function StaffManagement() {
                     <DollarSign className="w-4 h-4 mr-1 text-green-600" />
                     <div>
                       <p className="font-medium text-muted-foreground">Salaire/h</p>
-                      <p>{employee.hourlyRate}$</p>
+                      <p>{employee.hourlyRate} $CA</p>
                     </div>
                   </div>
                   <div className="flex items-center">

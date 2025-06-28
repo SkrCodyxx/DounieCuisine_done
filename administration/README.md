@@ -418,53 +418,54 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 );
 ```
 
-### Thème et Couleurs
+### Thème et Couleurs (Palette Professionnelle)
+Les couleurs sont définies via des variables CSS dans `src/index.css` pour un theming facile et la gestion du mode sombre.
 ```css
-/* Palette de couleurs pour l'administration */
+/* Palette principale (Mode Clair) */
 :root {
-  --background: 0 0% 100%;
-  --foreground: 222.2 84% 4.9%;
-  --card: 0 0% 100%;
-  --card-foreground: 222.2 84% 4.9%;
+  --background: 220 30% 96%; /* Gris très clair bleuté */
+  --foreground: 220 25% 20%; /* Gris foncé */
+  --card: 0 0% 100%; /* Blanc */
+  --card-foreground: 220 25% 20%;
   --popover: 0 0% 100%;
-  --popover-foreground: 222.2 84% 4.9%;
-  --primary: 221.2 83.2% 53.3%;
-  --primary-foreground: 210 40% 98%;
-  --secondary: 210 40% 96%;
-  --secondary-foreground: 222.2 84% 4.9%;
-  --muted: 210 40% 96%;
-  --muted-foreground: 215.4 16.3% 46.9%;
-  --accent: 210 40% 96%;
-  --accent-foreground: 222.2 84% 4.9%;
-  --destructive: 0 84.2% 60.2%;
-  --destructive-foreground: 210 40% 98%;
-  --border: 214.3 31.8% 91.4%;
-  --input: 214.3 31.8% 91.4%;
-  --ring: 221.2 83.2% 53.3%;
+  --popover-foreground: 220 25% 20%;
+  --primary: 205 70% 45%; /* Bleu professionnel */
+  --primary-foreground: 0 0% 100%;
+  --secondary: 195 60% 40%; /* Bleu sarcelle */
+  --secondary-foreground: 0 0% 100%;
+  --muted: 220 20% 88%; /* Gris clair */
+  --muted-foreground: 220 20% 55%;
+  --accent: 170 60% 40%; /* Vert d'eau/turquoise sobre */
+  --accent-foreground: 0 0% 100%;
+  --destructive: 0 75% 55%; /* Rouge pour erreurs */
+  --destructive-foreground: 0 0% 100%;
+  --border: 220 25% 88%;
+  --input: 220 25% 92%;
+  --ring: 205 80% 60%;
   --radius: 0.5rem;
 }
 
-/* Mode sombre */
+/* Mode Sombre */
 .dark {
-  --background: 222.2 84% 4.9%;
-  --foreground: 210 40% 98%;
-  --card: 222.2 84% 4.9%;
-  --card-foreground: 210 40% 98%;
-  --popover: 222.2 84% 4.9%;
-  --popover-foreground: 210 40% 98%;
-  --primary: 217.2 91.2% 59.8%;
-  --primary-foreground: 222.2 84% 4.9%;
-  --secondary: 217.2 32.6% 17.5%;
-  --secondary-foreground: 210 40% 98%;
-  --muted: 217.2 32.6% 17.5%;
-  --muted-foreground: 215 20.2% 65.1%;
-  --accent: 217.2 32.6% 17.5%;
-  --accent-foreground: 210 40% 98%;
-  --destructive: 0 62.8% 30.6%;
-  --destructive-foreground: 210 40% 98%;
-  --border: 217.2 32.6% 17.5%;
-  --input: 217.2 32.6% 17.5%;
-  --ring: 224.3 76.3% 94.1%;
+  --background: 220 25% 10%; /* Gris foncé bleuté */
+  --foreground: 220 15% 88%; /* Gris clair */
+  --card: 220 25% 15%;
+  --card-foreground: 220 15% 88%;
+  --popover: 220 25% 12%;
+  --popover-foreground: 220 15% 88%;
+  --primary: 205 75% 55%; /* Bleu plus clair */
+  --primary-foreground: 0 0% 100%;
+  --secondary: 195 65% 50%; /* Bleu sarcelle plus clair */
+  --secondary-foreground: 0 0% 100%;
+  --muted: 220 15% 30%;
+  --muted-foreground: 220 15% 65%;
+  --accent: 170 65% 50%; /* Vert d'eau/turquoise plus clair */
+  --accent-foreground: 0 0% 100%;
+  --destructive: 0 70% 60%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 220 15% 25%;
+  --input: 220 15% 20%;
+  --ring: 205 85% 70%;
 }
 ```
 

@@ -103,17 +103,54 @@ VITE_CONTACT_PHONE=+509-XX-XX-XX-XX
 
 ## 🎨 Design System
 
-### Couleurs Principales
+### Couleurs Principales (Palette Professionnelle)
+Les couleurs sont définies via des variables CSS dans `src/index.css` pour un theming facile et la gestion du mode sombre. Les thèmes festifs (`haitian-theme.css`, `caribbean-theme.css`) peuvent surcharger ces variables s'ils sont actifs.
 ```css
-/* Palette de couleurs haïtiennes */
+/* Palette principale (Mode Clair) */
 :root {
-  --primary: #1e40af;        /* Bleu professionnel */
-  --secondary: #dc2626;      /* Rouge chaleureux */
-  --accent: #f59e0b;         /* Orange vibrant */
-  --success: #16a34a;        /* Vert validation */
-  --warning: #f59e0b;        /* Orange attention */
-  --error: #dc2626;          /* Rouge erreur */
-  --neutral: #6b7280;        /* Gris neutre */
+  --background: 220 30% 96%; /* Gris très clair bleuté */
+  --foreground: 220 25% 20%; /* Gris foncé */
+  --card: 0 0% 100%; /* Blanc */
+  --card-foreground: 220 25% 20%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 220 25% 20%;
+  --primary: 205 70% 45%; /* Bleu professionnel */
+  --primary-foreground: 0 0% 100%;
+  --secondary: 195 60% 40%; /* Bleu sarcelle */
+  --secondary-foreground: 0 0% 100%;
+  --muted: 220 20% 88%; /* Gris clair */
+  --muted-foreground: 220 20% 55%;
+  --accent: 170 60% 40%; /* Vert d'eau/turquoise sobre */
+  --accent-foreground: 0 0% 100%;
+  --destructive: 0 75% 55%; /* Rouge pour erreurs */
+  --destructive-foreground: 0 0% 100%;
+  --border: 220 25% 88%;
+  --input: 220 25% 92%;
+  --ring: 205 80% 60%;
+  --radius: 0.5rem;
+}
+
+/* Mode Sombre */
+.dark {
+  --background: 220 25% 10%; /* Gris foncé bleuté */
+  --foreground: 220 15% 88%; /* Gris clair */
+  --card: 220 25% 15%;
+  --card-foreground: 220 15% 88%;
+  --popover: 220 25% 12%;
+  --popover-foreground: 220 15% 88%;
+  --primary: 205 75% 55%; /* Bleu plus clair */
+  --primary-foreground: 0 0% 100%;
+  --secondary: 195 65% 50%; /* Bleu sarcelle plus clair */
+  --secondary-foreground: 0 0% 100%;
+  --muted: 220 15% 30%;
+  --muted-foreground: 220 15% 65%;
+  --accent: 170 65% 50%; /* Vert d'eau/turquoise plus clair */
+  --accent-foreground: 0 0% 100%;
+  --destructive: 0 70% 60%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 220 15% 25%;
+  --input: 220 15% 20%;
+  --ring: 205 85% 70%;
 }
 ```
 

@@ -14,33 +14,34 @@ import {
   Star,
   ChefHat,
   ArrowLeft,
-  Heart,
+  // Heart, // Non utilisé directement ici, peut-être pour des favoris futurs
   Info,
   Users,
   Utensils,
-  Camera,
+  // Camera, // Non utilisé ici
   PartyPopper,
   Gift,
   Truck,
   Phone
 } from "lucide-react";
+import { PublicLayout } from "@/components/PublicLayout"; // Import du Layout
 
 export function MenuPage() {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
 
   // Menu traiteur complet avec menus événements
+  // TODO: Ces données devraient provenir de l'API /api/menu
   const cateringMenu = [
     // PLATS INDIVIDUELS
     {
       id: 1,
       name: "Diri ak Djon Djon",
-      nameEn: "Black Mushroom Rice",
       description: "Riz parfumé aux champignons noirs haïtiens, accompagné de légumes créoles et viande de choix. Plat traditionnel préparé selon la recette ancestrale. Minimum 10 portions.",
       category: "Plats Individuels",
       price: "24.95",
       priceUnit: "par portion",
-      image: "https://images.unsplash.com/photo-1647998270792-69ac80570183",
+      image: "/placeholder-images/diri-djon-djon.jpg", // Remplacer par une image réelle
       isSignature: true,
       preparationTime: 35,
       calories: 450,
@@ -51,12 +52,11 @@ export function MenuPage() {
     {
       id: 2,
       name: "Griot ak Bannann",
-      nameEn: "Fried Pork with Plantain",
       description: "Porc mariné et frit selon la tradition, accompagné de bananes plantains dorées et de notre pikliz maison. Un classique incontournable pour vos événements.",
       category: "Plats Individuels", 
       price: "26.50",
       priceUnit: "par portion",
-      image: "https://images.unsplash.com/photo-1610592309005-0f92c8e39cec",
+      image: "/placeholder-images/griot.jpg", // Remplacer par une image réelle
       isSignature: true,
       preparationTime: 40,
       calories: 520,
@@ -66,13 +66,12 @@ export function MenuPage() {
     },
     {
       id: 3,
-      name: "Soup Joumou",
-      nameEn: "Pumpkin Soup",
+      name: "Soupe Joumou",
       description: "Soupe traditionnelle à la citrouille, symbole de l'indépendance haïtienne. Riche en légumes et épices créoles. Parfaite pour commencer vos événements.",
       category: "Plats Individuels",
       price: "14.50",
       priceUnit: "par portion",
-      image: "https://images.unsplash.com/photo-1741026079032-7cb660e44bad",
+      image: "/placeholder-images/soup-joumou-authentic.jpg", // Remplacer
       isSignature: true,
       preparationTime: 20,
       calories: 180,
@@ -85,29 +84,27 @@ export function MenuPage() {
     {
       id: 10,
       name: "Menu Mariage Traditionnel",
-      nameEn: "Traditional Wedding Menu",
-      description: "Menu complet pour mariage: Cocktail de bienvenue, entrées (Accras + Soup Joumou), plats principaux (Griot + Diri Djon Djon + Legim), desserts traditionnels, service complet avec notre équipe.",
+      description: "Menu complet pour mariage: Cocktail de bienvenue, entrées (Accras + Soupe Joumou), plats principaux (Griot + Diri Djon Djon + Legim), desserts traditionnels, service complet avec notre équipe.",
       category: "Menus Événements",
       price: "45.00",
       priceUnit: "par personne (min. 50)",
-      image: "https://images.unsplash.com/photo-1469371670807-013ccf25f16a",
+      image: "/placeholder-images/mariage-haitien-buffet.jpg", // Remplacer
       isSignature: true,
       preparationTime: 180,
       calories: 850,
       spiceLevel: 2,
-      allergies: ["poisson", "gluten"],
+      allergies: ["poisson", "gluten"], // Exemple, à vérifier
       minOrder: 50,
       includes: ["Service complet", "Équipe de 4 serveurs", "Vaisselle", "Installation/nettoyage"]
     },
     {
       id: 11,
       name: "Menu Graduation Festif",
-      nameEn: "Graduation Celebration Menu",
       description: "Menu spécial graduation: Buffet haïtien complet avec 6 plats principaux, accompagnements, desserts, boissons, DJ inclus pour 4h, décoration de base.",
       category: "Menus Événements",
       price: "38.00",
       priceUnit: "par personne (min. 30)",
-      image: "https://images.pexels.com/photos/587741/pexels-photo-587741.jpeg",
+      image: "/placeholder-images/graduation-party-food.jpg", // Remplacer
       preparationTime: 150,
       calories: 750,
       spiceLevel: 2,
@@ -115,15 +112,15 @@ export function MenuPage() {
       minOrder: 30,
       includes: ["DJ 4h inclus", "Décoration de base", "Buffet complet", "Service"]
     },
+    // ... (autres menus à vérifier pour nameEn et images)
     {
       id: 12,
       name: "Menu Anniversaire Famille",
-      nameEn: "Family Birthday Menu",
       description: "Menu familial pour anniversaires: Plats traditionnels, gâteau personnalisé, animation pour enfants disponible, formule conviviale et chaleureuse.",
       category: "Menus Événements",
       price: "32.00",
       priceUnit: "par personne (min. 20)",
-      image: "https://images.pexels.com/photos/50675/banquet-wedding-society-deco-50675.jpeg",
+      image: "/placeholder-images/anniversaire-famille-gateau.jpg",
       preparationTime: 120,
       calories: 650,
       spiceLevel: 1,
@@ -134,12 +131,11 @@ export function MenuPage() {
     {
       id: 13,
       name: "Menu Entreprise Professionnel",
-      nameEn: "Corporate Professional Menu",
       description: "Menu entreprise élégant: Cuisine raffinée haïtienne adaptée au milieu professionnel, service impeccable, présentation soignée, options végétariennes incluses.",
       category: "Menus Événements",
       price: "42.00",
       priceUnit: "par personne (min. 25)",
-      image: "https://images.unsplash.com/photo-1653821355736-0c2598d0a63e",
+      image: "/placeholder-images/evenement-entreprise-chic.jpg",
       preparationTime: 90,
       calories: 600,
       spiceLevel: 1,
@@ -151,13 +147,12 @@ export function MenuPage() {
     // PLATS SPÉCIAUX ET ACCOMPAGNEMENTS
     {
       id: 20,
-      name: "Lambi nan Sos Kreyol",
-      nameEn: "Conch in Creole Sauce",
+      name: "Lambi Kreyòl", // Nom créole conservé
       description: "Lambi tendre mijoté dans une sauce créole authentique aux tomates fraîches et épices des îles. Spécialité de la maison pour événements spéciaux.",
       category: "Plats Spéciaux",
       price: "28.95",
       priceUnit: "par portion",
-      image: "https://images.unsplash.com/photo-1610592309005-0f92c8e39cec",
+      image: "/placeholder-images/lambi-kreyol.jpg", // Remplacer
       preparationTime: 45,
       calories: 300,
       spiceLevel: 3,
@@ -166,13 +161,12 @@ export function MenuPage() {
     },
     {
       id: 21,
-      name: "Buffet Complet Traiteur",
-      nameEn: "Complete Catering Buffet",
+      name: "Buffet Traiteur Complet",
       description: "Buffet traiteur complet avec 8 plats chauds, salades, accompagnements, desserts, installation complète, service pendant 4h, équipe de 3 personnes incluse.",
       category: "Formules Traiteur",
       price: "35.00",
       priceUnit: "par personne (min. 40)",
-      image: "https://images.pexels.com/photos/587741/pexels-photo-587741.jpeg",
+      image: "/placeholder-images/buffet-traiteur-varié.jpg", // Remplacer
       isSignature: true,
       preparationTime: 240,
       calories: 800,
@@ -190,7 +184,7 @@ export function MenuPage() {
     const matchesCategory = selectedCategory === "all" || item.category === selectedCategory;
     const matchesSearch = searchTerm === "" || 
       item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.nameEn.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      // item.nameEn && item.nameEn.toLowerCase().includes(searchTerm.toLowerCase())) || // nameEn a été supprimé
       item.description.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesCategory && matchesSearch;
   });
@@ -200,8 +194,8 @@ export function MenuPage() {
       case 0: return "Doux";
       case 1: return "Léger";
       case 2: return "Modéré";
-      case 3: return "Épicé";
-      case 4: return "Très Épicé";
+      case 3: return "Relevé"; // Changé pour plus de clarté
+      case 4: return "Très Relevé"; // Changé
       default: return "Doux";
     }
   };
@@ -211,242 +205,203 @@ export function MenuPage() {
       case 0: return "text-green-600";
       case 1: return "text-yellow-600";
       case 2: return "text-orange-600";
-      case 3: return "text-red-600";
-      case 4: return "text-red-800";
+      case 3: return "text-red-600"; // Gardé
+      case 4: return "text-red-700"; // Assombri pour plus d'intensité
       default: return "text-green-600";
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-50 via-yellow-50 to-blue-50">
-      {/* Bannière promotion */}
-      <div className="bg-gradient-to-r from-yellow-400 to-orange-500 text-black py-3 px-6">
-        <div className="max-w-7xl mx-auto text-center">
-          <div className="flex items-center justify-center gap-2 text-sm font-medium">
-            <Gift className="h-4 w-4" />
-            <span>🎉 PROMOTION: 15% de réduction sur les événements de plus de 50 personnes ce mois! 🎉</span>
-            <Gift className="h-4 w-4" />
+    <PublicLayout> {/* Utilisation du Layout Public */}
+      {/* Bannière promotionnelle - Style cohérent */}
+      <div className="bg-accent text-accent-foreground py-3 px-4 sm:px-6 shadow-md">
+        <div className="container mx-auto text-center">
+          <div className="flex items-center justify-center gap-2 text-sm font-semibold">
+            <Gift className="h-5 w-5" />
+            <span>PROMOTION : -15% sur les services traiteur pour événements de plus de 50 convives ce mois-ci !</span>
+            <Gift className="h-5 w-5" />
           </div>
         </div>
       </div>
 
-      {/* En-tête */}
-      <header className="bg-gradient-to-r from-red-600 to-blue-600 text-white py-16">
-        <div className="container mx-auto px-6">
-          <div className="flex items-center mb-6">
-            <Link href="/">
-              <Button variant="ghost" className="text-white hover:bg-white/20 mr-4">
-                <ArrowLeft className="h-5 w-5 mr-2" />
-                Retour Accueil
-              </Button>
-            </Link>
-            <div className="flex gap-2">
-              <Link href="/contact">
-                <Button variant="outline" className="border-white text-white hover:bg-white hover:text-blue-600">
-                  <Phone className="h-4 w-4 mr-2" />
-                  Devis Gratuit
-                </Button>
-              </Link>
-              <Link href="/reservations">
-                <Button variant="outline" className="border-green-300 text-green-200 hover:bg-green-100 hover:text-green-700">
-                  <PartyPopper className="h-4 w-4 mr-2" />
-                  Réserver Événement
-                </Button>
-              </Link>
-            </div>
+      {/* Titre de la Page et Description */}
+      <section className="py-12 md:py-16 text-center bg-background">
+        <div className="container mx-auto px-4 sm:px-6">
+          <div className="flex items-center justify-center gap-3 mb-4">
+            <ChefHat className="h-10 w-10 md:h-12 md:w-12 text-primary" />
+            <h1 className="text-4xl md:text-5xl font-bold text-foreground tracking-tight">Menu Traiteur & Événements</h1>
+            <Utensils className="h-10 w-10 md:h-12 md:w-12 text-primary" />
           </div>
-          
-          <div className="text-center">
-            <div className="flex items-center justify-center gap-3 mb-4">
-              <ChefHat className="h-8 w-8 text-yellow-300" />
-              <h1 className="text-5xl font-bold">Menu Traiteur & Événements</h1>
-              <Utensils className="h-8 w-8 text-yellow-300" />
-            </div>
-            <p className="text-xl text-blue-100 max-w-3xl mx-auto">
-              Découvrez nos menus authentiques haïtiens pour tous vos événements - Livraison, installation et service complets inclus
-            </p>
-            <div className="flex flex-wrap gap-2 justify-center mt-4">
-              <Badge className="bg-red-500 text-white">🚚 LIVRAISON INCLUSE</Badge>
-              <Badge className="bg-blue-500 text-white">👥 ÉQUIPE DE SERVICE</Badge>
-              <Badge className="bg-green-500 text-white">🍽️ MATÉRIEL FOURNI</Badge>
-              <Badge className="bg-purple-500 text-white">🎵 DJ DISPONIBLE</Badge>
-            </div>
+          <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+            Découvrez nos menus authentiques haïtiens conçus pour tous vos événements. Nous offrons la livraison, l'installation et un service complet pour une expérience inoubliable.
+          </p>
+          <div className="flex flex-wrap gap-3 justify-center mt-6 text-sm">
+            <Badge variant="secondary" className="px-3 py-1"><Truck className="h-4 w-4 mr-1.5" />LIVRAISON INCLUSE</Badge>
+            <Badge variant="secondary" className="px-3 py-1"><Users className="h-4 w-4 mr-1.5" />ÉQUIPE DE SERVICE</Badge>
+            <Badge variant="secondary" className="px-3 py-1"><ChefHat className="h-4 w-4 mr-1.5" />MATÉRIEL FOURNI</Badge>
+            <Badge variant="secondary" className="px-3 py-1"><Music className="h-4 w-4 mr-1.5" />DJ DISPONIBLE</Badge>
           </div>
         </div>
-      </header>
+      </section>
 
-      <div className="container mx-auto px-6 py-8">
+      <div className="container mx-auto px-4 sm:px-6 py-8">
         {/* Recherche et filtres */}
-        <div className="mb-8">
-          <div className="flex flex-col md:flex-row gap-4 mb-6">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+        <div className="mb-10 p-6 bg-card rounded-xl shadow-lg">
+          <div className="flex flex-col md:flex-row gap-6 items-center mb-6">
+            <div className="relative flex-grow w-full md:w-auto">
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
               <Input
-                placeholder="Chèche menu... • Rechercher un menu ou plat..."
+                placeholder="Rechercher un plat, un menu..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 border-red-200 focus:border-red-500"
+                className="pl-12 pr-4 py-3 text-base border-border focus:ring-2 focus:ring-primary rounded-lg"
               />
             </div>
+             <Link href="/contact" className="w-full md:w-auto">
+                <Button size="lg" className="w-full bg-primary hover:bg-primary/90">
+                  <Phone className="h-5 w-5 mr-2" />
+                  Demander un Devis Gratuit
+                </Button>
+              </Link>
           </div>
 
           {/* Filtres de catégories */}
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-3 justify-center">
             {categories.map((category) => (
               <Button
                 key={category}
                 variant={selectedCategory === category ? "default" : "outline"}
                 onClick={() => setSelectedCategory(category)}
-                className={selectedCategory === category ? "bg-red-600 hover:bg-red-700" : "border-red-200 hover:bg-red-50"}
+                className={cn(
+                  "px-4 py-2 text-sm font-medium rounded-md transition-colors duration-150",
+                  selectedCategory === category
+                    ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                    : "text-foreground bg-card hover:bg-muted/50 border-border"
+                )}
               >
-                <Filter className="mr-2 h-4 w-4" />
-                {category === "all" ? "Tout • All" : category}
+                <Filter className="mr-2 h-4 w-4 opacity-70" />
+                {category === "all" ? "Tous nos délices" : category}
               </Button>
             ))}
           </div>
         </div>
 
-        {/* Annonce services */}
-        <Card className="mb-8 border-blue-200 bg-gradient-to-r from-blue-50 to-purple-50">
-          <CardContent className="p-6">
-            <div className="flex items-center gap-4">
-              <div className="flex gap-2">
-                <Truck className="h-8 w-8 text-blue-600" />
-                <Users className="h-8 w-8 text-purple-600" />
-                <PartyPopper className="h-8 w-8 text-green-600" />
+        {/* Section d'Information sur les Services */}
+        <section className="py-12 bg-card border-t border-b border-border/80">
+          <div className="container mx-auto px-4 sm:px-6">
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 items-start">
+              <div className="flex flex-col items-center text-center p-4">
+                <div className="p-3 bg-primary/10 rounded-full mb-3">
+                  <Truck className="h-8 w-8 text-primary" />
+                </div>
+                <h4 className="font-semibold text-lg text-foreground mb-1">Livraison Fiable</h4>
+                <p className="text-sm text-muted-foreground">Partout à Montréal et ses environs.</p>
               </div>
-              <div className="flex-1">
-                <h3 className="text-xl font-semibold mb-2 text-blue-800">Service Traiteur Complet Inclus</h3>
-                <p className="text-blue-700">
-                  ✓ Livraison et installation ✓ Équipe de service professionnel ✓ Vaisselle et matériel fournis 
-                  ✓ Nettoyage inclus ✓ DJ et animation disponibles ✓ Devis gratuit sous 24h
-                </p>
+              <div className="flex flex-col items-center text-center p-4">
+                <div className="p-3 bg-primary/10 rounded-full mb-3">
+                  <Users className="h-8 w-8 text-primary" />
+                </div>
+                <h4 className="font-semibold text-lg text-foreground mb-1">Service Professionnel</h4>
+                <p className="text-sm text-muted-foreground">Notre équipe expérimentée à votre service.</p>
               </div>
-              <div className="text-right">
-                <Link href="/contact">
-                  <Button className="bg-blue-600 hover:bg-blue-700">
-                    <Phone className="h-4 w-4 mr-2" />
-                    Devis Gratuit
-                  </Button>
-                </Link>
+              <div className="flex flex-col items-center text-center p-4">
+                <div className="p-3 bg-primary/10 rounded-full mb-3">
+                 <PartyPopper className="h-8 w-8 text-primary" />
+                </div>
+                <h4 className="font-semibold text-lg text-foreground mb-1">Événements sur Mesure</h4>
+                <p className="text-sm text-muted-foreground">Adaptés à vos besoins et votre budget.</p>
+              </div>
+              <div className="flex flex-col items-center text-center p-4">
+                <div className="p-3 bg-primary/10 rounded-full mb-3">
+                  <Info className="h-8 w-8 text-primary" />
+                </div>
+                <h4 className="font-semibold text-lg text-foreground mb-1">Devis Gratuit 24h</h4>
+                <p className="text-sm text-muted-foreground">Contactez-nous pour une soumission rapide.</p>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </section>
 
-        {/* Légende */}
-        <Card className="mb-8 border-yellow-200 bg-yellow-50">
-          <CardContent className="p-6">
-            <h3 className="font-semibold mb-3 flex items-center gap-2">
-              <Info className="h-5 w-5 text-yellow-600" />
-              Informations Menu Traiteur • Catering Menu Info
-            </h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-              <div className="flex items-center gap-2">
-                <Star className="h-4 w-4 text-yellow-500" />
-                <span>Spécialité signature</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Clock className="h-4 w-4 text-blue-500" />
-                <span>Temps de préparation</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Users className="h-4 w-4 text-green-500" />
-                <span>Commande minimum</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Truck className="h-4 w-4 text-purple-500" />
-                <span>Livraison incluse</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
 
         {/* Grille du menu */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 py-12">
           {filteredMenu.map((item) => (
-            <Card key={item.id} className="border-red-100 hover:shadow-xl transition-all duration-300 overflow-hidden group">
-              <div className="relative">
+            <Card key={item.id} className="bg-card shadow-xl hover:shadow-2xl transition-all duration-300 rounded-xl flex flex-col group overflow-hidden transform hover:-translate-y-1">
+              <div className="relative h-64"> {/* Hauteur d'image standardisée */}
                 <img 
-                  src={item.image} 
+                  src={item.image || "/placeholder-images/placeholder-plat-alt.jpg"} // Placeholder alternatif
                   alt={item.name}
-                  className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                 />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent p-4 flex flex-col justify-end">
+                  <h3 className="text-2xl font-bold text-white mb-1 shadow-text">{item.name}</h3>
+                  <p className="text-sm text-yellow-300 font-semibold shadow-text">{item.priceUnit}</p>
+                </div>
                 {item.isSignature && (
-                  <Badge className="absolute top-3 left-3 bg-yellow-500 text-black">
-                    <Star className="w-3 h-3 mr-1" />
-                    Spécialité
+                  <Badge className="absolute top-4 left-4 bg-accent text-accent-foreground shadow-lg text-sm px-3 py-1">
+                    <Star className="w-4 h-4 mr-1.5" />
+                    Signature Dounie
                   </Badge>
                 )}
-                <div className="absolute top-3 right-3 bg-red-600 text-white px-3 py-1 rounded-full font-bold text-sm">
-                  ${item.price}
-                </div>
-                
-                {/* Niveau d'épices */}
-                {item.spiceLevel > 0 && (
-                  <div className={`absolute bottom-3 left-3 bg-white/90 px-2 py-1 rounded-full text-xs font-medium ${getSpiceColor(item.spiceLevel)}`}>
-                    🌶️ {getSpiceLevelText(item.spiceLevel)}
-                  </div>
-                )}
-
-                {/* Badge catégorie */}
-                <div className="absolute bottom-3 right-3 bg-blue-600 text-white px-2 py-1 rounded-full text-xs font-medium">
-                  {item.category}
+                 <div className="absolute top-4 right-4 bg-card text-primary px-3 py-1.5 rounded-full font-bold text-md shadow-lg">
+                  {item.price} $CA
                 </div>
               </div>
               
-              <CardContent className="p-6">
-                <div className="mb-3">
-                  <h3 className="text-xl font-bold text-gray-800 mb-1">{item.name}</h3>
-                  <p className="text-sm text-gray-500 italic">{item.nameEn}</p>
-                  <p className="text-lg font-semibold text-green-600">{item.priceUnit}</p>
-                </div>
+              <CardContent className="p-6 flex-grow flex flex-col">
+                <p className="text-muted-foreground mb-4 leading-relaxed text-base flex-grow">{item.description}</p>
                 
-                <p className="text-gray-600 mb-4 leading-relaxed text-sm">{item.description}</p>
-                
-                <div className="space-y-2 mb-4">
-                  <div className="flex items-center justify-between text-sm text-gray-600">
-                    <div className="flex items-center gap-1">
-                      <Clock className="h-4 w-4" />
-                      <span>{item.preparationTime} min</span>
+                <div className="space-y-3 mb-6 text-sm">
+                  <div className="flex items-center justify-between text-muted-foreground">
+                    <div className="flex items-center gap-1.5">
+                      <Clock className="h-4 w-4 text-primary" />
+                      <span>Préparation : {item.preparationTime} min</span>
                     </div>
-                    <div className="flex items-center gap-1">
-                      <Users className="h-4 w-4" />
-                      <span>Min. {item.minOrder}</span>
+                    <div className="flex items-center gap-1.5">
+                      <Users className="h-4 w-4 text-primary" />
+                      <span>Min. {item.minOrder} portions</span>
                     </div>
                   </div>
                   
-                  {item.includes && (
-                    <div className="bg-green-50 p-3 rounded-lg">
-                      <h4 className="text-sm font-semibold text-green-800 mb-1">Inclus dans le service:</h4>
-                      <ul className="text-xs text-green-700 space-y-1">
+                  {item.spiceLevel > 0 && (
+                    <div className={`flex items-center gap-1.5 font-medium ${getSpiceColor(item.spiceLevel)}`}>
+                      🌶️ Niveau d'épice : {getSpiceLevelText(item.spiceLevel)}
+                    </div>
+                  )}
+
+                  {item.includes && item.includes.length > 0 && (
+                    <div className="pt-2">
+                      <h4 className="text-xs font-semibold text-foreground mb-1 uppercase tracking-wider">Inclus dans ce menu :</h4>
+                      <ul className="text-xs text-muted-foreground list-disc list-inside space-y-0.5">
                         {item.includes.map((include: string, index: number) => (
-                          <li key={index}>✓ {include}</li>
+                          <li key={index}>{include}</li>
                         ))}
                       </ul>
                     </div>
                   )}
                   
                   {item.allergies && item.allergies.length > 0 && (
-                    <div className="flex flex-wrap gap-1">
-                      <span className="text-xs text-gray-500">Allergènes:</span>
-                      {item.allergies.map((allergy: string) => (
-                        <Badge key={allergy} variant="outline" className="text-xs border-orange-200 text-orange-700">
-                          {allergy}
-                        </Badge>
-                      ))}
+                     <div className="pt-2">
+                      <h4 className="text-xs font-semibold text-destructive mb-1 uppercase tracking-wider">Allergènes :</h4>
+                      <div className="flex flex-wrap gap-1.5">
+                        {item.allergies.map((allergy: string) => (
+                          <Badge key={allergy} variant="destructive" className="text-xs opacity-80">
+                            {allergy}
+                          </Badge>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>
                 
-                <div className="flex gap-2">
-                  <Button className="flex-1 bg-red-600 hover:bg-red-700 text-sm">
-                    <ShoppingCart className="mr-2 h-4 w-4" />
-                    Commander
+                <div className="flex flex-col sm:flex-row gap-3 mt-auto">
+                  <Button className="flex-1 bg-primary hover:bg-primary/90 text-base py-3">
+                    <ShoppingCart className="mr-2 h-5 w-5" />
+                    Ajouter au Devis
                   </Button>
-                  <Link href="/contact">
-                    <Button variant="outline" className="px-3">
-                      <Phone className="h-4 w-4" />
+                  <Link href={`/menu/${item.id}`} className="flex-1"> {/* Supposant une page détail par plat */}
+                    <Button variant="outline" className="w-full text-base py-3">
+                      Détails
                     </Button>
                   </Link>
                 </div>
@@ -456,129 +411,119 @@ export function MenuPage() {
         </div>
 
         {filteredMenu.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-gray-500 text-lg">Aucun menu trouvé pour votre recherche.</p>
+          <div className="text-center py-20">
+            <Utensils className="h-16 w-16 text-muted-foreground mx-auto mb-6 opacity-50" />
+            <p className="text-muted-foreground text-xl mb-4">Aucun plat ou menu ne correspond à votre recherche.</p>
             <Button 
               onClick={() => {setSearchTerm(""); setSelectedCategory("all");}}
               variant="outline" 
-              className="mt-4"
+              className="text-lg px-6 py-3"
             >
               Réinitialiser les filtres
             </Button>
           </div>
         )}
 
-        {/* Galerie d'événements récents */}
-        <Card className="mt-12 border-purple-200 bg-gradient-to-r from-purple-50 to-pink-50">
-          <CardContent className="p-6">
-            <h3 className="text-xl font-semibold mb-4 text-purple-800 flex items-center gap-2">
-              <Camera className="h-5 w-5" />
-              Evènman Nou Resèlman Fè • Événements Récents
+        {/* Galerie d'événements récents - Section améliorée */}
+        <section className="py-16 mt-12">
+          <div className="text-center mb-12">
+            <h3 className="text-3xl md:text-4xl font-bold text-foreground mb-4 tracking-tight flex items-center justify-center gap-3">
+              <Camera className="h-8 w-8 text-primary" />
+              Nos Événements en Images
             </h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {[
-                { title: "Mariage 200 pers.", image: "https://images.unsplash.com/photo-1469371670807-013ccf25f16a", date: "Samedi dernier" },
-                { title: "Graduation 150 pers.", image: "https://images.pexels.com/photos/587741/pexels-photo-587741.jpeg", date: "Dimanche" },
-                { title: "Anniversaire 80 pers.", image: "https://images.pexels.com/photos/50675/banquet-wedding-society-deco-50675.jpeg", date: "Cette semaine" },
-                { title: "Entreprise 120 pers.", image: "https://images.unsplash.com/photo-1653821355736-0c2598d0a63e", date: "Lundi" }
-              ].map((event, index) => (
-                <div key={index} className="relative group">
-                  <img 
-                    src={event.image} 
-                    alt={event.title}
-                    className="w-full h-24 object-cover rounded-lg group-hover:scale-105 transition-transform"
-                  />
-                  <div className="absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                    <div className="text-white text-center text-xs">
-                      <p className="font-semibold">{event.title}</p>
-                      <p>{event.date}</p>
-                    </div>
-                  </div>
+            <p className="text-lg text-muted-foreground max-w-xl mx-auto">
+              Un aperçu de la magie Dounie Cuisine lors de récents événements.
+            </p>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[
+              { title: "Mariage Élégant", image: "https://images.unsplash.com/photo-1469371670807-013ccf25f16a", date: "Juin 2024" },
+              { title: "Fête de Graduation", image: "https://images.pexels.com/photos/587741/pexels-photo-587741.jpeg", date: "Juin 2024" },
+              { title: "Anniversaire Mémorable", image: "https://images.pexels.com/photos/50675/banquet-wedding-society-deco-50675.jpeg", date: "Mai 2024" },
+              { title: "Cocktail d'Entreprise", image: "https://images.unsplash.com/photo-1653821355736-0c2598d0a63e", date: "Mai 2024" }
+            ].map((event, index) => (
+              <Link href="/galerie" key={index} className="block relative group rounded-xl overflow-hidden shadow-lg aspect-square">
+                <img
+                  src={event.image}
+                  alt={event.title}
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/75 to-transparent p-4 flex flex-col justify-end">
+                  <h4 className="font-semibold text-white text-lg mb-0.5 shadow-text">{event.title}</h4>
+                  <p className="text-xs text-white/80 shadow-text">{event.date}</p>
                 </div>
-              ))}
-            </div>
-            <div className="text-center mt-4">
-              <Link href="/gallery">
-                <Button variant="outline" className="border-purple-300 text-purple-700 hover:bg-purple-100">
-                  <Camera className="h-4 w-4 mr-2" />
-                  Voir Toute la Galerie
-                </Button>
               </Link>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Information nutritionnelle et services */}
-        <Card className="mt-8 border-blue-200 bg-blue-50">
-          <CardContent className="p-6">
-            <h3 className="text-xl font-semibold mb-4 text-blue-800">Sèvis ak Enfòmasyon • Services & Informations</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm text-blue-700">
-              <div>
-                <h4 className="font-semibold mb-2 flex items-center gap-2">
-                  <Truck className="h-4 w-4" />
-                  Livraison & Installation
-                </h4>
-                <ul className="space-y-1">
-                  <li>• Livraison dans tout Montréal</li>
-                  <li>• Installation complète sur site</li>
-                  <li>• Équipe de service professionnelle</li>
-                  <li>• Nettoyage et ramassage inclus</li>
-                </ul>
-              </div>
-              <div>
-                <h4 className="font-semibold mb-2 flex items-center gap-2">
-                  <Users className="h-4 w-4" />
-                  Services Additionnels
-                </h4>
-                <ul className="space-y-1">
-                  <li>• DJ et animation musicale</li>
-                  <li>• Décoration et mise en place</li>
-                  <li>• Service bar professionnel</li>
-                  <li>• Photographie d'événements</li>
-                </ul>
-              </div>
-              <div>
-                <h4 className="font-semibold mb-2 flex items-center gap-2">
-                  <Heart className="h-4 w-4" />
-                  Nos Engagements
-                </h4>
-                <ul className="space-y-1">
-                  <li>• Ingrédients frais importés d'Haïti</li>
-                  <li>• Cuisine sans conservateurs artificiels</li>
-                  <li>• Recettes traditionnelles authentiques</li>
-                  <li>• Service client 24/7 pendant événements</li>
-                </ul>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Call to action */}
-        <div className="text-center mt-12">
-          <h3 className="text-2xl font-bold text-gray-800 mb-4">Prêt à organiser votre événement?</h3>
-          <p className="text-gray-600 mb-6">Devis gratuit sous 24h • Service professionnel garanti • Satisfaction 100%</p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/reservations">
-              <Button size="lg" className="bg-red-600 hover:bg-red-700">
-                <PartyPopper className="h-5 w-5 mr-2" />
-                Réserver un Événement
-              </Button>
-            </Link>
-            <Link href="/contact">
-              <Button size="lg" variant="outline" className="border-blue-500 text-blue-600 hover:bg-blue-50">
-                <Phone className="h-5 w-5 mr-2" />
-                Devis Gratuit
-              </Button>
-            </Link>
-            <Link href="tel:+15145553686">
-              <Button size="lg" className="bg-green-600 hover:bg-green-700">
-                <Phone className="h-5 w-5 mr-2" />
-                Appeler Maintenant
+            ))}
+          </div>
+          <div className="text-center mt-12">
+            <Link href="/galerie">
+              <Button size="lg" variant="default" className="text-lg px-8 py-3 bg-accent hover:bg-accent/90 text-accent-foreground">
+                <Camera className="h-5 w-5 mr-2" />
+                Explorer Toute la Galerie
               </Button>
             </Link>
           </div>
-        </div>
+        </section>
+
+        {/* Information nutritionnelle et services - Section améliorée */}
+        <section className="py-16 bg-card rounded-xl shadow-lg">
+          <div className="container mx-auto px-4 sm:px-6">
+            <div className="text-center mb-12">
+              <h3 className="text-3xl md:text-4xl font-bold text-foreground mb-4 tracking-tight">
+                Qualité & Engagement Dounie Cuisine
+              </h3>
+              <p className="text-lg text-muted-foreground max-w-xl mx-auto">
+                Plus qu'un repas, une expérience culinaire authentique et un service attentionné.
+              </p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-foreground">
+              <div className="flex flex-col items-center text-center p-4">
+                <div className="p-4 bg-primary/10 rounded-full mb-4">
+                  <ChefHat className="h-10 w-10 text-primary" />
+                </div>
+                <h4 className="font-semibold text-xl mb-2">Ingrédients Frais & Authentiques</h4>
+                <p className="text-sm text-muted-foreground">Nous sélectionnons les meilleurs ingrédients, certains importés directement d'Haïti, pour garantir des saveurs authentiques et une qualité irréprochable.</p>
+              </div>
+              <div className="flex flex-col items-center text-center p-4">
+                <div className="p-4 bg-primary/10 rounded-full mb-4">
+                  <Heart className="h-10 w-10 text-primary" />
+                </div>
+                <h4 className="font-semibold text-xl mb-2">Passion & Savoir-Faire</h4>
+                <p className="text-sm text-muted-foreground">Chaque plat est préparé avec amour, en respectant les recettes traditionnelles haïtiennes transmises de génération en génération.</p>
+              </div>
+              <div className="flex flex-col items-center text-center p-4">
+                 <div className="p-4 bg-primary/10 rounded-full mb-4">
+                  <Users className="h-10 w-10 text-primary" />
+                </div>
+                <h4 className="font-semibold text-xl mb-2">Service Client Dédié</h4>
+                <p className="text-sm text-muted-foreground">Notre équipe est à votre écoute 24/7 durant vos événements pour assurer une expérience parfaite et sans tracas.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Call to action final - Style cohérent */}
+        <section className="text-center mt-16 mb-8 py-12 bg-gradient-to-r from-primary to-secondary rounded-xl text-primary-foreground shadow-2xl">
+          <h3 className="text-3xl md:text-4xl font-bold mb-4">Prêt à Célébrer avec Dounie Cuisine ?</h3>
+          <p className="text-lg opacity-90 mb-8 max-w-xl mx-auto">
+            Devis gratuit sous 24h • Service professionnel garanti • Satisfaction 100%
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link href="/reservations">
+              <Button size="xl" className="bg-white text-primary hover:bg-white/90 text-lg px-8 py-3 transform hover:scale-105 transition-transform">
+                <PartyPopper className="h-6 w-6 mr-2" />
+                Réserver Votre Événement
+              </Button>
+            </Link>
+            <Link href="/contact">
+              <Button size="xl" variant="outline" className="border-white text-white hover:bg-white/10 text-lg px-8 py-3 transform hover:scale-105 transition-transform">
+                <Phone className="h-6 w-6 mr-2" />
+                Obtenir un Devis Gratuit
+              </Button>
+            </Link>
+          </div>
+        </section>
       </div>
-    </div>
+    </PublicLayout>
   );
 }

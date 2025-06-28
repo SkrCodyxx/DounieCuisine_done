@@ -41,8 +41,8 @@ export default function Login() {
       const data = await response.json();
       localStorage.setItem('user', JSON.stringify(data.user));
       toast({
-        title: "Koneksyon reyisi! • Connexion réussie!",
-        description: `Byenveni ${data.user.firstName} ${data.user.lastName}`,
+        title: "Connexion réussie !",
+        description: `Bienvenue ${data.user.firstName} ${data.user.lastName} !`,
       });
       
       // Redirection automatique selon le rôle de l'utilisateur dans la base de données
@@ -62,8 +62,8 @@ export default function Login() {
     },
     onError: (error: any) => {
       toast({
-        title: "Erè koneksyon • Erreur de connexion",
-        description: error.message || "Non itilizatè oswa mo de pas pa bon • Nom d'utilisateur ou mot de passe incorrect",
+        title: "Erreur de connexion",
+        description: error.message || "Nom d'utilisateur ou mot de passe incorrect.",
         variant: "destructive",
       });
     },
@@ -74,54 +74,29 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-50 via-yellow-50 to-blue-50">
-      {/* Navigation retour */}
-      <nav className="p-6">
-        <div className="flex items-center justify-between">
-          <Link href="/">
-            <Button variant="ghost" className="text-gray-600 hover:text-gray-800">
-              <ArrowLeft className="h-5 w-5 mr-2" />
-              Retour Accueil
-            </Button>
-          </Link>
-          <Link href="/register">
-            <Button variant="outline" className="border-green-500 text-green-600 hover:bg-green-50">
-              Pas de compte? • S'inscrire
-            </Button>
-          </Link>
-        </div>
-      </nav>
-
-      <div className="flex items-center justify-center min-h-[80vh]">
-        <Card className="w-full max-w-md mx-4 border-red-200 shadow-xl">
-          <CardHeader className="space-y-4 bg-gradient-to-r from-red-50 to-blue-50">
-            <div className="text-center">
-              <div className="flex items-center justify-center gap-2 mb-4">
-                <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-              </div>
-              <h1 className="text-2xl font-bold text-red-600">Dounie Cuisine</h1>
-              <p className="text-blue-600">Koneksyon Otomatik • Connexion Sécurisée</p>
-            </div>
-            <CardTitle className="text-xl font-bold text-center text-gray-800">Konekte • Connexion</CardTitle>
-            <CardDescription className="text-center text-gray-600">
-              Redirection otomatik selon vos accès • Redirection automatique selon vos permissions
+    <PublicLayout>
+      <div className="flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8 min-h-[calc(100vh-var(--header-height,8rem))]"> {/* Ajuster la hauteur min si besoin */}
+        <Card className="w-full max-w-md shadow-2xl border-border rounded-xl">
+          <CardHeader className="space-y-3 text-center bg-muted/30 p-6 md:p-8 rounded-t-xl">
+            <Shield className="h-16 w-16 mx-auto text-primary" />
+            <CardTitle className="text-3xl font-bold text-foreground">Connexion Sécurisée</CardTitle>
+            <CardDescription className="text-muted-foreground text-base">
+              Accédez à votre espace Dounie Cuisine.
             </CardDescription>
           </CardHeader>
-          <CardContent className="p-8">
+          <CardContent className="p-6 md:p-8">
             <Form {...form}>
-              <form onSubmit={form.handleSubmit((data) => loginMutation.mutate(data))} className="space-y-6">
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 <FormField
                   control={form.control}
                   name="username"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-gray-700">Non Itilizatè • Nom d'utilisateur</FormLabel>
+                      <FormLabel className="text-base">Nom d'utilisateur ou E-mail</FormLabel>
                       <FormControl>
                         <Input 
-                          placeholder="Antre non itilizatè ou • Entrez votre nom d'utilisateur" 
-                          className="border-red-200 focus:border-red-500"
+                          placeholder="Votre nom d'utilisateur ou e-mail"
+                          className="py-3 px-4 text-base rounded-md border-border focus:ring-2 focus:ring-primary"
                           {...field} 
                         />
                       </FormControl>
@@ -135,12 +110,12 @@ export default function Login() {
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-gray-700">Mo de Pas • Mot de passe</FormLabel>
+                      <FormLabel className="text-base">Mot de passe</FormLabel>
                       <FormControl>
                         <Input 
                           type="password" 
-                          placeholder="Antre mo de pas ou • Entrez votre mot de passe" 
-                          className="border-red-200 focus:border-red-500"
+                          placeholder="Votre mot de passe"
+                          className="py-3 px-4 text-base rounded-md border-border focus:ring-2 focus:ring-primary"
                           {...field} 
                         />
                       </FormControl>
@@ -148,42 +123,41 @@ export default function Login() {
                     </FormItem>
                   )}
                 />
-
-
-
                 <Button 
                   type="submit" 
-                  className="w-full bg-red-600 hover:bg-red-700 py-3 text-lg"
+                  size="lg" // Utilisation de la prop size pour un bouton plus grand
+                  className="w-full bg-primary hover:bg-primary/90 text-lg py-3 rounded-md"
                   disabled={loginMutation.isPending}
                 >
                   <Lock className="mr-2 h-5 w-5" />
-                  {loginMutation.isPending ? "Ap konekte..." : "Konekte • Se Connecter"}
+                  {loginMutation.isPending ? "Connexion en cours..." : "Se Connecter"}
                 </Button>
               </form>
             </Form>
             
-            {/* Aide pour les employés */}
-            <div className="mt-6 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
-              <h4 className="font-semibold text-yellow-800 mb-2">Èd pou Travayè • Aide pour le Personnel</h4>
-              <div className="text-sm text-yellow-700 space-y-1">
-                <p><strong>Admin:</strong> admin / admin123</p>
-                <p><strong>Pwoblèm ak koneksyon?</strong> Rele jeran an</p>
-                <p><strong>Problème de connexion?</strong> Appelez le gérant</p>
-              </div>
-            </div>
-            
-            <div className="text-center mt-4">
-              <p className="text-sm text-gray-600">
-                Pa gen aksè? • Pas d'accès?{" "}
-                <Link href="/register" className="text-green-600 hover:text-green-700 font-medium">
-                  Kreye kont • Créer un compte
+            <div className="mt-8 text-center">
+              <p className="text-base text-muted-foreground">
+                Pas encore de compte ?{" "}
+                <Link href="/register" className="font-semibold text-primary hover:underline">
+                  Créer un compte
                 </Link>
               </p>
             </div>
+             {/* La section "Aide pour le Personnel" n'est pas appropriée ici, car c'est une page publique client.
+                 Elle pourrait être sur une page de login admin séparée.
+            <div className="mt-6 p-4 bg-muted/30 rounded-lg border border-border">
+              <h4 className="font-semibold text-foreground mb-2">Aide pour le Personnel</h4>
+              <div className="text-sm text-muted-foreground space-y-1">
+                <p><strong>Identifiants Admin (test):</strong> admin / admin123</p>
+                <p><strong>Problème de connexion ?</strong> Appelez le gérant.</p>
+              </div>
+            </div>
+            */}
           </CardContent>
         </Card>
         
-        <div className="mt-4 text-center">
+        {/* Le bouton "Voir le site public" n'a pas de sens ici car nous sommes sur le site public */}
+        {/* <div className="mt-4 text-center">
           <Button
             variant="outline"
             onClick={() => window.open("/public", "_blank")}
@@ -191,8 +165,8 @@ export default function Login() {
           >
             Voir le site public
           </Button>
-        </div>
+        </div> */}
       </div>
-    </div>
+    </PublicLayout>
   );
 }

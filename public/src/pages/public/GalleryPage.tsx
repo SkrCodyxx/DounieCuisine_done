@@ -200,322 +200,262 @@ function GalleryPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-50 via-yellow-50 to-blue-50">
-      {/* Bannière promotion */}
-      <div className="bg-gradient-to-r from-yellow-400 to-orange-500 text-black py-3 px-6">
-        <div className="max-w-7xl mx-auto text-center">
-          <div className="flex items-center justify-center gap-2 text-sm font-medium">
-            <Camera className="h-4 w-4" />
-            <span>📸 NOUVELLE GALERIE: Photos de nos derniers événements traiteur ! 📸</span>
-            <Camera className="h-4 w-4" />
+    <PublicLayout>
+      {/* Bannière promotionnelle */}
+      <div className="bg-accent text-accent-foreground py-3 px-4 sm:px-6 shadow-md">
+        <div className="container mx-auto text-center">
+          <div className="flex items-center justify-center gap-2 text-sm font-semibold">
+            <Camera className="h-5 w-5" />
+            <span>NOUVELLE GALERIE : Découvrez les photos de nos derniers événements traiteur !</span>
+            <Camera className="h-5 w-5" />
           </div>
         </div>
       </div>
 
-      {/* En-tête */}
-      <header className="bg-gradient-to-r from-red-600 to-blue-600 text-white py-16">
-        <div className="container mx-auto px-6">
-          <div className="flex items-center mb-6">
-            <Link href="/">
-              <Button variant="ghost" className="text-white hover:bg-white/20 mr-4">
-                <ArrowLeft className="h-5 w-5 mr-2" />
-                Retour Accueil
-              </Button>
-            </Link>
-            <div className="flex gap-2">
-              <Link href="/contact">
-                <Button variant="outline" className="border-white text-white hover:bg-white hover:text-blue-600">
-                  <Phone className="h-4 w-4 mr-2" />
-                  Devis Gratuit
-                </Button>
-              </Link>
-              <Link href="/reservations">
-                <Button variant="outline" className="border-green-300 text-green-200 hover:bg-green-100 hover:text-green-700">
-                  <PartyPopper className="h-4 w-4 mr-2" />
-                  Réserver Événement
-                </Button>
-              </Link>
-            </div>
+      {/* En-tête de Page */}
+      <section className="py-12 md:py-16 text-center bg-card border-b border-border">
+        <div className="container mx-auto px-4 sm:px-6">
+          <div className="flex items-center justify-center gap-3 mb-4">
+            <Camera className="h-10 w-10 md:h-12 md:w-12 text-primary" />
+            <h1 className="text-4xl md:text-5xl font-bold text-foreground tracking-tight">Notre Galerie d'Événements</h1>
+            <PartyPopper className="h-10 w-10 md:h-12 md:w-12 text-primary" />
           </div>
-          
-          <div className="text-center">
-            <div className="flex items-center justify-center gap-3 mb-4">
-              <Camera className="h-8 w-8 text-yellow-300" />
-              <h1 className="text-5xl font-bold">Galerie Événements Traiteur</h1>
-              <PartyPopper className="h-8 w-8 text-yellow-300" />
-            </div>
-            <p className="text-xl text-blue-100 max-w-3xl mx-auto">
-              Découvrez nos réalisations d'événements - Service traiteur complet avec livraison, installation et équipe professionnelle
-            </p>
-            <div className="flex flex-wrap gap-2 justify-center mt-4">
-              <Badge className="bg-red-500 text-white">🍽️ SERVICE TRAITEUR</Badge>
-              <Badge className="bg-blue-500 text-white">🎵 DJ INCLUS</Badge>
-              <Badge className="bg-green-500 text-white">🚚 LIVRAISON & INSTALLATION</Badge>
-              <Badge className="bg-purple-500 text-white">👥 ÉQUIPE COMPLÈTE</Badge>
-            </div>
-          </div>
+          <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+            Découvrez nos réalisations et l'ambiance unique de Dounie Cuisine. Service traiteur complet avec livraison, installation et équipe professionnelle.
+          </p>
         </div>
-      </header>
+      </section>
 
-      <div className="container mx-auto px-6 py-8">
-        {/* Statistiques des événements */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <Card className="border-red-100 text-center">
-            <CardContent className="p-4">
-              <div className="text-2xl font-bold text-red-600">{eventGallery.filter(img => img.category === "Mariages").length}</div>
-              <div className="text-sm text-gray-600">Mariages Réalisés</div>
-            </CardContent>
-          </Card>
-          <Card className="border-blue-100 text-center">
-            <CardContent className="p-4">
-              <div className="text-2xl font-bold text-blue-600">{eventGallery.filter(img => img.category === "Graduations").length}</div>
-              <div className="text-sm text-gray-600">Graduations</div>
-            </CardContent>
-          </Card>
-          <Card className="border-green-100 text-center">
-            <CardContent className="p-4">
-              <div className="text-2xl font-bold text-green-600">{eventGallery.filter(img => img.category === "Entreprise").length}</div>
-              <div className="text-sm text-gray-600">Événements Entreprise</div>
-            </CardContent>
-          </Card>
-          <Card className="border-yellow-200 text-center">
-            <CardContent className="p-4">
-              <div className="text-2xl font-bold text-yellow-600">2500+</div>
-              <div className="text-sm text-gray-600">Personnes Servies</div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Filtres par type d'événement */}
-        <div className="flex flex-wrap justify-center gap-2 mb-8">
-          {galleryCategories.map((category) => (
-            <Button
-              key={category}
-              variant={selectedGalleryCategory === category ? "default" : "outline"}
-              onClick={() => setSelectedGalleryCategory(category)}
-              className={selectedGalleryCategory === category ? "bg-red-600 hover:bg-red-700" : "border-red-200 hover:bg-red-50"}
-            >
-              <Filter className="mr-2 h-4 w-4" />
-              {category === "all" ? "Tous Événements" : category}
-            </Button>
+      <div className="container mx-auto px-4 sm:px-6 py-8 md:py-12">
+        {/* Statistiques des événements - Amélioré */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-10 md:mb-12">
+          {[
+            { label: "Mariages Réalisés", value: eventGallery.filter(img => img.category === "Mariages").length, color: "text-pink-600", bgColor: "bg-pink-100" },
+            { label: "Graduations Célébrées", value: eventGallery.filter(img => img.category === "Graduations").length, color: "text-blue-600", bgColor: "bg-blue-100" },
+            { label: "Événements d'Entreprise", value: eventGallery.filter(img => img.category === "Entreprise").length, color: "text-indigo-600", bgColor: "bg-indigo-100" },
+            { label: "Clients Satisfaits", value: "2500+", color: "text-green-600", bgColor: "bg-green-100" }
+          ].map(stat => (
+            <Card key={stat.label} className={`shadow-lg border-border ${stat.bgColor}`}>
+              <CardContent className="p-4 md:p-6 text-center">
+                <div className={`text-3xl md:text-4xl font-bold ${stat.color}`}>{stat.value}</div>
+                <div className="text-sm text-muted-foreground mt-1">{stat.label}</div>
+              </CardContent>
+            </Card>
           ))}
         </div>
 
-        {/* Grille photos d'événements */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* Filtres par type d'événement - Amélioré */}
+        <div className="mb-10 p-4 md:p-6 bg-card rounded-xl shadow-lg">
+          <div className="flex flex-wrap justify-center gap-3">
+            {galleryCategories.map((category) => (
+              <Button
+                key={category}
+                variant={selectedGalleryCategory === category ? "default" : "outline"}
+                onClick={() => setSelectedGalleryCategory(category)}
+                className={cn(
+                  "px-4 py-2 text-sm font-medium rounded-md transition-colors duration-150",
+                  selectedGalleryCategory === category
+                    ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                    : "text-foreground bg-card hover:bg-muted/50 border-border"
+                )}
+              >
+                <Filter className="mr-2 h-4 w-4 opacity-70" />
+                {category === "all" ? "Tous les Événements" : category}
+              </Button>
+            ))}
+          </div>
+        </div>
+
+        {/* Grille photos d'événements - Améliorée */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
           {filteredGallery.map((event) => (
-            <div 
+            <Card
               key={event.id}
-              className="relative group cursor-pointer overflow-hidden rounded-lg shadow-lg hover:shadow-2xl transition-all duration-300"
+              className="relative group cursor-pointer overflow-hidden rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 aspect-[4/3] transform hover:-translate-y-1"
               onClick={() => openImageModal(event)}
             >
               <img 
-                src={event.image} 
+                src={event.image || '/placeholder-images/placeholder-event.jpg'}
                 alt={event.title}
-                className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
+                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
-                  <h3 className="font-bold text-lg mb-2">{event.title}</h3>
-                  <p className="text-sm text-gray-200 mb-2">{event.description}</p>
-                  {event.guests > 0 && (
-                    <div className="flex items-center gap-4 text-sm">
-                      <div className="flex items-center gap-1">
-                        <Users className="h-4 w-4" />
-                        <span>{event.guests} personnes</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Calendar className="h-4 w-4" />
-                        <span>{event.date}</span>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-              <div className="absolute top-3 right-3">
-                <Badge className={`text-xs ${getCategoryColor(event.category)}`}>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent flex flex-col justify-end p-4 md:p-5">
+                <h3 className="font-bold text-lg md:text-xl text-white mb-1 shadow-text leading-tight">{event.title}</h3>
+                <Badge className={`text-xs px-2 py-0.5 mb-1 self-start ${getCategoryColor(event.category)}`}>
                   {event.category}
                 </Badge>
-              </div>
-              {event.services && event.services.length > 0 && (
-                <div className="absolute top-3 left-3">
-                  <Badge className="bg-blue-600 text-white text-xs">
-                    {event.services.length} services
-                  </Badge>
+                <div className="flex items-center gap-3 text-xs text-white/80 shadow-text">
+                  {event.guests > 0 && (
+                    <span className="flex items-center gap-1">
+                      <Users className="h-3.5 w-3.5" />
+                      {event.guests} pers.
+                    </span>
+                  )}
+                  <span className="flex items-center gap-1">
+                    <Calendar className="h-3.5 w-3.5" />
+                    {event.date}
+                  </span>
                 </div>
-              )}
-            </div>
+              </div>
+            </Card>
           ))}
         </div>
 
         {filteredGallery.length === 0 && (
-          <div className="text-center py-12">
-            <Camera className="h-16 w-16 mx-auto text-gray-400 mb-4" />
-            <p className="text-gray-500 text-lg">Aucun événement dans cette catégorie pour le moment.</p>
+          <div className="text-center py-20">
+            <Camera className="h-16 w-16 mx-auto text-muted-foreground opacity-50 mb-6" />
+            <p className="text-muted-foreground text-xl">Aucun événement à afficher dans cette catégorie pour le moment.</p>
+            <p className="text-sm text-muted-foreground mt-2">Essayez de sélectionner une autre catégorie ou revenez bientôt !</p>
           </div>
         )}
 
-        {/* Services inclus dans nos événements */}
-        <Card className="mt-12 border-blue-200 bg-gradient-to-r from-blue-50 to-purple-50">
-          <CardContent className="p-8">
-            <h3 className="text-2xl font-semibold mb-6 text-blue-800 text-center">Services Inclus dans Tous nos Événements</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <div className="text-center">
-                <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <Utensils className="h-8 w-8 text-red-600" />
-                </div>
-                <h4 className="font-semibold text-gray-800 mb-2">Service Traiteur Complet</h4>
-                <p className="text-sm text-gray-600">Menu traditionnel haïtien, installation, service à l'assiette ou buffet</p>
-              </div>
-              <div className="text-center">
-                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <PartyPopper className="h-8 w-8 text-blue-600" />
-                </div>
-                <h4 className="font-semibold text-gray-800 mb-2">Animation & DJ</h4>
-                <p className="text-sm text-gray-600">DJ professionnel, système son, musique haïtienne et internationale</p>
-              </div>
-              <div className="text-center">
-                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <Users className="h-8 w-8 text-green-600" />
-                </div>
-                <h4 className="font-semibold text-gray-800 mb-2">Équipe Professionnelle</h4>
-                <p className="text-sm text-gray-600">Serveurs, coordinateur, équipe cuisine, service impeccable</p>
-              </div>
-              <div className="text-center">
-                <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <Star className="h-8 w-8 text-yellow-600" />
-                </div>
-                <h4 className="font-semibold text-gray-800 mb-2">Service Clé en Main</h4>
-                <p className="text-sm text-gray-600">Livraison, installation, service, nettoyage, tout inclus</p>
-              </div>
+        {/* Section "Services Inclus" - Améliorée et stylisée */}
+        <section className="mt-16 md:mt-20 py-12 bg-card rounded-xl shadow-xl border border-border/80">
+          <div className="container mx-auto px-4 sm:px-6">
+            <div className="text-center mb-12">
+              <h3 className="text-3xl md:text-4xl font-bold text-foreground tracking-tight flex items-center justify-center gap-3">
+                <Star className="h-8 w-8 text-primary" />
+                Nos Engagements pour Votre Succès
+              </h3>
+              <p className="text-lg text-muted-foreground max-w-xl mx-auto mt-4">
+                Chaque événement avec Dounie Cuisine est une promesse de qualité, de saveur et de service impeccable.
+              </p>
             </div>
-          </CardContent>
-        </Card>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+              {[
+                { icon: Utensils, title: "Traiteur Authentique", description: "Menu traditionnel haïtien, buffet ou service à l'assiette." },
+                { icon: Music, title: "Animation & DJ", description: "DJ professionnel, sonorisation, ambiance musicale sur mesure." },
+                { icon: Users, title: "Équipe Professionnelle", description: "Serveurs, coordinateurs, cuisiniers expérimentés et courtois." },
+                { icon: PartyPopper, title: "Organisation Complète", description: "De la planification à la réalisation, nous gérons tout pour vous." }
+              ].map(service => (
+                <div key={service.title} className="flex flex-col items-center text-center p-4">
+                  <div className="p-4 bg-primary/10 rounded-full mb-4">
+                    <service.icon className="h-10 w-10 text-primary" />
+                  </div>
+                  <h4 className="font-semibold text-lg text-foreground mb-2">{service.title}</h4>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{service.description}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
 
-        {/* Call to action */}
-        <div className="text-center mt-12">
-          <h3 className="text-3xl font-bold text-gray-800 mb-4">Prêt pour Votre Événement?</h3>
-          <p className="text-lg text-gray-600 mb-8">Contactez-nous pour un devis gratuit personnalisé</p>
+        {/* Call to action final - harmonisé */}
+        <section className="text-center mt-16 mb-8 py-16 bg-gradient-to-r from-primary via-secondary to-accent rounded-xl text-white shadow-2xl">
+          <h3 className="text-3xl md:text-4xl font-bold mb-4">Prêt à Immortaliser Votre Événement ?</h3>
+          <p className="text-lg opacity-90 mb-8 max-w-xl mx-auto">
+            Confiez-nous vos plus beaux moments. Contactez Dounie Cuisine dès aujourd'hui.
+          </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/reservations">
-              <Button size="lg" className="bg-red-600 hover:bg-red-700 px-8 py-4">
-                <PartyPopper className="mr-2 h-5 w-5" />
+              <Button size="xl" className="bg-white text-primary hover:bg-white/90 text-lg px-8 py-3 transform hover:scale-105 transition-transform">
+                <Calendar className="mr-2 h-5 w-5" />
                 Réserver Votre Événement
               </Button>
             </Link>
             <Link href="/contact">
-              <Button size="lg" variant="outline" className="border-blue-500 text-blue-600 hover:bg-blue-50 px-8 py-4">
+              <Button size="xl" variant="outline" className="border-white text-white hover:bg-white/10 text-lg px-8 py-3 transform hover:scale-105 transition-transform">
                 <Phone className="mr-2 h-5 w-5" />
-                Devis Gratuit Personnalisé
-              </Button>
-            </Link>
-            <Link href="/menu">
-              <Button size="lg" variant="outline" className="border-green-500 text-green-600 hover:bg-green-50 px-8 py-4">
-                <Utensils className="mr-2 h-5 w-5" />
-                Voir Menu Traiteur
+                Demander un Devis
               </Button>
             </Link>
           </div>
-        </div>
+        </section>
       </div>
 
-      {/* Modal image avec détails événement */}
+      {/* Modal image avec détails événement - Amélioré */}
       {selectedImage && (
         <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
-          <DialogContent className="max-w-5xl max-h-[90vh] p-0">
-            <div className="relative">
+          <DialogContent className="max-w-6xl max-h-[95vh] p-0 flex flex-col sm:flex-row">
+            {/* Colonne Image */}
+            <div className="w-full sm:w-2/3 h-64 sm:h-auto relative">
               <img 
-                src={selectedImage.image} 
+                src={selectedImage.image || '/placeholder-images/placeholder-event-large.jpg'}
                 alt={selectedImage.title}
-                className="w-full h-96 md:h-[500px] object-cover"
+                className="w-full h-full object-cover"
               />
-              
-              {/* Navigation */}
+              {/* Navigation dans le modal */}
               <Button
                 variant="ghost"
-                size="sm"
-                className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black/50 text-white hover:bg-black/70"
-                onClick={prevImage}
+                size="icon"
+                className="absolute left-2 sm:left-4 top-1/2 transform -translate-y-1/2 bg-black/30 text-white hover:bg-black/50 rounded-full h-10 w-10 sm:h-12 sm:w-12"
+                onClick={(e) => { e.stopPropagation(); prevImage(); }}
+                aria-label="Image précédente"
               >
                 <ChevronLeft className="h-6 w-6" />
               </Button>
-              
               <Button
                 variant="ghost"
-                size="sm"
-                className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black/50 text-white hover:bg-black/70"
-                onClick={nextImage}
+                size="icon"
+                className="absolute right-2 sm:right-4 top-1/2 transform -translate-y-1/2 bg-black/30 text-white hover:bg-black/50 rounded-full h-10 w-10 sm:h-12 sm:w-12"
+                onClick={(e) => { e.stopPropagation(); nextImage(); }}
+                aria-label="Image suivante"
               >
                 <ChevronRight className="h-6 w-6" />
               </Button>
-
-              {/* Actions */}
-              <div className="absolute top-4 right-4 flex gap-2">
-                <Button variant="ghost" size="sm" className="bg-white/20 text-white hover:bg-white/30">
-                  <Heart className="h-4 w-4" />
-                </Button>
-                <Button variant="ghost" size="sm" className="bg-white/20 text-white hover:bg-white/30">
-                  <Share2 className="h-4 w-4" />
-                </Button>
-                <Button variant="ghost" size="sm" className="bg-white/20 text-white hover:bg-white/30">
-                  <Download className="h-4 w-4" />
-                </Button>
-              </div>
-
-              <Badge className={`absolute top-4 left-4 ${getCategoryColor(selectedImage.category)}`}>
-                {selectedImage.category}
-              </Badge>
             </div>
             
-            {/* Informations détaillées */}
-            <div className="p-8">
-              <DialogHeader>
-                <DialogTitle className="text-2xl font-bold text-gray-800 mb-4">{selectedImage.title}</DialogTitle>
+            {/* Colonne Informations */}
+            <div className="w-full sm:w-1/3 p-6 md:p-8 space-y-6 overflow-y-auto">
+              <DialogHeader className="mb-2">
+                <DialogTitle className="text-3xl font-bold text-foreground">{selectedImage.title}</DialogTitle>
+                <Badge className={`mt-2 self-start ${getCategoryColor(selectedImage.category)}`}>
+                  {selectedImage.category}
+                </Badge>
               </DialogHeader>
-              <p className="text-gray-600 mb-4">{selectedImage.description}</p>
+
+              <p className="text-base text-muted-foreground leading-relaxed">{selectedImage.description}</p>
               
               {selectedImage.guests > 0 && (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                  <div className="text-center p-3 bg-blue-50 rounded-lg">
-                    <Users className="h-6 w-6 mx-auto mb-1 text-blue-600" />
-                    <div className="font-semibold text-blue-800">{selectedImage.guests}</div>
-                    <div className="text-xs text-blue-600">Personnes</div>
+                <div className="grid grid-cols-2 gap-4 pt-4 border-t">
+                  <div className="flex flex-col items-center p-3 bg-muted/50 rounded-lg">
+                    <Users className="h-7 w-7 mb-1 text-primary" />
+                    <span className="font-semibold text-foreground text-lg">{selectedImage.guests}</span>
+                    <span className="text-xs text-muted-foreground">Personnes</span>
                   </div>
-                  <div className="text-center p-3 bg-green-50 rounded-lg">
-                    <Calendar className="h-6 w-6 mx-auto mb-1 text-green-600" />
-                    <div className="font-semibold text-green-800">{selectedImage.date}</div>
-                    <div className="text-xs text-green-600">Date</div>
-                  </div>
-                  <div className="text-center p-3 bg-purple-50 rounded-lg">
-                    <Star className="h-6 w-6 mx-auto mb-1 text-purple-600" />
-                    <div className="font-semibold text-purple-800">{selectedImage.services?.length || 0}</div>
-                    <div className="text-xs text-purple-600">Services</div>
-                  </div>
-                  <div className="text-center p-3 bg-yellow-50 rounded-lg">
-                    <Camera className="h-6 w-6 mx-auto mb-1 text-yellow-600" />
-                    <div className="font-semibold text-yellow-800">{currentImageIndex + 1}/{filteredGallery.length}</div>
-                    <div className="text-xs text-yellow-600">Photo</div>
+                  <div className="flex flex-col items-center p-3 bg-muted/50 rounded-lg">
+                    <Calendar className="h-7 w-7 mb-1 text-primary" />
+                    <span className="font-semibold text-foreground text-lg">{selectedImage.date}</span>
+                    <span className="text-xs text-muted-foreground">Date</span>
                   </div>
                 </div>
               )}
 
               {selectedImage.services && selectedImage.services.length > 0 && (
-                <div>
-                  <h4 className="font-semibold text-gray-800 mb-3">Services Fournis:</h4>
+                <div className="pt-4 border-t">
+                  <h4 className="font-semibold text-foreground mb-3 text-lg">Services Fournis :</h4>
                   <div className="flex flex-wrap gap-2">
                     {selectedImage.services.map((service: string, index: number) => (
-                      <Badge key={index} variant="outline" className="border-blue-200 text-blue-700">
+                      <Badge key={index} variant="secondary" className="px-3 py-1 text-sm">
                         {service}
                       </Badge>
                     ))}
                   </div>
                 </div>
               )}
+
+              <div className="flex flex-col sm:flex-row gap-3 pt-6 border-t">
+                {/* Les actions comme Like, Share, Download peuvent être réactivées si la fonctionnalité existe */}
+                {/*
+                <Button variant="outline" size="lg" className="flex-1">
+                  <Heart className="h-5 w-5 mr-2" /> J'aime
+                </Button>
+                <Button variant="outline" size="lg" className="flex-1">
+                  <Share2 className="h-5 w-5 mr-2" /> Partager
+                </Button>
+                */}
+                <a href={selectedImage.image} download target="_blank" rel="noopener noreferrer" className="flex-1">
+                  <Button variant="default" size="lg" className="w-full bg-primary hover:bg-primary/90">
+                    <Download className="h-5 w-5 mr-2" /> Télécharger
+                  </Button>
+                </a>
+              </div>
+               <p className="text-xs text-muted-foreground text-center pt-2">Photo {currentImageIndex + 1} sur {filteredGallery.length}</p>
             </div>
           </DialogContent>
         </Dialog>
       )}
-    </div>
+    </PublicLayout>
   );
 }
 

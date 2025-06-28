@@ -487,6 +487,7 @@ export function SystemSettings() {
                     rows={4}
                     value={socialMediaTexts.heroDescription}
                     onChange={(e) => setSocialMediaTexts({...socialMediaTexts, heroDescription: e.target.value})}
+                    placeholder="Décrivez votre service traiteur et événementiel ici..."
                   />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -561,7 +562,7 @@ export function SystemSettings() {
                         <h3 className="font-semibold">{item.name}</h3>
                         <p className="text-sm text-gray-600">{item.description}</p>
                         <div className="flex justify-between items-center">
-                          <span className="font-bold text-green-600">${item.price}</span>
+                          <span className="font-bold text-green-600">{item.price} $CA</span>
                           <Badge variant="outline">{item.category}</Badge>
                         </div>
                         <div className="flex gap-2 pt-2">

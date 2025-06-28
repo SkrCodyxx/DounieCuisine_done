@@ -102,7 +102,7 @@ export function GalleryManagement() {
     queryFn: async () => {
       const response = await fetch('/api/galleries');
       if (!response.ok) {
-        throw new Error('Erreur lors du chargement des galeries');
+        throw new Error('Échec du chargement des galeries');
       }
       return response.json();
     },
@@ -117,7 +117,7 @@ export function GalleryManagement() {
         : '/api/gallery-images';
       const response = await fetch(url);
       if (!response.ok) {
-        throw new Error('Erreur lors du chargement des images');
+        throw new Error('Échec du chargement des images de la galerie');
       }
       return response.json();
     },
@@ -132,7 +132,7 @@ export function GalleryManagement() {
         body: JSON.stringify(galleryData),
       });
       if (!response.ok) {
-        throw new Error('Erreur lors de la création de la galerie');
+        throw new Error('Échec de la création de la galerie');
       }
       return response.json();
     },
@@ -145,10 +145,10 @@ export function GalleryManagement() {
       setIsGalleryDialogOpen(false);
       resetGalleryForm();
     },
-    onError: () => {
+    onError: (error: Error) => {
       toast({
-        title: "Erreur",
-        description: "Erreur lors de la création de la galerie",
+        title: "Erreur de Création de Galerie",
+        description: error.message || "Une erreur est survenue lors de la création de la galerie.",
         variant: "destructive",
       });
     },
@@ -163,7 +163,8 @@ export function GalleryManagement() {
         body: JSON.stringify(data),
       });
       if (!response.ok) {
-        throw new Error('Erreur lors de la modification de la galerie');
+        const errorData = await response.json().catch(() => ({ message: "Échec de la modification de la galerie" }));
+        throw new Error(errorData.message || "Échec de la modification de la galerie");
       }
       return response.json();
     },
@@ -176,10 +177,10 @@ export function GalleryManagement() {
       setIsGalleryDialogOpen(false);
       resetGalleryForm();
     },
-    onError: () => {
+    onError: (error: Error) => {
       toast({
-        title: "Erreur",
-        description: "Erreur lors de la modification de la galerie",
+        title: "Erreur de Modification de Galerie",
+        description: error.message || "Une erreur est survenue lors de la modification de la galerie.",
         variant: "destructive",
       });
     },
@@ -192,7 +193,8 @@ export function GalleryManagement() {
         method: 'DELETE',
       });
       if (!response.ok) {
-        throw new Error('Erreur lors de la suppression de la galerie');
+        const errorData = await response.json().catch(() => ({ message: "Échec de la suppression de la galerie" }));
+        throw new Error(errorData.message || "Échec de la suppression de la galerie");
       }
       return response.json();
     },
@@ -203,10 +205,10 @@ export function GalleryManagement() {
       });
       queryClient.invalidateQueries({ queryKey: ["galleries"] });
     },
-    onError: () => {
+    onError: (error: Error) => {
       toast({
-        title: "Erreur",
-        description: "Erreur lors de la suppression de la galerie",
+        title: "Erreur de Suppression de Galerie",
+        description: error.message || "Une erreur est survenue lors de la suppression de la galerie.",
         variant: "destructive",
       });
     },
@@ -221,7 +223,8 @@ export function GalleryManagement() {
         body: JSON.stringify(imageData),
       });
       if (!response.ok) {
-        throw new Error('Erreur lors de l\'ajout de l\'image');
+        const errorData = await response.json().catch(() => ({ message: "Échec de l'ajout de l'image" }));
+        throw new Error(errorData.message || "Échec de l'ajout de l'image");
       }
       return response.json();
     },
@@ -234,10 +237,10 @@ export function GalleryManagement() {
       setIsImageDialogOpen(false);
       resetImageForm();
     },
-    onError: () => {
+    onError: (error: Error) => {
       toast({
-        title: "Erreur",
-        description: "Erreur lors de l'ajout de l'image",
+        title: "Erreur d'Ajout d'Image",
+        description: error.message || "Une erreur est survenue lors de l'ajout de l'image.",
         variant: "destructive",
       });
     },
@@ -252,7 +255,8 @@ export function GalleryManagement() {
         body: JSON.stringify(data),
       });
       if (!response.ok) {
-        throw new Error('Erreur lors de la modification de l\'image');
+        const errorData = await response.json().catch(() => ({ message: "Échec de la modification de l'image" }));
+        throw new Error(errorData.message || "Échec de la modification de l'image");
       }
       return response.json();
     },
@@ -265,10 +269,10 @@ export function GalleryManagement() {
       setIsImageDialogOpen(false);
       resetImageForm();
     },
-    onError: () => {
+    onError: (error: Error) => {
       toast({
-        title: "Erreur",
-        description: "Erreur lors de la modification de l'image",
+        title: "Erreur de Modification d'Image",
+        description: error.message || "Une erreur est survenue lors de la modification de l'image.",
         variant: "destructive",
       });
     },
@@ -281,7 +285,8 @@ export function GalleryManagement() {
         method: 'DELETE',
       });
       if (!response.ok) {
-        throw new Error('Erreur lors de la suppression de l\'image');
+        const errorData = await response.json().catch(() => ({ message: "Échec de la suppression de l'image" }));
+        throw new Error(errorData.message || "Échec de la suppression de l'image");
       }
       return response.json();
     },
@@ -292,10 +297,10 @@ export function GalleryManagement() {
       });
       queryClient.invalidateQueries({ queryKey: ["gallery-images"] });
     },
-    onError: () => {
+    onError: (error: Error) => {
       toast({
-        title: "Erreur",
-        description: "Erreur lors de la suppression de l'image",
+        title: "Erreur de Suppression d'Image",
+        description: error.message || "Une erreur est survenue lors de la suppression de l'image.",
         variant: "destructive",
       });
     },
