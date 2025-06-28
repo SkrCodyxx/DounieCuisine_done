@@ -1,0 +1,27 @@
+--- Test parallèle des endpoints du projet ---
+[OK] http://localhost/menu (200, 0.009609s) -> <!doctype html><html lang="fr"><head><meta charset="utf-8"/><link rel="icon" href="/favicon.ico"/><meta name="viewport" content="width=device-width,initial-scale=1"/><meta name="theme-color" content="
+[FAIL] http://localhost/api/ping (404, 0.002706s) -> <!doctype html><html lang="fr"><head><meta charset="utf-8"/><link rel="icon" href="/favicon.ico"/><meta name="viewport" content="width=device-width,initial-scale=1"/><meta name="theme-color" content="
+[OK] http://localhost/contact (200, 0.008043s) -> <!doctype html><html lang="fr"><head><meta charset="utf-8"/><link rel="icon" href="/favicon.ico"/><meta name="viewport" content="width=device-width,initial-scale=1"/><meta name="theme-color" content="
+[OK] http://localhost/admin/staff (200, 0.010569s) -> <!doctype html><html lang="fr"><head><meta charset="utf-8"/><link rel="icon" href="/favicon.ico"/><meta name="viewport" content="width=device-width,initial-scale=1"/><meta name="theme-color" content="
+[OK] http://localhost/ (200, 0.000503s) -> <!doctype html><html lang="fr"><head><meta charset="utf-8"/><link rel="icon" href="/favicon.ico"/><meta name="viewport" content="width=device-width,initial-scale=1"/><meta name="theme-color" content="
+[OK] http://localhost/login (200, 0.000686s) -> <!doctype html><html lang="fr"><head><meta charset="utf-8"/><link rel="icon" href="/favicon.ico"/><meta name="viewport" content="width=device-width,initial-scale=1"/><meta name="theme-color" content="
+[OK] http://localhost/admin/login (200, 0.003118s) -> <!doctype html><html lang="fr"><head><meta charset="utf-8"/><link rel="icon" href="/favicon.ico"/><meta name="viewport" content="width=device-width,initial-scale=1"/><meta name="theme-color" content="
+[OK] http://localhost/cgu (200, 0.017535s) -> 
+[REDIRECT] http://localhost/admin (301, 0.003395s) -> 
+[OK] http://localhost/reservation (200, 0.006112s) -> 
+[OK] http://localhost/admin/orders (200, 0.003379s) -> 
+[OK] http://localhost/api/menu (200, 0.009187s) -> 
+[OK] http://localhost/gallery (200, 0.001496s) -> 
+[OK] http://localhost/not-found (200, 0.007092s) -> 
+[OK] http://localhost/register (200, 0.004785s) -> 
+[FAIL] http://localhost/api/users (401, 0.009420s) -> 
+[OK] http://localhost/admin/dashboard (200, 0.003876s) -> 
+[OK] http://localhost/admin/menu (200, 0.001048s) -> 
+[OK] http://localhost/mentions (200, 0.001034s) -> 
+[OK] http://localhost/app (200, 0.005598s) -> 
+[OK] http://localhost/admin/clients (200, 0.007549s) -> 
+[OK] http://localhost/about (200, 0.010054s) -> 
+[OK] http://localhost/admin/settings (200, 0.000751s) -> 
+[OK] http://localhost/admin/quotes (200, 0.006094s) -> 
+[OK] http://localhost/admin/calendar (200, 0.007817s) -> 
+--- Fin des tests ---

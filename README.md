@@ -6,36 +6,110 @@
 
 **Dounie Cuisine** est un système complet de gestion de service traiteur et organisation d'événements haïtiens avec une architecture double backend sécurisée, monitoring temps réel et déploiement automatisé.
 
-## 🚀 DÉPLOIEMENT RAPIDE - NOUVELLE VERSION
+---
 
-### Installation en Une Commande
+# 🚀 Guide de Déploiement 100% Fiable
 
+## 1. Préparation du serveur
+- Mettre à jour le système :
+  ```bash
+  sudo apt-get update && sudo apt-get upgrade -y
+  ```
+- Installer les outils de base :
+  ```bash
+  sudo apt-get install -y curl wget git build-essential lsb-release ca-certificates gnupg
+  ```
+- Ouvrir les ports nécessaires (80, 443, 3000, 5000, 8001)
+- S’assurer d’avoir les droits sudo/root
+
+## 2. Installation des dépendances système
+- Node.js (LTS) et npm
+- Python 3.11+ et pip
+- PostgreSQL 15+
+- MongoDB 7 (Debian 12/bookworm)
+- Nginx
+- Supervisor
+- UFW (firewall)
+- fail2ban
+
+## 3. Configuration des bases de données
+- Initialiser PostgreSQL :
+  ```bash
+  sudo systemctl start postgresql
+  sudo -u postgres createuser dounie_user --pwprompt
+  sudo -u postgres createdb dounie_cuisine -O dounie_user
+  ```
+- Initialiser MongoDB :
+  ```bash
+  sudo systemctl start mongod
+  # Vérifier que le service démarre sans erreur
+  ```
+
+## 4. Clonage du projet
 ```bash
-# Sur votre serveur Debian/Ubuntu
 git clone https://github.com/SkrCodyxx/DounieCuisine_done.git dounie-cuisine
 cd dounie-cuisine
-sudo ./deploy-production.sh
 ```
 
-**C'est tout !** Le script automatique va :
-- ✅ Installer toutes les dépendances
-- ✅ Configurer les bases de données (PostgreSQL + MongoDB)
-- ✅ Builder toutes les applications
-- ✅ Configurer Nginx et les services
-- ✅ Activer monitoring et sauvegardes
-- ✅ Tester automatiquement le système
+## 5. Installation des dépendances applicatives
+- Pour chaque dossier Node/React (api, administration, public, frontend) :
+  ```bash
+  cd <dossier>
+  npm install
+  ```
+- Pour le backend FastAPI :
+  ```bash
+  cd backend
+  pip install -r requirements.txt
+  ```
 
-### Accès Immédiat
+## 6. Configuration des variables d’environnement
+- Copier chaque `.env.example` en `.env` et adapter les valeurs (DB, URLs, secrets)
 
-Après déploiement, accédez à :
-- **🌍 Site Public :** `http://votre-ip`
-- **⚙️ Administration :** `http://votre-ip/admin`
-- **🔵 API Express :** `http://votre-ip/api`
-- **🟠 API FastAPI :** `http://votre-ip/api/v2`
+## 7. Build et préparation des applications
+- Builder les frontends :
+  ```bash
+  cd public && npm run build
+  cd ../administration && npm run build
+  ```
+- Builder l’API Node :
+  ```bash
+  cd ../api && npm run build
+  ```
 
-### Documentation Complète
+## 8. Configuration des services système
+- Configurer Supervisor pour lancer et surveiller :
+  - API Node
+  - Backend FastAPI
+  - Frontends
+- Configurer Nginx pour servir les frontends et faire le reverse proxy vers les APIs
+- Activer et configurer UFW et fail2ban
 
-📚 **[Guide de Déploiement Production](GUIDE_DEPLOIEMENT_PRODUCTION.md)** - Guide complet step-by-step
+## 9. Lancement des services
+```bash
+sudo systemctl start postgresql
+sudo systemctl start mongod
+sudo systemctl start nginx
+sudo systemctl start supervisor
+```
+- Vérifier que tous les services sont actifs
+
+## 10. Validation et tests
+- Lancer le script de test :
+  ```bash
+  sudo ./test-system.sh
+  ```
+- Vérifier les logs et corriger les éventuelles erreurs
+
+## 11. Sauvegardes et monitoring
+- Mettre en place les scripts de sauvegarde automatique (PostgreSQL, MongoDB, fichiers)
+- Mettre en place le monitoring automatique (script ou cron)
+
+---
+
+Pour plus de détails, consultez le fichier GUIDE_DEPLOIEMENT_PRODUCTION.md.
+
+**Ce guide garantit un déploiement reproductible, fiable et maintenable.**
 
 ## 🌟 Fonctionnalités Principales
 

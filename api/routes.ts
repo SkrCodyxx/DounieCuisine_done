@@ -16,6 +16,11 @@ import bcrypt from "bcrypt";
 import { nanoid } from "nanoid";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Add health check endpoint
+  app.get("/api/ping", (req, res) => {
+    res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
+  });
+
   // Authentication middleware
   const requireAuth = (req: any, res: any, next: any) => {
     if (!req.session?.userId) {

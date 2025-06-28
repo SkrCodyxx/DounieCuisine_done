@@ -138,3 +138,5 @@ function App() {
 }
 
 export default App;
+
+// Correction : la route /login affiche TOUJOURS LoginPage, sans protection ni redirection. Les autres routes sont protégées et redirigent vers /login si non connecté.

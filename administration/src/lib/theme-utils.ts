@@ -205,11 +205,11 @@ export function applyThemeToDOM(theme: ThemeConfig): void {
     root.style.setProperty("--festive-accent", theme.colors.accent);
   }
   
-  // Apply theme class to body
-  document.body.className = document.body.className.replace(/festive-\w+/g, "");
+  // Apply theme class to html (not body)
+  document.documentElement.className = document.documentElement.className.replace(/festive-\w+/g, "");
   const themeClass = getThemeClassName(theme.name);
   if (themeClass) {
-    document.body.classList.add(themeClass);
+    document.documentElement.classList.add(themeClass);
   }
 }
 

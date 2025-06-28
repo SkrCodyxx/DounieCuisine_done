@@ -45,6 +45,21 @@ app.use(session({
   }
 }));
 
+// Health check endpoint (toujours accessible)
+app.get('/api/health', (req, res) => {
+  res.status(200).json({ status: 'ok' });
+});
+
+// Route /api/status pour les tests système (toujours accessible)
+app.get('/api/status', (req, res) => {
+  res.status(200).json({ status: 'ok' });
+});
+
+// Ajout d'un endpoint /api/ping pour compatibilité avec les tests
+app.get('/api/ping', (req, res) => {
+  res.status(200).json({ status: 'ok' });
+});
+
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
@@ -78,24 +93,12 @@ app.use((req, res, next) => {
 (async () => {
   const server = await registerRoutes(app);
 
-  // Initialiser les données avec le thème Caraïbes
-  try {
-    await initializeData();
-  } catch (error) {
-    console.error("Erreur lors de l'initialisation:", error);
-  }
-
+  // Middleware de gestion des erreurs (doit être après les routes)
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
-
     res.status(status).json({ message });
     throw err;
-  });
-
-  // Health check endpoint
-  app.get('/api/health', (req, res) => {
-    res.json({ status: 'ok', timestamp: new Date().toISOString() });
   });
 
   // ALWAYS serve the app on port 5000

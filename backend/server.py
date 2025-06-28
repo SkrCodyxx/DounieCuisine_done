@@ -96,6 +96,19 @@ async def health_check():
         "version": "1.0.0"
     }
 
+@app.get("/api/v2/health")
+def health_v2():
+    return {"status": "healthy", "timestamp": datetime.utcnow().isoformat()}
+
+@app.get("/api/ping")
+async def ping():
+    return {
+        "status": "ok",
+        "timestamp": datetime.now().isoformat(),
+        "service": "Dounie Cuisine API",
+        "version": "1.0.0"
+    }
+
 # In-memory storage for reset codes and user credentials
 reset_codes_storage = {}
 user_credentials = {
