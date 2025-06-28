@@ -33,20 +33,10 @@ endpoints=(
   "/api/menu" 
 )
 
-# Token d'API pour l'authentification (à remplacer par un vrai token)
-API_TOKEN="your-api-token-here"
-
 function test_endpoint() {
   url="$1"
   full_url="$BASE_URL$url"
-  
-  # Ajout des headers d'authentification pour les endpoints API
-  if [[ "$url" == "/api/"* ]]; then
-    result=$(curl -s -w "CODE:%{http_code} TIME:%{time_total}\n" -H "Authorization: Bearer $API_TOKEN" -o tmp_curl_out "$full_url")
-  else
-    result=$(curl -s -w "CODE:%{http_code} TIME:%{time_total}\n" -o tmp_curl_out "$full_url")
-  fi
-  
+  result=$(curl -s -w "CODE:%{http_code} TIME:%{time_total}\n" -o tmp_curl_out "$full_url")
   code=$(echo "$result" | grep 'CODE:' | sed 's/.*CODE:\([0-9]*\).*/\1/')
   time=$(echo "$result" | grep 'TIME:' | sed 's/.*TIME:\([0-9.]*\).*/\1/')
   body=$(head -c 200 tmp_curl_out | tr '\n' ' ')
